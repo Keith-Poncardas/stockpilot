@@ -1,12 +1,13 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Plus, PenSquare, ArrowLeft } from 'lucide-react'
+import { MoreHorizontal, Plus, PenSquare, ArrowLeft, UserX } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@apollo/client'
 import { GET_USER } from './user.queries'
 import { formatDate } from '@/lib/utils'
 import UserAvatar from '@/components/UserAvatar'
 import Badge from '@/components/Badge'
+import { EmptyState } from '@/components/ui/empty-state'
 
 export function UserView() {
     const navigate = useNavigate()
@@ -18,9 +19,29 @@ export function UserView() {
     })
 
     if (loading) return <UserViewSkeleton />
-    if (error) return <p>Error: {error.message}</p>
+    if (error) {
+        const errorMessage = JSON.parse(error.message);
+        const errCode = errorMessage[0].code;
+
+        if (errCode === 'invalid_format') {
+            return (
+                <div className="flex flex-col items-center justify-center">
+                    <EmptyState
+                        icon={UserX}
+                        title="User Not Found"
+                        description="The user you are looking for does not exist."
+                    />
+                    <button className='bg-amber-400/15 text-amber-400 px-4 py-2 rounded-md cursor-pointer hover:bg-amber-400/20 flex items-center gap-2 font-bold' onClick={() => navigate(-1)}>
+                        <ArrowLeft size={16} />
+                        Go Back
+                    </button>
+                </div>
+            )
+        }
+
+
+    }
     if (!data) return <p>No user found</p>
-    if (error) return <p>Error: {error.message}</p>
 
     const user = data.getUser
     console.log(user)
