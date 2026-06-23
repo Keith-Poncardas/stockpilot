@@ -1,0 +1,212 @@
+[
+  {
+    "firstName": "Alice",
+    "lastName": "Smith",
+    "email": "alice.smith@example.com",
+    "role": "MANAGER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Bob",
+    "lastName": "Johnson",
+    "email": "bob.johnson@example.com",
+    "role": "CASHIER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Charlie",
+    "lastName": "Williams",
+    "email": "charlie.williams@example.com",
+    "role": "CASHIER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Diana",
+    "lastName": "Brown",
+    "email": "diana.brown@example.com",
+    "role": "ADMIN",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Edward",
+    "lastName": "Jones",
+    "email": "edward.jones@example.com",
+    "role": "MANAGER",
+    "status": "SUSPENDED"
+  },
+  {
+    "firstName": "Fiona",
+    "lastName": "Garcia",
+    "email": "fiona.garcia@example.com",
+    "role": "CASHIER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "George",
+    "lastName": "Miller",
+    "email": "george.miller@example.com",
+    "role": "CASHIER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Hannah",
+    "lastName": "Davis",
+    "email": "hannah.davis@example.com",
+    "role": "CASHIER",
+    "status": "TERMINATED"
+  },
+  {
+    "firstName": "Ian",
+    "lastName": "Rodriguez",
+    "email": "ian.rodriguez@example.com",
+    "role": "CASHIER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Jane",
+    "lastName": "Martinez",
+    "email": "jane.martinez@example.com",
+    "role": "MANAGER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Kevin",
+    "lastName": "Hernandez",
+    "email": "kevin.hernandez@example.com",
+    "role": "CASHIER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Laura",
+    "lastName": "Lopez",
+    "email": "laura.lopez@example.com",
+    "role": "ADMIN",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Michael",
+    "lastName": "Gonzalez",
+    "email": "michael.gonzalez@example.com",
+    "role": "CASHIER",
+    "status": "SUSPENDED"
+  },
+  {
+    "firstName": "Nina",
+    "lastName": "Wilson",
+    "email": "nina.wilson@example.com",
+    "role": "CASHIER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Oliver",
+    "lastName": "Anderson",
+    "email": "oliver.anderson@example.com",
+    "role": "MANAGER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Paula",
+    "lastName": "Thomas",
+    "email": "paula.thomas@example.com",
+    "role": "CASHIER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Quinn",
+    "lastName": "Taylor",
+    "email": "quinn.taylor@example.com",
+    "role": "CASHIER",
+    "status": "TERMINATED"
+  },
+  {
+    "firstName": "Rachel",
+    "lastName": "Moore",
+    "email": "rachel.moore@example.com",
+    "role": "ADMIN",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Sam",
+    "lastName": "Jackson",
+    "email": "sam.jackson@example.com",
+    "role": "MANAGER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Tina",
+    "lastName": "Martin",
+    "email": "tina.martin@example.com",
+    "role": "CASHIER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Uma",
+    "lastName": "Lee",
+    "email": "uma.lee@example.com",
+    "role": "CASHIER",
+    "status": "SUSPENDED"
+  },
+  {
+    "firstName": "Victor",
+    "lastName": "Perez",
+    "email": "victor.perez@example.com",
+    "role": "CASHIER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Wendy",
+    "lastName": "Thompson",
+    "email": "wendy.thompson@example.com",
+    "role": "MANAGER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Xander",
+    "lastName": "White",
+    "email": "xander.white@example.com",
+    "role": "CASHIER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Yara",
+    "lastName": "Harris",
+    "email": "yara.harris@example.com",
+    "role": "ADMIN",
+    "status": "TERMINATED"
+  },
+  {
+    "firstName": "Zack",
+    "lastName": "Sanchez",
+    "email": "zack.sanchez@example.com",
+    "role": "CASHIER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Amy",
+    "lastName": "Clark",
+    "email": "amy.clark@example.com",
+    "role": "MANAGER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Brian",
+    "lastName": "Ramirez",
+    "email": "brian.ramirez@example.com",
+    "role": "CASHIER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Chloe",
+    "lastName": "Lewis",
+    "email": "chloe.lewis@example.com",
+    "role": "CASHIER",
+    "status": "ACTIVE"
+  },
+  {
+    "firstName": "Daniel",
+    "lastName": "Robinson",
+    "email": "daniel.robinson@example.com",
+    "role": "CASHIER",
+    "status": "SUSPENDED"
+  }
+]
