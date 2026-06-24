@@ -1,7 +1,7 @@
 import { prisma } from "@/lib";
 import { createPaginator, generateReadablePassword, smartDelete, throwConflict, throwNotFound } from "@/utils";
 import { Prisma, UserApprovalStatus, UserRole, UserStatus } from "@prisma/client";
-import { adminCreateUserSchema, CreateUserInput, EditUserInput, editUserSchema, PaginatedUsersInput, paginatedUsersSchema, UpdateUserStatusInput, updateUserStatusSchema, UserIdInput } from "./user.validation";
+import { adminCreateUserSchema, AssignRoleInput, assignRoleSchema, ChangeUserApprovalStatusInput, changeUserApprovalStatusSchema, CreateUserInput, EditUserInput, editUserSchema, PaginatedUsersInput, paginatedUsersSchema, UpdateUserStatusInput, updateUserStatusSchema, UserIdInput } from "./user.validation";
 import * as argon2 from "argon2";
 import { userIdSchema } from "@/schemas";
 
@@ -239,9 +239,9 @@ export class UserService {
 
         if (!user) throwNotFound("User not found");
 
-        if (user.status === UserStatus.TERMINATED) {
-            throwConflict('Cannot change status of a terminated user');
-        };
+        if (user.approvalStatus !== UserApprovalStatus.APPROVED) {
+            throwConflict(`Cannot change status of an unapproved user`);
+        }
 
         if (user.status === status) {
             throwConflict(`User is already ${status}`);
@@ -251,13 +251,85 @@ export class UserService {
             throwConflict(`Cannot change status of ${UserRole.SUPER_ADMIN} user`);
         }
 
-        if (user.approvalStatus === UserApprovalStatus.PENDING) {
-            throwConflict("Cannot change status of an unapproved user");
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: { status },
+            select: this.select,
+        });
+
+        return updatedUser;
+
+    }
+
+    /**
+     * Assign user role
+     */
+    async assignRole(input: AssignRoleInput) {
+
+        const { userId, role } = assignRoleSchema.parse(input);
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: this.select
+        });
+
+        if (!user) throwNotFound("User not found");
+
+        if (user.approvalStatus !== UserApprovalStatus.APPROVED) {
+            throwConflict(`Cannot assign role to an unapproved user`);
+        }
+
+        if (user.role === role) {
+            throwConflict(`User already has the role ${role}`);
+        };
+
+        if (user.role === UserRole.SUPER_ADMIN) {
+            throwConflict(`Cannot change role of ${UserRole.SUPER_ADMIN} user`);
         }
 
         const updatedUser = await prisma.user.update({
             where: { id: userId },
-            data: { status },
+            data: { role },
+            select: this.select,
+        });
+
+        return updatedUser;
+
+    }
+
+    /**
+     * Change user approval status
+     */
+    async approveRejectUser(input: ChangeUserApprovalStatusInput) {
+
+        const { userId, approvalStatus } = changeUserApprovalStatusSchema.parse(input);
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: this.select
+        });
+
+        if (!user) throwNotFound("User not found");
+
+        if (
+            user.approvalStatus === UserApprovalStatus.APPROVED ||
+            user.approvalStatus === UserApprovalStatus.REJECTED
+        ) {
+            throwConflict(`Cannot change the approval status of an ${user.approvalStatus} user`);
+        };
+
+        if (user.status === UserStatus.TERMINATED) {
+            throwConflict(
+                'Cannot change the approval status of a terminated user'
+            );
+        };
+
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                approvalStatus: approvalStatus,
+                status: approvalStatus === UserApprovalStatus.APPROVED ? UserStatus.ACTIVE : UserStatus.TERMINATED
+            },
             select: this.select,
         });
 

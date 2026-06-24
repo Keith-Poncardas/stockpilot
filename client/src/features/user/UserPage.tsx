@@ -68,7 +68,7 @@ export function UserPage() {
     // 3. Extract query parameters from our generic hook
     const { table, queryParams, setQueryData } = useDataTable({
         columns,
-        initialPageSize: 8,
+        initialPageSize: 10,
     })
 
     // Reset pagination when filters change
@@ -144,7 +144,7 @@ export function UserPage() {
                             <Filter className="h-4 w-4 text-muted-foreground" strokeWidth={2} />
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-80 p-4" align="start">
+                    <PopoverContent className="w-96 p-4" align="start">
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-1">
@@ -154,7 +154,7 @@ export function UserPage() {
                                     </p>
                                 </div>
                             </div>
-                            <div className="grid gap-3">
+                            <div className="grid grid-cols-2 gap-3">
                                 <SelectFilter
                                     value={roleFilter}
                                     onChange={setRoleFilter}
@@ -220,7 +220,7 @@ export function UserPage() {
                     </PopoverContent>
                 </Popover>
 
-                {(roleFilter || statusFilter || dateFrom || dateTo || acsDescFilter) && (
+                {(roleFilter || statusFilter || dateFrom || dateTo || acsDescFilter || approvalStatusFilter) && (
                     <Button
                         onClick={() => {
                             setRoleFilter('')
@@ -228,6 +228,7 @@ export function UserPage() {
                             setDateFrom('')
                             setDateTo('')
                             setAcsDescFilter('')
+                            setApprovalStatusFilter('')
                         }}
                         className="h-8 lg:h-9 px-3 lg:px-4 text-xs lg:text-sm bg-red-500 hover:bg-red-600 text-white"
                     >

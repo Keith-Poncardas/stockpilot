@@ -1,6 +1,7 @@
 "use client"
 
 import type { Table as TableType } from "@tanstack/react-table"
+import { ArrowLeft, ArrowRight } from "lucide-react"
 
 interface DataTablePaginationProps<TData> {
   table: TableType<TData>
@@ -32,7 +33,7 @@ export function DataTablePagination<TData>({
           disabled={!table.getCanPreviousPage()}
           className="w-7 h-7 sm:w-8 sm:h-8 text-xs sm:text-sm rounded-sm border border-gray-200 bg-white flex items-center justify-center font-semibold text-gray-500 hover:bg-amber-400 hover:border-amber-400 hover:text-black disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200 disabled:hover:text-gray-500 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-400"
         >
-          ←
+          <ArrowLeft size={16} strokeWidth={3} />
         </button>
 
         {Array.from({ length: pageCount }).map((_, idx) => {
@@ -56,7 +57,7 @@ export function DataTablePagination<TData>({
           disabled={!table.getCanNextPage()}
           className="w-7 h-7 sm:w-8 sm:h-8 text-xs sm:text-sm rounded-sm border border-gray-200 bg-white flex items-center justify-center font-semibold text-gray-500 hover:bg-amber-400 hover:border-amber-400 hover:text-black disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200 disabled:hover:text-gray-500 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-400"
         >
-          →
+          <ArrowRight size={16} strokeWidth={3} />
         </button>
       </div>
     </div>

@@ -36,7 +36,7 @@ export function DatePicker({
           variant="outline"
           disabled={disabled}
           className={cn(
-            "w-45 h-10 justify-start text-left font-normal border-slate-200 hover:bg-slate-50",
+            "w-full h-10 justify-start text-left font-normal border-slate-200 hover:bg-slate-50",
             !value && "text-muted-foreground",
             className
           )}
@@ -45,7 +45,7 @@ export function DatePicker({
           {selectedDate ? selectedDate.toLocaleDateString() : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+      <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
           selected={selectedDate}

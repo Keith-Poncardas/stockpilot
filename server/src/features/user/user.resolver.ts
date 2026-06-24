@@ -1,6 +1,6 @@
 import { UUIDInput } from "@/schemas";
 import { userService } from "./user.service";
-import { CreateUserInput, EditUserInput, PaginatedUsersInput, UpdateUserStatusInput } from "./user.validation";
+import { AssignRoleInput, ChangeUserApprovalStatusInput, CreateUserInput, EditUserInput, PaginatedUsersInput, UpdateUserStatusInput } from "./user.validation";
 import { protectResolvers } from "@/graphql/helpers";
 
 export const userResolver = {
@@ -54,6 +54,26 @@ export const userResolver = {
             { input }: { input: UpdateUserStatusInput }
         ) => {
             return userService.changeUserStatus(input);
+        },
+
+        /**
+         * Approve or reject user
+         */
+        approveRejectUser: async (
+            _: unknown,
+            { input }: { input: ChangeUserApprovalStatusInput }
+        ) => {
+            return userService.approveRejectUser(input);
+        },
+
+        /**
+         * Assign user role
+         */
+        assignRole: async (
+            _: unknown,
+            { input }: { input: AssignRoleInput }
+        ) => {
+            return userService.assignRole(input);
         },
 
         /**

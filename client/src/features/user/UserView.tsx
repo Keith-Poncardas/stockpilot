@@ -44,7 +44,6 @@ export function UserView() {
     if (!data) return <p>No user found</p>
 
     const user = data.getUser
-    console.log(user)
 
     return (
         <div className="w-full min-h-[calc(100vh-4rem)] ">

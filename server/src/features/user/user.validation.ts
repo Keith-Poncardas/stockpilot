@@ -18,6 +18,14 @@ const userStatusSchema = z.enum(
     }
 );
 
+/** APPROVABLE USER APPROVAL STATUS SCHEMA */
+export const assignableUserApprovalStatusSchema = z.enum(
+    excludeEnumValue(UserApprovalStatus, UserApprovalStatus.PENDING),
+    {
+        error: "Invalid user approval status",
+    }
+);
+
 /** USER APPROVAL STATUS SCHEMA */
 const userApprovalStatusSchema = z.enum(
     UserApprovalStatus,
@@ -73,7 +81,7 @@ const baseUserSchema = z.object({
 export const adminCreateUserSchema = baseUserSchema.extend({
     role: assignableUserRoleSchema
         .optional()
-        .default(UserRole.CASHIER)
+        .default(UserRole.UNASSIGNED)
 });
 
 /** ADMIN UPDATE USER SCHEMA */
@@ -95,10 +103,22 @@ export const editUserSchema = z.object({
     }
 );
 
+/** CHANGE USER APPROVAL STATUS SCHEMA */
+export const changeUserApprovalStatusSchema = z.object({
+    userId: userIdSchema,
+    approvalStatus: assignableUserApprovalStatusSchema
+});
+
 /** UPDATE USER STATUS SCHEMA */
 export const updateUserStatusSchema = z.object({
     userId: userIdSchema,
     status: userStatusSchema
+});
+
+/** ASSIGN ROLE SCHEMA */
+export const assignRoleSchema = z.object({
+    userId: userIdSchema,
+    role: assignableUserRoleSchema
 });
 
 /** INFERED TYPES */
@@ -107,3 +127,5 @@ export type PaginatedUsersInput = z.infer<typeof paginatedUsersSchema>;
 export type CreateUserInput = z.infer<typeof adminCreateUserSchema>;
 export type EditUserInput = z.infer<typeof editUserSchema>;
 export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
+export type ChangeUserApprovalStatusInput = z.infer<typeof changeUserApprovalStatusSchema>;
+export type AssignRoleInput = z.infer<typeof assignRoleSchema>;

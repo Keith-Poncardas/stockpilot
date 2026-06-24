@@ -1,7 +1,7 @@
 import { GraphQLContext } from "@/types";
 import { PaginationInput, throwUnauthorized } from "@/utils";
 import { productService } from "./product.service";
-import { CreateProductInput, EditProductInput, GetProductsInput } from "./product.validation";
+import { CreateProductInput, EditProductInput, FilterProductsInput } from "./product.validation";
 
 export const productResolver = {
 
@@ -16,7 +16,7 @@ export const productResolver = {
             ctx: GraphQLContext
         ) => {
             if (!ctx.user) throwUnauthorized();
-            return productService.getProduct({ id: productId });
+            return productService.getProduct(productId);
         },
 
         /**
@@ -29,7 +29,7 @@ export const productResolver = {
                 filter
             }: {
                 pagination: PaginationInput,
-                filter?: GetProductsInput
+                filter?: FilterProductsInput
             },
             ctx: GraphQLContext
         ) => {
@@ -86,7 +86,7 @@ export const productResolver = {
             ctx: GraphQLContext
         ) => {
             if (!ctx.user) throwUnauthorized();
-            return productService.softDeleteProduct({ id: input.id });
+            return productService.deleteProduct(input.id);
         },
 
         /**
@@ -98,7 +98,7 @@ export const productResolver = {
             ctx: GraphQLContext
         ) => {
             if (!ctx.user) throwUnauthorized();
-            return productService.restoreProduct({ id: input.id });
+            return productService.restoreProduct(input.id);
         },
 
     }

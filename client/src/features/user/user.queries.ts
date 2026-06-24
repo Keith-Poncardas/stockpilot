@@ -45,3 +45,30 @@ export const GET_USER = gql`
         }
     }
 `;
+
+export const APPROVE_REJECT_USER = gql`
+  mutation ApproveRejectUser($input: ApproveRejectUserInput!) {
+    approveRejectUser(input: $input) {
+      id
+      email
+    }
+  }
+`;
+
+export const CHANGE_USER_STATUS = gql`
+    mutation ChangeUserStatus($input: UpdateUserStatusInput!) {
+        changeUserStatus(input: $input) {
+            id
+            email
+        }
+    }
+`;
+
+export const ASSIGN_ROLE = gql`
+    mutation AssignRole($input: AssignRoleInput!) {
+        assignRole(input: $input) {
+            id
+            email
+        }
+    }
+`;

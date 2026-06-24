@@ -1,29 +1,279 @@
-import type { ColumnDef } from "@tanstack/react-table"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Button } from "@/components/ui/button"
-import { Check, Eye, Lock, X, Pause, Ban } from "lucide-react"
+import type { ColumnDef, Row } from "@tanstack/react-table"
+import { Lock } from "lucide-react"
 import { useAuthStore } from "@/store"
-import { Link, useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import UserAvatar from "@/components/UserAvatar"
-import { formatDate } from "@/lib/utils"
-import Badge from "@/components/Badge"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import { getRoleColor, getStatusColor, getApprovalStatusColor, cn, formatDate } from "@/lib/utils"
+import ActionPopover from "@/components/ActionPopover"
+import { useApolloClient } from '@apollo/client'
+import { APPROVAL_BORDER_COLORS } from "@/config/colors"
+import { Role, Status, ApprovalStatus } from "@/constants/enums"
+import { APPROVE_REJECT_USER, CHANGE_USER_STATUS, ASSIGN_ROLE } from "./user.queries"
+import { Checkbox } from "@/components/ui/checkbox"
 
 export type User = {
   id: string
   firstName: string
   lastName: string
   email: string
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'CASHIER'
-  status: 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED'
-  approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED'
+  role: Role
+  status: Status
+  approvalStatus: ApprovalStatus
   createdAt: string
   isCurrentUser?: boolean
 }
+
+// --- Reusable Sub-components & Helpers ---
+
+const ActionCellContent = ({
+  label,
+  approvalStatus,
+  isLocked,
+  withBorder = true
+}: {
+  label: string;
+  approvalStatus: string;
+  isLocked: boolean;
+  withBorder?: boolean;
+}) => {
+  const borderLeftColor = APPROVAL_BORDER_COLORS[approvalStatus] || APPROVAL_BORDER_COLORS.DEFAULT;
+
+  return (
+    <div className={cn(
+      "flex items-center justify-center gap-1.5 px-4 py-3 h-full",
+      withBorder && "relative w-full before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-1 before:h-1/2 before:rounded-r-[3px] " + borderLeftColor,
+      isLocked && "opacity-50"
+    )}>
+      {isLocked && <Lock size={16} strokeWidth={2.1} />}
+      <span>{label.replace(/_/g, ' ')}</span>
+    </div>
+  );
+};
+
+const AVAILABLE_STATUSES = [Status.ACTIVE, Status.SUSPENDED, Status.TERMINATED, Status.INACTIVE];
+
+const getStatusOptions = (currentStatus: string, onUpdate: (s: string) => void) => {
+  return AVAILABLE_STATUSES
+    .filter((s) => s !== currentStatus)
+    .map((s) => {
+      let label: string = s;
+
+      if (s === Status.ACTIVE) label = 'ACTIVATE';
+      else if (s === Status.SUSPENDED) label = 'SUSPEND';
+      else if (s === Status.TERMINATED) label = 'TERMINATE';
+      else if (s === Status.INACTIVE) label = 'DEACTIVATE';
+      else label = label.toUpperCase();
+
+      return {
+        id: s,
+        label,
+        colorClassName: getStatusColor(s),
+        onClick: () => onUpdate(s)
+      };
+    });
+};
+
+const getApprovalOptions = (onUpdate: (s: string) => void) => {
+  return [ApprovalStatus.APPROVED, ApprovalStatus.REJECTED].map((status) => ({
+    id: status,
+    label: status === ApprovalStatus.APPROVED ? 'APPROVE' : 'REJECT',
+    colorClassName: getApprovalStatusColor(status),
+    onClick: () => onUpdate(status)
+  }));
+};
+
+const AVAILABLE_ROLES = [Role.ADMIN, Role.MANAGER, Role.CASHIER];
+
+const getRoleOptions = (currentRole: string, onUpdate: (s: string) => void) => {
+  return AVAILABLE_ROLES
+    .filter((r) => r !== currentRole)
+    .map((r) => ({
+      id: r,
+      label: r.replace(/_/g, ' '),
+      colorClassName: getRoleColor(r),
+      onClick: () => onUpdate(r)
+    }));
+};
+
+const UserInfoCell = ({ row }: { row: Row<User> }) => {
+  const { user } = useAuthStore();
+  const { id, firstName, lastName, role } = row.original;
+  const name = `${firstName} ${lastName}`;
+  const isCurrentUser = user?.id === id;
+
+  return (
+    <Link to={`/users/${id}/view`} className="flex items-center gap-2">
+      <UserAvatar fallback={row.original} role={role} size="sm" className="w-7 h-7" />
+      <div className="flex flex-inline items-center gap-1.5">
+        <span className="font-semibold text-sm text-gray-900 hover:underline">{name}</span>
+        {isCurrentUser && (
+          <span className="text-[10px] text-gray-400 font-medium leading-none mt-0.5">(You)</span>
+        )}
+      </div>
+    </Link>
+  );
+};
+
+const RoleCell = ({ row }: { row: Row<User> }) => {
+  const client = useApolloClient();
+  const { role, approvalStatus, id } = row.original;
+  const isRoleDisabled = role === Role.SUPER_ADMIN || approvalStatus !== ApprovalStatus.APPROVED;
+
+  const handleUpdate = async (newRole: string) => {
+    const prevRole = role;
+
+    // Optimistic update
+    client.cache.modify({
+      id: client.cache.identify({ __typename: 'User', id }),
+      fields: {
+        role() { return newRole; }
+      }
+    });
+
+    try {
+      await client.mutate({
+        mutation: ASSIGN_ROLE,
+        variables: {
+          input: {
+            userId: id,
+            role: newRole
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Failed to update role:', error);
+      // Revert cache on error
+      client.cache.modify({
+        id: client.cache.identify({ __typename: 'User', id }),
+        fields: {
+          role() { return prevRole; }
+        }
+      });
+    }
+  };
+
+  return (
+    <ActionPopover title="Update Role" options={getRoleOptions(role, handleUpdate)} disabled={isRoleDisabled}>
+      <ActionCellContent
+        label={role}
+        approvalStatus={approvalStatus}
+        isLocked={isRoleDisabled}
+      />
+    </ActionPopover>
+  );
+};
+
+const StatusCell = ({ row }: { row: Row<User> }) => {
+  const client = useApolloClient();
+  const { role, status, approvalStatus, id } = row.original;
+  const isStatusDisabled = role === Role.SUPER_ADMIN || approvalStatus === ApprovalStatus.PENDING || approvalStatus === ApprovalStatus.REJECTED;
+
+  const handleUpdate = async (newStatus: string) => {
+    const prevStatus = status;
+
+    // Optimistic cache update
+    client.cache.modify({
+      id: client.cache.identify({ __typename: 'User', id }),
+      fields: {
+        status() { return newStatus; }
+      }
+    });
+
+    try {
+      await client.mutate({
+        mutation: CHANGE_USER_STATUS,
+        variables: {
+          input: {
+            userId: id,
+            status: newStatus
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      // Revert cache on error
+      client.cache.modify({
+        id: client.cache.identify({ __typename: 'User', id }),
+        fields: {
+          status() { return prevStatus; }
+        }
+      });
+    }
+  };
+
+  return (
+    <ActionPopover title="Update Status" options={getStatusOptions(status, handleUpdate)} disabled={isStatusDisabled}>
+      <ActionCellContent
+        label={status}
+        approvalStatus={approvalStatus}
+        isLocked={isStatusDisabled}
+      />
+    </ActionPopover>
+  );
+};
+
+const ApprovalStatusCell = ({ row }: { row: Row<User> }) => {
+  const { user } = useAuthStore();
+  const client = useApolloClient();
+  const { approvalStatus, id } = row.original;
+
+  const isCurrentUser = user?.id === id;
+  const isFinalDecision = approvalStatus === ApprovalStatus.APPROVED || approvalStatus === ApprovalStatus.REJECTED;
+  const isLocked = isCurrentUser || isFinalDecision;
+
+  const handleUpdate = async (newApprovalStatus: string) => {
+    const prevApprovalStatus = approvalStatus;
+    const prevStatus = row.original.status;
+
+    // Optimistic cache update
+    client.cache.modify({
+      id: client.cache.identify({ __typename: 'User', id }),
+      fields: {
+        approvalStatus() { return newApprovalStatus; },
+        status(currentStatus) {
+          // Auto-update status when approval changes
+          return newApprovalStatus === ApprovalStatus.APPROVED ? Status.ACTIVE :
+            newApprovalStatus === ApprovalStatus.REJECTED ? Status.TERMINATED : currentStatus;
+        }
+      }
+    });
+
+    try {
+      await client.mutate({
+        mutation: APPROVE_REJECT_USER,
+        variables: {
+          input: {
+            userId: id,
+            approvalStatus: newApprovalStatus
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Failed to update approval status:', error);
+      // Revert cache on error
+      client.cache.modify({
+        id: client.cache.identify({ __typename: 'User', id }),
+        fields: {
+          approvalStatus() { return prevApprovalStatus; },
+          status() { return prevStatus; }
+        }
+      });
+    }
+  };
+
+  return (
+    <ActionPopover title="Update Approval Status" options={getApprovalOptions(handleUpdate)} disabled={isLocked}>
+      <ActionCellContent
+        label={approvalStatus}
+        approvalStatus={approvalStatus}
+        isLocked={isLocked}
+        withBorder={false}
+      />
+    </ActionPopover>
+  );
+};
+
+// --- Columns Definition ---
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -57,25 +307,7 @@ export const columns: ColumnDef<User>[] = [
   {
     accessorKey: "name",
     header: "Name",
-    cell: ({ row }) => {
-      const { user } = useAuthStore();
-
-      const firstName = row.original.firstName
-      const lastName = row.original.lastName
-      const name = `${firstName} ${lastName}`
-      const isCurrentUser = user?.id === row.original.id
-      return (
-        <Link to={`/users/${row.original.id}/view`} className="flex items-center gap-2  ">
-          <UserAvatar fallback={row.original} role={row.original.role} size="sm" className="w-7 h-7" />
-          <div className="flex flex-inline items-center gap-1.5 ">
-            <span className="font-semibold text-sm text-gray-900 hover:underline">{name}</span>
-            {isCurrentUser && (
-              <span className="text-[10px] text-gray-400 font-medium leading-none mt-0.5">(You)</span>
-            )}
-          </div>
-        </Link>
-      )
-    },
+    cell: ({ row }) => <UserInfoCell row={row} />,
     size: 280,
   },
   {
@@ -88,156 +320,53 @@ export const columns: ColumnDef<User>[] = [
   },
   {
     accessorKey: "role",
-    header: "Role",
-    cell: ({ row }) => {
-      const role = row.original.role
-      const isSuperAdmin = role === "SUPER_ADMIN";
-
-      if (isSuperAdmin) return <Badge status={role} type="ROLE" Icon={Lock} />
-
-      return <Badge status={role} type="ROLE" />
+    header: () => <div className="text-center">Role</div>,
+    meta: {
+      cellClassName: (row: User) => cn(
+        "p-0 text-center text-xs font-semibold tracking-wide h-[1px]",
+        getRoleColor(row.role)
+      ),
     },
+    cell: ({ row }) => <RoleCell row={row} />,
     size: 130,
   },
   {
     accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const isSuperAdmin = row.original.role === 'SUPER_ADMIN'
-      const status = row.original.status
-
-      if (isSuperAdmin) return <Badge status={status} type="STATUS" Icon={Lock} />
-
-      if (row.original.approvalStatus === "PENDING") {
-        return <Badge status={row.original.status} type="STATUS" Icon={Lock} />
-      }
-
-      return (
-        <Popover>
-          <PopoverTrigger asChild>
-            <button className="focus:outline-hidden cursor-pointer rounded-sm hover:ring-2 hover:ring-gray-200 transition-all">
-              <Badge status={status} type="STATUS" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-36 p-1.5" align="start">
-            <div className="flex flex-col gap-1">
-              <div className="px-2 py-1 text-xs font-semibold text-gray-500">Update Status</div>
-              {['ACTIVE', 'SUSPENDED', 'TERMINATED']
-                .filter((s) => s !== status)
-                .map((s) => {
-                  let label = s;
-                  if (s === 'ACTIVE') {
-                    label = status === 'PENDING' || status === 'INACTIVE' ? 'Activate' : 'Reactivate';
-                  } else if (s === 'SUSPENDED') {
-                    label = 'Suspend';
-                  } else if (s === 'TERMINATED') {
-                    label = 'Terminate';
-                  }
-
-                  return (
-                    <Button
-                      key={s}
-                      variant="ghost"
-                      className="w-full justify-start px-2 py-1.5 text-sm rounded-sm hover:bg-gray-100 transition-colors"
-                      onClick={() => {
-                        // Placeholder for future update logic
-                        console.log(`Update to ${s}`)
-                      }}
-                    >
-                      {s === 'ACTIVE' && <Check className="mr-2 h-4 w-4 text-green-600" />}
-                      {s === 'SUSPENDED' && <Pause className="mr-2 h-4 w-4 text-orange-600" />}
-                      {s === 'TERMINATED' && <Ban className="mr-2 h-4 w-4 text-red-600" />}
-                      {label}
-                    </Button>
-                  )
-                })}
-            </div>
-          </PopoverContent>
-        </Popover>
-      )
+    header: () => <div className="text-center">Status</div>,
+    meta: {
+      cellClassName: (row: User) => cn(
+        "p-0 text-center text-xs font-semibold tracking-wide h-[1px]",
+        getStatusColor(row.status)
+      ),
     },
+    cell: ({ row }) => <StatusCell row={row} />,
     size: 130,
   },
   {
     accessorKey: "approval-status",
-    header: "Approval Status",
-    cell: ({ row }) => {
-      const { user } = useAuthStore();
-
-      const approvalStatus = row.original.approvalStatus
-      const isCurrentUserAndSuperAdmin = user?.id === row.original.id && user?.role === 'SUPER_ADMIN' || approvalStatus === 'APPROVED'
-
-      if (isCurrentUserAndSuperAdmin) {
-        return <Badge status={approvalStatus} type="APPROVAL_STATUS" Icon={Lock} />
-      }
-
-      return (
-        <Popover>
-          <PopoverTrigger asChild>
-            <button className="focus:outline-hidden cursor-pointer rounded-sm hover:ring-2 hover:ring-gray-200 transition-all">
-              <Badge status={approvalStatus} type="APPROVAL_STATUS" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-36 p-1.5" align="start">
-            <div className="flex flex-col gap-1">
-              <div className="px-2 py-1 text-xs font-semibold text-gray-500">Update Approval Status</div>
-              {['APPROVE', 'REJECT'].map((status) => (
-                <Button
-                  key={status}
-                  variant="ghost"
-                  className="w-full justify-start px-2 py-1.5 text-sm rounded-sm hover:bg-gray-100 transition-colors"
-                  onClick={() => {
-                    // Placeholder for future update logic
-                    console.log(`Update to ${status}`)
-                  }}
-                >
-                  {status === 'APPROVE' && <Check className="mr-2 h-4 w-4 text-green-600" />}
-                  {status === 'REJECT' && <X className="mr-2 h-4 w-4 text-red-600" />}
-                  {status}
-                </Button>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
-      )
+    header: () => <div className="text-center">Approval Status</div>,
+    meta: {
+      cellClassName: (row: User) => cn("p-0 text-center text-xs font-semibold tracking-wide h-[1px]", getApprovalStatusColor(row.approvalStatus)),
     },
+    cell: ({ row }) => <ApprovalStatusCell row={row} />,
     size: 130,
   },
   {
     accessorKey: "createdAt",
     header: "Joined",
-    cell: ({ row }) => {
-      return <span className="text-sm text-gray-400 dark:text-zinc-500">{formatDate(row.original.createdAt)}</span>
-    },
+    cell: ({ row }) => <span className="text-sm text-gray-400">{formatDate(row.original.createdAt)}</span>,
     size: 140,
   },
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => {
-
-      const navigate = useNavigate()
-
+    cell: () => {
       return (
         <div className="flex gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate(`/users/${row.original.id}/view`)}
-            title="View User"
-          >
-            <Eye size={16} strokeWidth={2} className="text-muted-foreground" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            title="Approved User"
-          >
-            <Check size={16} strokeWidth={2} className="text-muted-foreground" />
-          </Button>
+          -
         </div>
-      )
+      );
     },
     size: 100,
   },
-]
+];

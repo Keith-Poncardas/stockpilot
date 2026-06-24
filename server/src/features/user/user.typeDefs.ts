@@ -6,10 +6,12 @@ export const userTypeDefs = `#graphql
         ADMIN
         MANAGER
         CASHIER
+        UNASSIGNED
     }
 
     # User status enum
     enum UserStatus {
+        INACTIVE
         ACTIVE
         SUSPENDED
         TERMINATED
@@ -161,6 +163,18 @@ export const userTypeDefs = `#graphql
         status: UserStatus!
     }
 
+    # Change user approval status input
+    input ApproveRejectUserInput {
+        userId: ID!
+        approvalStatus: ApprovalStatus!
+    }
+
+    # Assign role input
+    input AssignRoleInput {
+        userId: ID!
+        role: UserRole!
+    }
+
     # Query type
     type Query {
         getUser(userId: ID!): UserDetail
@@ -173,6 +187,8 @@ export const userTypeDefs = `#graphql
         modifyUser(input: EditUserInput!): User
         resetPassword(userId: ID!): ResetPasswordResponse
         changeUserStatus(input: UpdateUserStatusInput!): User
+        approveRejectUser(input: ApproveRejectUserInput!): User
+        assignRole(input: AssignRoleInput!): User
         deleteUser(userId: ID!): DeleteResult
     }
 

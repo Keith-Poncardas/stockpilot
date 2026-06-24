@@ -172,10 +172,10 @@ function Sidebar() {
                             role={user?.role}
                         />
                         <div className="flex-1 min-w-0">
-                            <p className="text-white text-[13px] font-semibold truncate">
+                            <p className="text-white text-[13px] font-extrabold truncate">
                                 {user?.firstName} {user?.lastName}
                             </p>
-                            <p className="text-gray-500 text-[11px] truncate">
+                            <p className="text-gray-500 text-[11px] font-bold truncate">
                                 {user?.email}
                             </p>
                         </div>
@@ -227,7 +227,7 @@ function NavItem({
             )}
         >
             {icon}
-            <span className="flex-1">{label}</span>
+            <span className="flex-1 font-extrabold">{label}</span>
             {badge && (
                 <Badge
                     className={cn(

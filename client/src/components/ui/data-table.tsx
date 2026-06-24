@@ -1,5 +1,6 @@
 import type { Table as TableType } from "@tanstack/react-table"
 import { flexRender } from "@tanstack/react-table"
+import { cn } from "@/lib/utils"
 
 import {
   Table,
@@ -130,14 +131,21 @@ export function DataTable<TData>({ table, isLoading }: DataTableProps<TData>) {
                   data-state={row.getIsSelected() && "selected"}
                   className="border-b border-gray-100 hover:bg-gray-50/50 dark:border-zinc-800 dark:hover:bg-zinc-900/50 data-[state=selected]:bg-amber-50/20"
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="px-4 py-3 text-sm text-gray-700 dark:text-zinc-300"
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    const meta = cell.column.columnDef.meta as any;
+                    const cellClass = typeof meta?.cellClassName === 'function' 
+                      ? meta.cellClassName(row.original) 
+                      : meta?.cellClassName;
+                      
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        className={cn("px-4 py-3 text-sm text-gray-700 dark:text-zinc-300", cellClass)}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    )
+                  })}
                 </TableRow>
               ))
             ) : null}

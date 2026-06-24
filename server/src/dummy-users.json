@@ -1,212 +1,205 @@
 [
   {
-    "firstName": "Alice",
-    "lastName": "Smith",
-    "email": "alice.smith@example.com",
-    "role": "MANAGER",
-    "status": "ACTIVE"
-  },
-  {
     "firstName": "Bob",
     "lastName": "Johnson",
     "email": "bob.johnson@example.com",
-    "role": "CASHIER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Charlie",
     "lastName": "Williams",
     "email": "charlie.williams@example.com",
-    "role": "CASHIER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Diana",
     "lastName": "Brown",
     "email": "diana.brown@example.com",
-    "role": "ADMIN",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Edward",
     "lastName": "Jones",
     "email": "edward.jones@example.com",
-    "role": "MANAGER",
-    "status": "SUSPENDED"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Fiona",
     "lastName": "Garcia",
     "email": "fiona.garcia@example.com",
-    "role": "CASHIER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "George",
     "lastName": "Miller",
     "email": "george.miller@example.com",
-    "role": "CASHIER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Hannah",
     "lastName": "Davis",
     "email": "hannah.davis@example.com",
-    "role": "CASHIER",
-    "status": "TERMINATED"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Ian",
     "lastName": "Rodriguez",
     "email": "ian.rodriguez@example.com",
-    "role": "CASHIER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Jane",
     "lastName": "Martinez",
     "email": "jane.martinez@example.com",
-    "role": "MANAGER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Kevin",
     "lastName": "Hernandez",
     "email": "kevin.hernandez@example.com",
-    "role": "CASHIER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Laura",
     "lastName": "Lopez",
     "email": "laura.lopez@example.com",
-    "role": "ADMIN",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Michael",
     "lastName": "Gonzalez",
     "email": "michael.gonzalez@example.com",
-    "role": "CASHIER",
-    "status": "SUSPENDED"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Nina",
     "lastName": "Wilson",
     "email": "nina.wilson@example.com",
-    "role": "CASHIER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Oliver",
     "lastName": "Anderson",
     "email": "oliver.anderson@example.com",
-    "role": "MANAGER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Paula",
     "lastName": "Thomas",
     "email": "paula.thomas@example.com",
-    "role": "CASHIER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Quinn",
     "lastName": "Taylor",
     "email": "quinn.taylor@example.com",
-    "role": "CASHIER",
-    "status": "TERMINATED"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Rachel",
     "lastName": "Moore",
     "email": "rachel.moore@example.com",
-    "role": "ADMIN",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Sam",
     "lastName": "Jackson",
     "email": "sam.jackson@example.com",
-    "role": "MANAGER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Tina",
     "lastName": "Martin",
     "email": "tina.martin@example.com",
-    "role": "CASHIER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Uma",
     "lastName": "Lee",
     "email": "uma.lee@example.com",
-    "role": "CASHIER",
-    "status": "SUSPENDED"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Victor",
     "lastName": "Perez",
     "email": "victor.perez@example.com",
-    "role": "CASHIER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Wendy",
     "lastName": "Thompson",
     "email": "wendy.thompson@example.com",
-    "role": "MANAGER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Xander",
     "lastName": "White",
     "email": "xander.white@example.com",
-    "role": "CASHIER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Yara",
     "lastName": "Harris",
     "email": "yara.harris@example.com",
-    "role": "ADMIN",
-    "status": "TERMINATED"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Zack",
     "lastName": "Sanchez",
     "email": "zack.sanchez@example.com",
-    "role": "CASHIER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Amy",
     "lastName": "Clark",
     "email": "amy.clark@example.com",
-    "role": "MANAGER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Brian",
     "lastName": "Ramirez",
     "email": "brian.ramirez@example.com",
-    "role": "CASHIER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Chloe",
     "lastName": "Lewis",
     "email": "chloe.lewis@example.com",
-    "role": "CASHIER",
-    "status": "ACTIVE"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   },
   {
     "firstName": "Daniel",
     "lastName": "Robinson",
     "email": "daniel.robinson@example.com",
-    "role": "CASHIER",
-    "status": "SUSPENDED"
+    "role": "UNASSIGNED",
+    "status": "INACTIVE"
   }
 ]

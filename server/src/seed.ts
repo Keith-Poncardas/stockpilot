@@ -5,7 +5,7 @@ import dummyUsers from "./dummy-users.json";
 const prisma = new PrismaClient();
 
 async function main() {
-    const email = "sheldon@gmail.com";
+    const email = "poncardask03@gmail.com";
     const plainPassword = "iamwebdev2003";
 
     // Check if the super admin already exists to prevent duplicate seeding
@@ -16,8 +16,8 @@ async function main() {
 
         const superAdmin = await prisma.user.create({
             data: {
-                firstName: "Sheldon",
-                lastName: "Cooper",
+                firstName: "Keith Ralph",
+                lastName: "Poncardas",
                 email,
                 passwordHash,
                 role: UserRole.SUPER_ADMIN,
