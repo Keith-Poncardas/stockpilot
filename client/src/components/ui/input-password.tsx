@@ -1,9 +1,9 @@
 import * as React from "react";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Input, type InputProps } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-function InputPassword({ className, disabled, ...props }: React.ComponentProps<"input">) {
+function InputPassword({ className, disabled, icon, ...props }: InputProps) {
     const [showPassword, setShowPassword] = React.useState(false);
 
     return (
@@ -14,6 +14,7 @@ function InputPassword({ className, disabled, ...props }: React.ComponentProps<"
                 className={cn("pr-10", className)}
                 {...props}
                 disabled={disabled}
+                icon={icon}
             />
             <button
                 type="button"

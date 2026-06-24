@@ -72,3 +72,11 @@ export const ASSIGN_ROLE = gql`
         }
     }
 `;
+
+export const DELETE_USER = gql`
+    mutation DeleteUser($userId: ID!) {
+        deleteUser(userId: $userId) {
+            action
+        }
+    }
+`;

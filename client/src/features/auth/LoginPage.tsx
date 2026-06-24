@@ -1,3 +1,4 @@
+import { Mail, Lock } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
@@ -82,6 +83,7 @@ export function LoginPage() {
                         placeholder="you@company.com"
                         required
                         disabled={loadingLogin}
+                        icon={<Mail size={16} strokeWidth={2.5} />}
                     />
 
                     {/* Password */}
@@ -93,6 +95,7 @@ export function LoginPage() {
                         placeholder="••••••••"
                         required
                         disabled={loadingLogin}
+                        icon={<Lock size={16} strokeWidth={2.5} />}
                     />
 
                     {/* Remember me / Forgot */}

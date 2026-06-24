@@ -13,6 +13,7 @@ interface FormFieldProps<TFieldValues extends FieldValues> {
     placeholder?: string;
     type?: "text" | "email" | "password" | "checkBox";
     disabled?: boolean;
+    icon?: React.ReactNode;
 }
 
 function FormField<TFieldValues extends FieldValues>({
@@ -23,6 +24,7 @@ function FormField<TFieldValues extends FieldValues>({
     placeholder,
     type = "text",
     disabled,
+    icon,
 }: FormFieldProps<TFieldValues>) {
 
     if (type === "checkBox") {
@@ -64,6 +66,7 @@ function FormField<TFieldValues extends FieldValues>({
                                 placeholder={placeholder}
                                 aria-invalid={fieldState.invalid}
                                 disabled={disabled}
+                                icon={icon}
                             />
                         ) : (
                             <Input
@@ -73,6 +76,7 @@ function FormField<TFieldValues extends FieldValues>({
                                 placeholder={placeholder}
                                 aria-invalid={fieldState.invalid}
                                 disabled={disabled}
+                                icon={icon}
                             />
                         )}
 

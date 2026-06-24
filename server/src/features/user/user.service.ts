@@ -351,7 +351,6 @@ export class UserService {
 
         const id = userIdSchema.parse(userId);
 
-        // Guard: existence check
         const user = await prisma.user.findUnique({
             where: { id },
             select: this.select,

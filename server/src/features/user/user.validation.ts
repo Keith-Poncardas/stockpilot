@@ -121,6 +121,7 @@ export const assignRoleSchema = z.object({
     role: assignableUserRoleSchema
 });
 
+
 /** INFERED TYPES */
 export type UserIdInput = z.infer<typeof userIdSchema>;
 export type PaginatedUsersInput = z.infer<typeof paginatedUsersSchema>;

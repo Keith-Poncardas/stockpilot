@@ -1,6 +1,6 @@
 import { UUIDInput } from "@/schemas";
 import { userService } from "./user.service";
-import { AssignRoleInput, ChangeUserApprovalStatusInput, CreateUserInput, EditUserInput, PaginatedUsersInput, UpdateUserStatusInput } from "./user.validation";
+import { AssignRoleInput, ChangeUserApprovalStatusInput, CreateUserInput, EditUserInput, PaginatedUsersInput, UpdateUserStatusInput, UserIdInput } from "./user.validation";
 import { protectResolvers } from "@/graphql/helpers";
 
 export const userResolver = {
@@ -79,7 +79,7 @@ export const userResolver = {
         /**
          * Delete user
          */
-        deleteUser: async (_: unknown, { userId }: { userId: UUIDInput }) => {
+        deleteUser: async (_: unknown, { userId }: { userId: UserIdInput }) => {
             return userService.deleteUser(userId);
         }
 
