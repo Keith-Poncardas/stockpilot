@@ -228,9 +228,13 @@ export class UserService {
     /**
      * Change user status
      */
-    async changeUserStatus(input: UpdateUserStatusInput) {
+    async changeUserStatus(ctxUserId: string, input: UpdateUserStatusInput) {
 
         const { userId, status } = updateUserStatusSchema.parse(input);
+
+        if (ctxUserId === userId) {
+            throwConflict("You cannot change your own status");
+        }
 
         const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -253,7 +257,10 @@ export class UserService {
 
         const updatedUser = await prisma.user.update({
             where: { id: userId },
-            data: { status },
+            data: {
+                status,
+                role: status === UserStatus.TERMINATED ? UserRole.UNASSIGNED : undefined
+            },
             select: this.select,
         });
 
@@ -264,9 +271,13 @@ export class UserService {
     /**
      * Assign user role
      */
-    async assignRole(input: AssignRoleInput) {
+    async assignRole(ctxUserId: string, input: AssignRoleInput) {
 
         const { userId, role } = assignRoleSchema.parse(input);
+
+        if (ctxUserId === userId) {
+            throwConflict("You cannot change your own role");
+        }
 
         const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -328,7 +339,8 @@ export class UserService {
             where: { id: userId },
             data: {
                 approvalStatus: approvalStatus,
-                status: approvalStatus === UserApprovalStatus.APPROVED ? UserStatus.ACTIVE : UserStatus.TERMINATED
+                status: approvalStatus === UserApprovalStatus.APPROVED ? UserStatus.ACTIVE : UserStatus.TERMINATED,
+                role: approvalStatus === UserApprovalStatus.REJECTED ? UserRole.UNASSIGNED : undefined
             },
             select: this.select,
         });

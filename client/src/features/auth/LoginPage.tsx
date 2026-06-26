@@ -36,7 +36,16 @@ export function LoginPage() {
             // PublicRoute detects the token and redirects automatically
         },
         onError: (err) => {
-            setError(err.message);
+            console.log(err);
+            const isInternalError = err.graphQLErrors?.some(
+                (graphqlErr) => graphqlErr.extensions?.code === 'INTERNAL_SERVER_ERROR'
+            );
+
+            if (isInternalError) {
+                setError("Internal Server Error. Please try again later.");
+            } else {
+                setError(err.message);
+            }
         },
     });
 

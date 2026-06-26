@@ -2,8 +2,8 @@ import * as React from 'react'
 import { useQuery } from '@apollo/client'
 import IconInput from '@/components/IconInput'
 import { SearchIcon, Filter, Calendar, RotateCcw, Users } from 'lucide-react'
-import { columns } from './columns'
-import { GET_USERS } from './user.queries'
+import { columns } from '../user.columns'
+import { GET_USERS } from '../operations/op.queries'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useDataTable } from '@/hooks/useDataTable'
 import { DataTable } from '@/components/ui/data-table'
@@ -19,7 +19,6 @@ import {
 import SectionHeader from '@/components/SectionHeader'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ServerCrash } from 'lucide-react';
-
 
 const roleOptions = [
     { value: 'all', label: 'All Roles' },

@@ -1,8 +1,8 @@
 import { Route, Routes } from 'react-router-dom'
-import AuthLayout from './layout/AuthLayout'
-import { LoginPage, UserLayout, UserPage, UserView } from './features'
-import MainLayout from './layout/MainLayout'
 import { ProtectedRoute, PublicRoute } from './routes'
+import AuthLayout from './layout/AuthLayout'
+import { LoginPage, UserLayout, UserPage, UserViewPage } from './features'
+import MainLayout from './layout/MainLayout'
 
 function App() {
   return (
@@ -20,7 +20,7 @@ function App() {
 
           <Route path="/users" element={<UserLayout />}>
             <Route index element={<UserPage />} />
-            <Route path=":userId/view" element={<UserView />} />
+            <Route path=":userId/view" element={<UserViewPage />} />
           </Route>
 
         </Route>

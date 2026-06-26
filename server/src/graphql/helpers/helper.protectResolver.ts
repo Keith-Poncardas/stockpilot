@@ -1,5 +1,6 @@
-import { GraphQLContext } from "@/types";
-import { throwUnauthorized } from "@/utils";
+import { GraphQLContext, SafeUser } from "@/types";
+import { requireValidUserAccess, throwUnauthorized } from "@/utils";
+import { User } from "@prisma/client";
 
 export function protectResolvers<T extends Record<string, any>>(
     resolvers: T
@@ -16,8 +17,8 @@ export function protectResolvers<T extends Record<string, any>>(
             info: unknown
         ) => {
 
-            /** Check if user is authorized */
-            if (!ctx.user) throwUnauthorized();
+            /** Use reusable logic to check role and status */
+            requireValidUserAccess(ctx.user!);
 
             return resolver(parent, args, ctx, info);
         }) as T[typeof key];

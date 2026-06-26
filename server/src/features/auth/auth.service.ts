@@ -1,8 +1,8 @@
 import { prisma } from "@/lib";
-import { generateToken, throwBadInput, throwUnauthorized } from "@/utils";
+import { generateToken, throwBadInput, throwUnauthorized, requireValidUserAccess } from "@/utils";
 import * as argon2 from "argon2";
 import { ChangePasswordInput, changePasswordSchema, LoginInput, loginSchema } from "./auth.validation";
-import { Prisma, UserStatus } from "@prisma/client";
+import { Prisma, UserRole, UserStatus } from "@prisma/client";
 
 export class AuthService {
 
@@ -34,15 +34,11 @@ export class AuthService {
 
         if (!user) throwUnauthorized("Invalid email or password");
 
-        const userStatus = user.status.toLowerCase() === UserStatus.INACTIVE.toLowerCase() ? 'deactivated' : user.status.toLowerCase();
-
-        if (user.status !== UserStatus.ACTIVE) throwUnauthorized(
-            `Your account is ${userStatus}. Please contact the administrator.`
-        );
-
         const validPassword = await argon2.verify(user.passwordHash, password);
 
         if (!validPassword) throwUnauthorized("Invalid email or password");
+
+        requireValidUserAccess(user);
 
         const token = generateToken({
             userId: user.id,

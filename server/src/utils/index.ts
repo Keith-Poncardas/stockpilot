@@ -5,3 +5,4 @@ export * from "./util.generatePass";
 export * from "./util.excludeEnum";
 export * from "./utils.minMaxRefine";
 export * from "./utils.smartDelete";
+export * from "./utils.access";

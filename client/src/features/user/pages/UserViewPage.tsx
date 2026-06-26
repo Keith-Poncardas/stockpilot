@@ -3,13 +3,13 @@ import { Button } from '@/components/ui/button'
 import { MoreHorizontal, Plus, PenSquare, ArrowLeft, UserX } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@apollo/client'
-import { GET_USER } from './user.queries'
+import { GET_USER } from '../operations/op.queries'
 import { formatDate } from '@/lib/utils'
 import UserAvatar from '@/components/UserAvatar'
 import Badge from '@/components/Badge'
 import { EmptyState } from '@/components/ui/empty-state'
 
-export function UserView() {
+export function UserViewPage() {
     const navigate = useNavigate()
     const { userId } = useParams()
 
@@ -46,6 +46,7 @@ export function UserView() {
     const user = data.getUser
 
     return (
+
         <div className="w-full min-h-[calc(100vh-4rem)] ">
             {/* Top Navigation */}
 
@@ -168,6 +169,7 @@ export function UserView() {
                 </div>
             </div>
         </div>
+
     )
 }
 

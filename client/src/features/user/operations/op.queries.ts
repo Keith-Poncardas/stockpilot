@@ -51,6 +51,9 @@ export const APPROVE_REJECT_USER = gql`
     approveRejectUser(input: $input) {
       id
       email
+      status
+      approvalStatus
+      role
     }
   }
 `;
@@ -60,6 +63,8 @@ export const CHANGE_USER_STATUS = gql`
         changeUserStatus(input: $input) {
             id
             email
+            status
+            role
         }
     }
 `;

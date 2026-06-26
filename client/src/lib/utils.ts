@@ -39,3 +39,5 @@ export function getRoleColor(role?: string) {
   const upperRole = role?.toUpperCase() || '';
   return ROLE_COLORS[upperRole] || ROLE_COLORS.DEFAULT;
 }
+
+

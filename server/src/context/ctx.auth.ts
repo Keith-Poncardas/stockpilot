@@ -18,15 +18,21 @@ export async function createContext({ req }: { req: IncomingMessage })
 
     const payload = verifyToken(token);
 
-    if (!payload) {
+    if (!payload || !payload.userId) {
         return { user: null }
     }
 
-    const user = await prisma.user.findUnique({
-        where: {
-            id: payload.userId
-        }
-    });
+    let user;
+    try {
+        user = await prisma.user.findUnique({
+            where: {
+                id: payload.userId
+            }
+        });
+    } catch (error) {
+        console.error("Context auth DB error:", error);
+        return { user: null }
+    }
 
     if (user?.tokenVersion !== payload.tokenVersion) {
         return { user: null }

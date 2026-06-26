@@ -45,12 +45,12 @@ export default function ActionPopover({
       </PopoverTrigger>
       {!disabled && (
         <PopoverContent
-          className={cn("rounded-xl shadow-lg border-gray-100 dark:border-zinc-800 dark:bg-zinc-950", contentClassName)}
+          className={cn("rounded-xl shadow-lg border-gray-100 dark:border-zinc-800 ", contentClassName)}
           align="start"
         >
           <div className="flex flex-col">
             {title && (
-              <div className="px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-zinc-400 tracking-wide uppercase border-b border-gray-100 dark:border-zinc-800/50 bg-gray-50/50 dark:bg-zinc-900/50">
+              <div className="px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-zinc-400 tracking-wide uppercase border-b border-gray-100 bg-gray-50/50">
                 {title}
               </div>
             )}
@@ -58,12 +58,12 @@ export default function ActionPopover({
               <button
                 key={option.id}
                 className={cn(
-                  "w-full flex items-center justify-start px-3 py-2.5 text-sm transition-colors border-b last:border-b-0 border-gray-100 dark:border-zinc-800/50 outline-hidden font-medium",
+                  "w-full flex items-center justify-start px-3 py-2.5 text-sm transition-colors border-b last:border-b-0 border-gray-100 outline-hidden font-medium",
                   option.colorClassName
-                    ? cn("hover:brightness-95 dark:hover:brightness-110", option.colorClassName)
+                    ? cn("hover:brightness-95 ", option.colorClassName)
                     : option.variant === 'destructive'
-                      ? "text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/50 dark:hover:text-red-500"
-                      : "text-gray-700 hover:bg-gray-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                      ? "text-red-600 hover:bg-red-50 hover:text-red-700 "
+                      : "text-gray-700 hover:bg-gray-100"
                 )}
                 onClick={() => {
                   option.onClick();

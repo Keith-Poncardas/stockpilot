@@ -2,6 +2,7 @@ import { UUIDInput } from "@/schemas";
 import { userService } from "./user.service";
 import { AssignRoleInput, ChangeUserApprovalStatusInput, CreateUserInput, EditUserInput, PaginatedUsersInput, UpdateUserStatusInput, UserIdInput } from "./user.validation";
 import { protectResolvers } from "@/graphql/helpers";
+import { GraphQLContext } from "@/types";
 
 export const userResolver = {
 
@@ -51,9 +52,10 @@ export const userResolver = {
          */
         changeUserStatus: async (
             _: unknown,
-            { input }: { input: UpdateUserStatusInput }
+            { input }: { input: UpdateUserStatusInput },
+            ctx: GraphQLContext
         ) => {
-            return userService.changeUserStatus(input);
+            return userService.changeUserStatus(ctx.user!.id, input);
         },
 
         /**
@@ -71,9 +73,10 @@ export const userResolver = {
          */
         assignRole: async (
             _: unknown,
-            { input }: { input: AssignRoleInput }
+            { input }: { input: AssignRoleInput },
+            ctx: GraphQLContext
         ) => {
-            return userService.assignRole(input);
+            return userService.assignRole(ctx.user!.id, input);
         },
 
         /**
