@@ -23,7 +23,7 @@ const errorLink = onError((errorResponse) => {
     const graphQLErrors = (errorResponse as any).graphQLErrors;
     if (graphQLErrors) {
         for (const err of graphQLErrors) {
-            if (err.extensions?.code === "UNAUTHENTICATED") {
+            if (err.extensions?.code === "FORBIDDEN") {
                 // Erase auth tokens and user data
                 useAuthStore.getState().logout();
             }
