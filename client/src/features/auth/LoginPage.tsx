@@ -11,6 +11,7 @@ import { LOGIN } from "./auth.operation";
 import { useAuthStore } from "@/store";
 import { useState } from "react";
 import Alert from "@/components/ui/alert";
+import { ErrorCode } from "@/constants";
 
 export function LoginPage() {
 
@@ -36,9 +37,8 @@ export function LoginPage() {
             // PublicRoute detects the token and redirects automatically
         },
         onError: (err) => {
-            console.log(err);
             const isInternalError = err.graphQLErrors?.some(
-                (graphqlErr) => graphqlErr.extensions?.code === 'INTERNAL_SERVER_ERROR'
+                (graphqlErr) => graphqlErr.extensions?.code === ErrorCode.INTERNAL_SERVER_ERROR
             );
 
             if (isInternalError) {

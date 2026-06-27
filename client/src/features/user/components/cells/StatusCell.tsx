@@ -6,11 +6,15 @@ import { getOptions } from "../../user.utils";
 import { getStatusColor } from "@/lib/utils";
 import ActionPopover from "@/components/ActionPopover";
 import { ActionCellContent } from "./ActionCellContent";
+import { useAuthStore } from "@/store";
 
 export function StatusCell({ row }: UserRowInfoCellProps) {
+    const { user } = useAuthStore();
     const { mutate } = useOptimisticMutation();
     const { role, status, approvalStatus, id } = row.original;
+    const isCurrentUser = user?.id === id;
     const isStatusDisabled =
+        isCurrentUser ||
         status === UserStatus.TERMINATED.a ||
         role === UserRole.SUPER_ADMIN ||
         approvalStatus === ApprovalStatus.PENDING.a ||
@@ -27,7 +31,7 @@ export function StatusCell({ row }: UserRowInfoCellProps) {
             },
             buildVariables: ({ status }) => ({
                 input: { userId: id, status }
-            }),
+            })
         });
     }
 

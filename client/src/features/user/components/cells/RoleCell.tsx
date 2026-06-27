@@ -6,11 +6,15 @@ import ActionPopover from "@/components/ActionPopover";
 import { ActionCellContent } from "./ActionCellContent";
 import { getOptions } from "../../user.utils";
 import { getRoleColor } from "@/lib/utils";
+import { useAuthStore } from "@/store";
 
 export function RoleCell({ row }: UserRowInfoCellProps) {
+  const { user } = useAuthStore();
   const { mutate } = useOptimisticMutation();
   const { role, approvalStatus, status, id } = row.original;
+  const isCurrentUser = user?.id === id;
   const isRoleDisabled =
+    isCurrentUser ||
     status === UserStatus.TERMINATED.a ||
     role === UserRole.SUPER_ADMIN ||
     approvalStatus !== ApprovalStatus.APPROVED.a;

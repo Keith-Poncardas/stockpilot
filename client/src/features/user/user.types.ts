@@ -1,17 +1,24 @@
-import type { ApprovalStatus, Role, Status } from "@/constants/enums"
 import type { Row } from "@tanstack/react-table"
+import type { ApprovalStatus, UserRole, UserStatus } from "./user.constants"
 
 export interface IUser {
     id: string
     firstName: string
     lastName: string
     email: string
-    role: Role
-    status: Status
+    role: UserRole
+    status: UserStatus
     approvalStatus: ApprovalStatus
     createdAt: string
     isCurrentUser?: boolean
 }
+
+export interface IUserDetail extends Omit<IUser, 'isCurrentUser'> {
+    salesProcessed: number;
+    stockMovementProcessed: number;
+}
+
+export type IUserAvatarProps = Pick<IUser, 'firstName' | 'lastName' | 'email' | 'role'>;
 
 export interface UserRowInfoCellProps {
     row: Row<IUser>

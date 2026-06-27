@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
     useReactTable,
     getCoreRowModel,
@@ -71,11 +71,11 @@ export function useDataTable<TData, TValue>({
         orderDirection,
     };
 
-    const setQueryData = (data: any) => {
+    const setQueryData = useCallback((data: any) => {
         if (data?.data) setTableData(data.data);
         if (data?.meta?.totalPages !== undefined) setMetaPageCount(data.meta.totalPages);
         if (data?.meta?.totalItems !== undefined) setMetaRowCount(data.meta.totalItems);
-    };
+    }, []);
 
     return {
         table,

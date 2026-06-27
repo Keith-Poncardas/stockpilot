@@ -11,12 +11,8 @@ import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { SelectFilter } from '@/components/ui/select-filter'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Button } from '@/components/ui/button'
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
 import SectionHeader from '@/components/SectionHeader'
+import { FilterPopover } from '@/components/FilterPopover'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ServerCrash } from 'lucide-react';
 
@@ -26,6 +22,7 @@ const roleOptions = [
     { value: 'ADMIN', label: 'Admin' },
     { value: 'MANAGER', label: 'Manager' },
     { value: 'CASHIER', label: 'Cashier' },
+    { value: 'UNASSIGNED', label: 'Unassigned' }
 ]
 
 const statusOptions = [
@@ -65,15 +62,15 @@ export function UserPage() {
         : null;
 
     // 3. Extract query parameters from our generic hook
-    const { table, queryParams, setQueryData } = useDataTable({
+    const { table, queryParams, setQueryData, setPagination } = useDataTable({
         columns,
         initialPageSize: 10,
     })
 
     // Reset pagination when filters change
     React.useEffect(() => {
-        table.setPageIndex(0)
-    }, [debouncedSearch, roleFilter, statusFilter, dateFrom, dateTo, acsDescFilter, table])
+        setPagination(prev => ({ ...prev, pageIndex: 0 }))
+    }, [debouncedSearch, roleFilter, statusFilter, dateFrom, dateTo, acsDescFilter, setPagination])
 
     // 4. API Request using the extracted queryParams
     const { loading, error, refetch, data } = useQuery(GET_USERS, {
@@ -93,7 +90,7 @@ export function UserPage() {
                 }
             }
         },
-        fetchPolicy: 'network-only',
+        fetchPolicy: 'cache-first',
         notifyOnNetworkStatusChange: true,
     })
 
@@ -107,6 +104,13 @@ export function UserPage() {
     }, [data, setQueryData])
 
     const isEmpty = !loading && !error && table.getRowModel().rows?.length === 0;
+
+    const filters = [
+        { value: roleFilter, onChange: setRoleFilter, options: roleOptions },
+        { value: statusFilter, onChange: setStatusFilter, options: statusOptions },
+        { value: approvalStatusFilter, onChange: setApprovalStatusFilter, options: approvalStatusOptions },
+        { value: acsDescFilter, onChange: setAcsDescFilter, options: acsDescOptions, defaultValue: "desc" },
+    ];
 
     function refresh() {
         refetch();
@@ -137,89 +141,50 @@ export function UserPage() {
                     <RotateCcw className="h-4 w-4 text-muted-foreground" strokeWidth={2} />
                 </Button>
 
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button variant="outline" size="icon" className="h-8 w-8 lg:h-9 lg:w-9 border-slate-200">
-                            <Filter className="h-4 w-4 text-muted-foreground" strokeWidth={2} />
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-96 p-4" align="start">
-                        <div className="flex flex-col gap-4">
-                            <div className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                    <h4 className="font-medium leading-none">Role & Status</h4>
-                                    <p className="text-sm text-muted-foreground">
-                                        Filter users by role and status.
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <SelectFilter
-                                    value={roleFilter}
-                                    onChange={setRoleFilter}
-                                    options={roleOptions}
-                                    className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
-                                />
-                                <SelectFilter
-                                    value={statusFilter}
-                                    onChange={setStatusFilter}
-                                    options={statusOptions}
-                                    className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
-                                />
-                                <SelectFilter
-                                    value={approvalStatusFilter}
-                                    onChange={setApprovalStatusFilter}
-                                    options={approvalStatusOptions}
-                                    className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
-                                />
-                                <SelectFilter
-                                    value={acsDescFilter}
-                                    onChange={setAcsDescFilter}
-                                    options={acsDescOptions}
-                                    defaultValue="desc"
-                                    className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
-                                />
-                            </div>
-                        </div>
-                    </PopoverContent>
-                </Popover>
+                <FilterPopover
+                    title="Role & Status"
+                    description="Filter users by role and status."
+                    icon={Filter}
+                    contentClassName="w-96 p-4"
+                >
+                    <div className="grid grid-cols-2 gap-3">
+                        {filters.map((filter, idx) => (
+                            <SelectFilter
+                                key={idx}
+                                value={filter.value}
+                                onChange={filter.onChange}
+                                options={filter.options}
+                                defaultValue={filter.defaultValue}
+                                className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
+                            />
+                        ))}
+                    </div>
+                </FilterPopover>
 
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button variant="outline" size="icon" className="h-8 w-8 lg:h-9 lg:w-9 border-slate-200">
-                            <Calendar className="h-4 w-4 text-muted-foreground" strokeWidth={2} />
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80 p-4" align="start">
-                        <div className="flex flex-col gap-4">
-                            <div className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                    <h4 className="font-medium leading-none">Date Range</h4>
-                                    <p className="text-sm text-muted-foreground">
-                                        Filter users by creation date.
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 items-center">
-                                <DatePicker
-                                    value={dateFrom}
-                                    onChange={setDateFrom}
-                                    placeholder="Start Date"
-                                    className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
-                                />
-                                <DatePicker
-                                    value={dateTo}
-                                    onChange={setDateTo}
-                                    placeholder="Oldest"
-                                    className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
-                                />
-                            </div>
-                            {dateError && <p className="text-xs text-red-500 font-medium">{dateError}</p>}
-                        </div>
-                    </PopoverContent>
-                </Popover>
+                <FilterPopover
+                    title="Date Range"
+                    description="Filter users by creation date."
+                    icon={Calendar}
+                    contentClassName="w-80 p-4"
+                >
+                    <div className="grid grid-cols-2 gap-2 items-center">
+                        <DatePicker
+                            value={dateFrom}
+                            onChange={setDateFrom}
+                            placeholder="Start Date"
+                            className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
+                        />
+                        <DatePicker
+                            value={dateTo}
+                            onChange={setDateTo}
+                            placeholder="Oldest"
+                            className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
+                        />
+                    </div>
+                    {dateError && <p className="text-xs text-red-500 font-medium">{dateError}</p>}
+                </FilterPopover>
 
-                {(roleFilter || statusFilter || dateFrom || dateTo || acsDescFilter || approvalStatusFilter) && (
+                {(roleFilter || statusFilter || dateFrom || dateTo || acsDescFilter || approvalStatusFilter || globalFilter) && (
                     <Button
                         onClick={() => {
                             setRoleFilter('')
@@ -228,6 +193,7 @@ export function UserPage() {
                             setDateTo('')
                             setAcsDescFilter('')
                             setApprovalStatusFilter('')
+                            setGlobalFilter('')
                         }}
                         className="h-8 lg:h-9 px-3 lg:px-4 text-xs lg:text-sm bg-red-500 hover:bg-red-600 text-white"
                     >

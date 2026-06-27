@@ -1,28 +1,12 @@
-export const Role = {
-  SUPER_ADMIN: 'SUPER_ADMIN',
-  ADMIN: 'ADMIN',
-  MANAGER: 'MANAGER',
-  CASHIER: 'CASHIER',
-  UNASSIGNED: 'UNASSIGNED',
+export const ErrorCode = {
+  INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
+  NOT_FOUND: "NOT_FOUND",
+  UNAUTHENTICATED: "UNAUTHENTICATED",
+  FORBIDDEN: "FORBIDDEN",
+  BAD_USER_INPUT: "BAD_USER_INPUT",
+  CONFLICT: "CONFLICT",
+  ACCOUNT_RESTRICTED: "ACCOUNT_RESTRICTED",
 } as const;
 
-export type Role = typeof Role[keyof typeof Role];
-
-export const Status = {
-  ACTIVE: 'ACTIVE',
-  INACTIVE: 'INACTIVE',
-  PENDING: 'PENDING',
-  SUSPENDED: 'SUSPENDED',
-  TERMINATED: 'TERMINATED',
-} as const;
-
-export type Status = typeof Status[keyof typeof Status];
-
-export const ApprovalStatus = {
-  PENDING: 'PENDING',
-  APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED',
-} as const;
-
-export type ApprovalStatus = typeof ApprovalStatus[keyof typeof ApprovalStatus];
+export type ErrorCode = typeof ErrorCode[keyof typeof ErrorCode];
 

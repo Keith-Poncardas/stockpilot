@@ -3,6 +3,7 @@ import { ProtectedRoute, PublicRoute } from './routes'
 import AuthLayout from './layout/AuthLayout'
 import { LoginPage, UserLayout, UserPage, UserViewPage } from './features'
 import MainLayout from './layout/MainLayout'
+import { EmptyState } from './components/ui/empty-state'
 
 function App() {
   return (
@@ -22,6 +23,14 @@ function App() {
             <Route index element={<UserPage />} />
             <Route path=":userId/view" element={<UserViewPage />} />
           </Route>
+
+          <Route path="*" element={
+            <EmptyState
+              title="404 - Page Not Found"
+              description="The page you are looking for does not exist or has been moved."
+              showBackButton
+            />
+          } />
 
         </Route>
       </Route>

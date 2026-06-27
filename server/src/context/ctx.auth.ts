@@ -1,6 +1,6 @@
 import { prisma } from "@/lib";
 import { GraphQLContext } from "@/types";
-import { verifyToken } from "@/utils";
+import { throwGraphQLError, verifyToken } from "@/utils";
 import { IncomingMessage } from "http";
 
 /**
@@ -30,8 +30,8 @@ export async function createContext({ req }: { req: IncomingMessage })
             }
         });
     } catch (error) {
-        console.error("Context auth DB error:", error);
-        return { user: null }
+        console.error(error);
+        throwGraphQLError("Internal server error.");
     }
 
     if (user?.tokenVersion !== payload.tokenVersion) {

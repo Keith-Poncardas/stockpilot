@@ -1,3 +1,4 @@
+import { ErrorCode } from "@/constants";
 import { useAuthStore } from "@/store";
 import { ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
@@ -23,8 +24,10 @@ const errorLink = onError((errorResponse) => {
     const graphQLErrors = (errorResponse as any).graphQLErrors;
     if (graphQLErrors) {
         for (const err of graphQLErrors) {
-            if (err.extensions?.code === "FORBIDDEN") {
-                // Erase auth tokens and user data
+            // Only auto-logout if the account was explicitly restricted (e.g. Suspended, Terminated, Unassigned)
+            // This prevents random logouts if the server drops the token due to a database connection timeout
+            if (err.extensions?.code === ErrorCode.ACCOUNT_RESTRICTED) {
+                console.error("Account restriction detected, logging out:", err);
                 useAuthStore.getState().logout();
             }
         }

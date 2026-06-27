@@ -7,6 +7,7 @@ interface OptimisticMutationOptions<TVariables extends OperationVariables, TOpti
     entityId: string;
     optimisticFields: TOptimisticFields;
     buildVariables: (fields: TOptimisticFields) => TVariables;
+    refetchQueries?: any[];
 }
 
 export function buildSnapshotFragment(typename: string, fields: string[]): DocumentNode {
@@ -26,6 +27,7 @@ export function useOptimisticMutation<TVariables extends OperationVariables, TOp
         entityId,
         optimisticFields,
         buildVariables,
+        refetchQueries,
     }: OptimisticMutationOptions<TVariables, TOptimisticFields>) => {
         // Snapshot current cache values for rollback
         const snapshot = client.cache.readFragment<TOptimisticFields>({
@@ -42,7 +44,11 @@ export function useOptimisticMutation<TVariables extends OperationVariables, TOp
         });
 
         try {
-            await client.mutate({ mutation, variables: buildVariables(optimisticFields) });
+            await client.mutate({
+                mutation,
+                variables: buildVariables(optimisticFields),
+                refetchQueries
+            });
         } catch (error) {
             console.error(
                 `[useOptimisticMutation] Failed to mutate ${typename}:`, error

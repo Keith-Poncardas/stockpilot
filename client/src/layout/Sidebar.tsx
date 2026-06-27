@@ -6,7 +6,7 @@ import {
     X,
 } from 'lucide-react'
 import AppLogo from '@/components/AppLogo'
-import UserAvatar from '@/components/UserAvatar'
+import { UserProfileDetails } from '@/components/UserProfileDetails'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useAuthStore, useUIStore } from '@/store'
@@ -165,20 +165,14 @@ function Sidebar() {
 
                 {/* User Card — pinned to bottom */}
                 <div className="shrink-0 px-2 py-2 border-t border-gray-800">
-                    <Link to={`/users/${user?.id}/view`} className="flex items-center gap-3 hover:bg-white/5 rounded-lg p-3">
-                        <UserAvatar
-                            fallback={user}
-                            size="lg"
-                            role={user?.role}
+                    <Link to={`/users/${user?.id}/view`} className="flex items-center gap-3 hover:bg-white/5 rounded-lg p-3" onClick={closeSidebarDrawer}>
+                        <UserProfileDetails
+                            user={user}
+                            avatarSize="lg"
+                            showEmail={true}
+                            nameClassName="text-white text-[13px] font-extrabold"
+                            emailClassName="text-gray-500 text-[11px] font-bold"
                         />
-                        <div className="flex-1 min-w-0">
-                            <p className="text-white text-[13px] font-extrabold truncate">
-                                {user?.firstName} {user?.lastName}
-                            </p>
-                            <p className="text-gray-500 text-[11px] font-bold truncate">
-                                {user?.email}
-                            </p>
-                        </div>
                         <Button
                             variant="ghost"
                             size="icon"
