@@ -1,5 +1,11 @@
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'MANAGER', 'CASHIER');
+CREATE TYPE "UserRole" AS ENUM ('UNASSIGNED', 'SUPER_ADMIN', 'ADMIN', 'MANAGER', 'CASHIER');
+
+-- CreateEnum
+CREATE TYPE "UserStatus" AS ENUM ('INACTIVE', 'ACTIVE', 'SUSPENDED', 'TERMINATED');
+
+-- CreateEnum
+CREATE TYPE "UserApprovalStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 
 -- CreateEnum
 CREATE TYPE "MovementType" AS ENUM ('IN', 'OUT', 'ADJUSTMENT');
@@ -14,11 +20,28 @@ CREATE TABLE "users" (
     "last_name" VARCHAR NOT NULL,
     "email" VARCHAR NOT NULL,
     "password_hash" VARCHAR NOT NULL,
-    "role" "UserRole" NOT NULL DEFAULT 'CASHIER',
+    "role" "UserRole" NOT NULL DEFAULT 'UNASSIGNED',
+    "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE',
+    "approvalStatus" "UserApprovalStatus" NOT NULL DEFAULT 'PENDING',
+    "token_version" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(6) NOT NULL,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "pending_registrations" (
+    "id" UUID NOT NULL,
+    "first_name" VARCHAR NOT NULL,
+    "last_name" VARCHAR NOT NULL,
+    "email" VARCHAR NOT NULL,
+    "password_hash" VARCHAR NOT NULL,
+    "otp_hash" VARCHAR NOT NULL,
+    "expires_at" TIMESTAMP(6) NOT NULL,
+    "created_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "pending_registrations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -32,6 +55,7 @@ CREATE TABLE "products" (
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(6) NOT NULL,
+    "deleted_at" TIMESTAMP(6),
 
     CONSTRAINT "products_pkey" PRIMARY KEY ("id")
 );
@@ -95,12 +119,16 @@ CREATE TABLE "stock_movements" (
     "reference" VARCHAR,
     "notes" TEXT,
     "created_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(6),
 
     CONSTRAINT "stock_movements_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "pending_registrations_email_key" ON "pending_registrations"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "products_sku_key" ON "products"("sku");

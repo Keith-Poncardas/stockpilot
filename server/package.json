@@ -24,6 +24,7 @@
         "graphql": "^16.10.0",
         "graphql-tag": "^2.12.6",
         "jsonwebtoken": "^9.0.2",
+        "resend": "^6.16.0",
         "zod": "^4.4.3"
     },
     "devDependencies": {

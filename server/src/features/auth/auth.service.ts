@@ -1,8 +1,8 @@
 import { prisma } from "@/lib";
-import { generateToken, throwBadInput, throwUnauthorized, requireValidUserAccess } from "@/utils";
+import { generateToken, throwBadInput, throwUnauthorized, requireValidUserAccess, generateOtp } from "@/utils";
 import * as argon2 from "argon2";
-import { ChangePasswordInput, changePasswordSchema, LoginInput, loginSchema } from "./auth.validation";
-import { Prisma, UserRole, UserStatus } from "@prisma/client";
+import { ChangePasswordInput, changePasswordSchema, LoginInput, loginSchema, SignUpInput, signUpSchema, VerifyOtpInput, verifyOtpSchema, ResendOtpInput, resendOtpSchema } from "./auth.validation";
+import { Prisma, UserStatus } from "@prisma/client";
 
 export class AuthService {
 
@@ -53,6 +53,149 @@ export class AuthService {
             token
         };
 
+    }
+
+    async signup(input: SignUpInput) {
+        const {
+            firstName,
+            lastName,
+            email,
+            password
+        } = signUpSchema.parse(input);
+
+        // 1. Check if user is already fully registered
+        const existingUser = await prisma.user.findUnique({
+            where: { email },
+        });
+
+        if (existingUser) throwBadInput("Email is already registered");
+
+        // 2. Hash password and generate OTP
+        const hashedPassword = await argon2.hash(password);
+        const otp = generateOtp();
+        const hashedOtp = await argon2.hash(otp);
+
+        const expiresAt = new Date();
+        expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Valid for 15 mins
+
+        // 3. Upsert pending registration (overwrites if they request again)
+        const pending = await prisma.pendingRegistration.upsert({
+            where: { email },
+            update: {
+                firstName,
+                lastName,
+                passwordHash: hashedPassword,
+                otpHash: hashedOtp,
+                expiresAt,
+            },
+            create: {
+                firstName,
+                lastName,
+                email,
+                passwordHash: hashedPassword,
+                otpHash: hashedOtp,
+                expiresAt,
+            },
+        });
+
+        // TODO: In a real app, you would send the `otp` via email here.
+        // For development/testing, we log it:
+        console.log(`[DEV ONLY] OTP for ${email}: ${otp}`);
+
+        return pending;
+    }
+
+    /**
+     * Verify OTP and complete registration
+     */
+    async verifyOtp(input: VerifyOtpInput) {
+        const { email, otp } = verifyOtpSchema.parse(input);
+
+        // 1. Find pending registration
+        const pending = await prisma.pendingRegistration.findUnique({
+            where: { email },
+        });
+
+        if (!pending) throwBadInput("No pending registration found for this email");
+
+        // 2. Check if expired
+        if (pending.expiresAt < new Date()) {
+            throwBadInput("OTP has expired. Please request a new one.");
+        }
+
+        // 3. Verify OTP
+        const validOtp = await argon2.verify(pending.otpHash, otp);
+        if (!validOtp) throwBadInput("Invalid OTP");
+
+        // 4 & 5. Create actual user and delete pending registration in a transaction
+        const [newUser] = await prisma.$transaction([
+            prisma.user.create({
+                data: {
+                    firstName: pending.firstName,
+                    lastName: pending.lastName,
+                    email: pending.email,
+                    passwordHash: pending.passwordHash,
+                    status: UserStatus.ACTIVE,
+                },
+            }),
+            prisma.pendingRegistration.delete({
+                where: { id: pending.id },
+            })
+        ]);
+
+        // 6. Generate auth token and return
+        const token = generateToken({
+            userId: newUser.id,
+            email: newUser.email,
+            tokenVersion: newUser.tokenVersion
+        });
+
+        const { passwordHash, tokenVersion, ...userWithoutPassword } = newUser;
+
+        return {
+            user: userWithoutPassword,
+            token
+        };
+    }
+
+    /**
+     * Resend OTP for pending registration
+     */
+    async resendOtp(input: ResendOtpInput) {
+        const { email } = resendOtpSchema.parse(input);
+
+        // 1. Check if they are already fully registered
+        const existingUser = await prisma.user.findUnique({
+            where: { email }
+        });
+
+        if (existingUser) throwBadInput("Email is already registered");
+
+        // 2. Check if there's a pending registration
+        const pending = await prisma.pendingRegistration.findUnique({
+            where: { email }
+        });
+
+        if (!pending) throwBadInput("No pending registration found. Please sign up first.");
+
+        // 3. Generate new OTP and update
+        const otp = generateOtp();
+        const hashedOtp = await argon2.hash(otp);
+
+        const expiresAt = new Date();
+        expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+
+        const updatedPending = await prisma.pendingRegistration.update({
+            where: { email },
+            data: {
+                otpHash: hashedOtp,
+                expiresAt
+            }
+        });
+
+        console.log(`[DEV ONLY] Resent OTP for ${email}: ${otp}`);
+
+        return updatedPending;
     }
 
     /**

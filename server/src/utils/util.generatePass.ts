@@ -64,3 +64,9 @@ export function generateReadablePassword(): string {
 
     return `${chunk()}-${chunk()}-${chunk()}`;
 }
+
+export function generateOtp(): string {
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    return (array[0] % 900000 + 100000).toString();
+}

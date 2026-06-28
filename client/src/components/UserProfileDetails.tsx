@@ -1,9 +1,9 @@
 import UserAvatar from '@/components/UserAvatar'
-import type { IUserAvatarProps } from '@/features';
+import type { IUserIdentify } from '@/features';
 import { cn } from '@/lib/utils'
 
 interface UserProfileDetailsProps {
-    user: IUserAvatarProps;
+    user: IUserIdentify;
     showEmail?: boolean;
     avatarSize?: 'default' | 'sm' | 'lg' | 'xl' | '2xl';
     nameClassName?: string;

@@ -1,7 +1,7 @@
 import { excludeEnumValue } from "@/utils";
 import { UserApprovalStatus, UserRole, UserStatus } from "@prisma/client";
 import z from "zod";
-import { dateRangeRefine, dateRangeRefineMessage, dateRangeSchema, orderDirectionLowerSchema, paginationSchema, searchSchema, userIdSchema } from "@/schemas";
+import { dateRangeRefine, dateRangeRefineMessage, dateRangeSchema, emailSchema, firstNameSchema, lastNameSchema, orderDirectionLowerSchema, paginationSchema, searchSchema, userIdSchema } from "@/schemas";
 import { OrderDirectionLower, UserOrderBy } from "@/enums";
 
 /** ROLE SCHEMA (SUPER ADMIN EXCLUDED) */
@@ -60,28 +60,9 @@ export const paginatedUsersSchema = paginationSchema.extend({
 
 /** BASE USER SCHEMA */
 const baseUserSchema = z.object({
-    firstName: z
-        .string()
-        .trim()
-        .min(1, "First name is required")
-        .max(100, "First name must be at most 100 characters")
-    ,
-    lastName: z
-        .string()
-        .trim()
-        .min(1, "Last name is required")
-        .max(100, "Last name must be at most 100 characters")
-    ,
-    email: z
-        .email("Invalid email address")
-        .trim()
-});
-
-/** ADMIN CREATE USER SCHEMA */
-export const adminCreateUserSchema = baseUserSchema.extend({
-    role: assignableUserRoleSchema
-        .optional()
-        .default(UserRole.UNASSIGNED)
+    firstName: firstNameSchema,
+    lastName: lastNameSchema,
+    email: emailSchema
 });
 
 /** ADMIN UPDATE USER SCHEMA */
@@ -125,7 +106,6 @@ export const assignRoleSchema = z.object({
 /** INFERED TYPES */
 export type UserIdInput = z.infer<typeof userIdSchema>;
 export type PaginatedUsersInput = z.infer<typeof paginatedUsersSchema>;
-export type CreateUserInput = z.infer<typeof adminCreateUserSchema>;
 export type EditUserInput = z.infer<typeof editUserSchema>;
 export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
 export type ChangeUserApprovalStatusInput = z.infer<typeof changeUserApprovalStatusSchema>;

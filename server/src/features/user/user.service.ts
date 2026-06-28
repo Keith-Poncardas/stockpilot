@@ -1,7 +1,7 @@
 import { prisma } from "@/lib";
 import { createPaginator, generateReadablePassword, smartDelete, throwConflict, throwNotFound } from "@/utils";
 import { Prisma, UserApprovalStatus, UserRole, UserStatus } from "@prisma/client";
-import { adminCreateUserSchema, AssignRoleInput, assignRoleSchema, ChangeUserApprovalStatusInput, changeUserApprovalStatusSchema, CreateUserInput, EditUserInput, editUserSchema, PaginatedUsersInput, paginatedUsersSchema, UpdateUserStatusInput, updateUserStatusSchema, UserIdInput } from "./user.validation";
+import { AssignRoleInput, assignRoleSchema, ChangeUserApprovalStatusInput, changeUserApprovalStatusSchema, EditUserInput, editUserSchema, PaginatedUsersInput, paginatedUsersSchema, UpdateUserStatusInput, updateUserStatusSchema, UserIdInput } from "./user.validation";
 import * as argon2 from "argon2";
 import { userIdSchema } from "@/schemas";
 
@@ -155,38 +155,6 @@ export class UserService {
         return {
             data: users,
             meta: buildMeta(total),
-        };
-
-    }
-
-    /**
-     * Create a new user
-     */
-    async createUser(input: CreateUserInput) {
-
-        const { email, ...data } = adminCreateUserSchema.parse(input);
-
-        const existingUser = await prisma.user.findUnique({
-            where: { email }
-        });
-
-        if (existingUser) throwConflict("User email already exists");
-
-        const genPass = generateReadablePassword();
-        const hashedPassword = await argon2.hash(genPass);
-
-        const user = await prisma.user.create({
-            data: {
-                email,
-                passwordHash: hashedPassword,
-                ...data,
-            },
-            select: this.select,
-        });
-
-        return {
-            ...user,
-            password: genPass,
         };
 
     }

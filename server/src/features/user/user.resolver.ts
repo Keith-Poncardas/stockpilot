@@ -1,6 +1,6 @@
 import { UUIDInput } from "@/schemas";
 import { userService } from "./user.service";
-import { AssignRoleInput, ChangeUserApprovalStatusInput, CreateUserInput, EditUserInput, PaginatedUsersInput, UpdateUserStatusInput, UserIdInput } from "./user.validation";
+import { AssignRoleInput, ChangeUserApprovalStatusInput, EditUserInput, PaginatedUsersInput, UpdateUserStatusInput, UserIdInput } from "./user.validation";
 import { protectResolvers } from "@/graphql/helpers";
 import { GraphQLContext } from "@/types";
 
@@ -25,13 +25,6 @@ export const userResolver = {
     }),
 
     Mutation: protectResolvers({
-
-        /**
-         * Create new user
-         */
-        createUser: async (_: unknown, { input }: { input: CreateUserInput }) => {
-            return userService.createUser(input);
-        },
 
         /**
          * Reset user password

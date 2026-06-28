@@ -1,7 +1,7 @@
 import { GraphQLContext } from "@/types";
 import { authService } from "./auth.service";
 import { protectResolvers } from "@/graphql/helpers";
-import { ChangePasswordInput, LoginInput } from "./auth.validation";
+import { ChangePasswordInput, LoginInput, ResendOtpInput, SignUpInput, VerifyOtpInput } from "./auth.validation";
 import { throwUnauthorized } from "@/utils";
 
 export const authResolver = {
@@ -36,6 +36,27 @@ export const authResolver = {
         ) => {
             if (!context.user) throwUnauthorized();
             return authService.changePassword(context.user!.id, input);
+        },
+
+        /**
+         * Sign up a new user (Pending Registration)
+         */
+        signUp: async (_: unknown, { input }: { input: SignUpInput }) => {
+            return authService.signup(input);
+        },
+
+        /**
+         * Verify OTP for pending registration
+         */
+        verifyOtp: async (_: unknown, { input }: { input: VerifyOtpInput }) => {
+            return authService.verifyOtp(input);
+        },
+
+        /**
+         * Resend OTP for pending registration
+         */
+        resendOtp: async (_: unknown, { input }: { input: ResendOtpInput }) => {
+            return authService.resendOtp(input);
         }
 
     }

@@ -1,26 +1,17 @@
+import type { IUserIdentify } from '@/features';
 import { create } from 'zustand';
 
 const STORAGE_KEY = 'auth-storage';
 
-type Role = 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'CASHIER'
-
-interface User {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    role: Role;
-}
-
 interface AuthState {
-    user: User | null;
+    user: IUserIdentify | null;
     token: string | null;
-    login: (user: User, token: string, rememberMe?: boolean) => void;
+    login: (user: IUserIdentify, token: string, rememberMe?: boolean) => void;
     logout: () => void;
     isAuthenticated: () => boolean;
 }
 
-function loadAuthState(): { user: User | null; token: string | null } {
+function loadAuthState(): { user: IUserIdentify | null; token: string | null } {
     try {
         const raw =
             localStorage.getItem(STORAGE_KEY) ??

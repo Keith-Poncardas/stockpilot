@@ -46,7 +46,9 @@ export const columns: ColumnDef<IUser>[] = [
     accessorKey: "email",
     header: "Email",
     cell: ({ row }) => (
-      <span className="text-sm text-gray-500 dark:text-zinc-400">{row.original.email}</span>
+      <span className="text-sm text-gray-500 dark:text-zinc-400">
+        {row.original.email}
+      </span>
     ),
     size: 220,
   },

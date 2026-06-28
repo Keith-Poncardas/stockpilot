@@ -12,6 +12,26 @@ export const searchSchema = z
     .optional();
 
 /**
+ * Reusable first name schema.
+ * Trims whitespace and caps at 100 characters.
+ */
+export const firstNameSchema = z
+    .string()
+    .trim()
+    .min(1, "First name is required")
+    .max(100, "First name must be at most 100 characters");
+
+/**
+ * Reusable last name schema.
+ * Trims whitespace and caps at 100 characters.
+ */
+export const lastNameSchema = z
+    .string()
+    .trim()
+    .min(1, "Last name is required")
+    .max(100, "Last name must be at most 100 characters");
+
+/**
  * Reusable date-range pair schema.
  * Apply this via .extend() or use the refine helper below.
  */

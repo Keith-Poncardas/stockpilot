@@ -84,19 +84,6 @@ export const userTypeDefs = `#graphql
         meta: Pagination!
     }
 
-    # Response when creating a user (includes generated password)
-    type CreateUserResponse {
-        id: ID!
-        firstName: String!
-        lastName: String!
-        email: String!
-        role: UserRole!
-        status: UserStatus!
-        createdAt: String!
-        updatedAt: String!
-        password: String!
-    }
-
     # Response when resetting a password (includes new generated password)
     type ResetPasswordResponse {
         id: ID!
@@ -149,14 +136,6 @@ export const userTypeDefs = `#graphql
         data: EditUserData!
     }
 
-    # Create user input
-    input CreateUserInput {
-        firstName: String!
-        lastName: String!
-        email: String!
-        role: UserRole
-    }
-
     # Update user status input
     input UpdateUserStatusInput {
         userId: ID!
@@ -183,7 +162,6 @@ export const userTypeDefs = `#graphql
 
     # Mutation type
     type Mutation {
-        createUser(input: CreateUserInput!): CreateUserResponse
         modifyUser(input: EditUserInput!): User
         resetPassword(userId: ID!): ResetPasswordResponse
         changeUserStatus(input: UpdateUserStatusInput!): User
