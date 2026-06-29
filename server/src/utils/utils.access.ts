@@ -35,13 +35,25 @@ const validators = [
     }
 ];
 
-export function requireValidUserAccess(user: SafeUser) {
+export function requireValidUserAccess(user: SafeUser, options?: { allowInactiveOrUnassigned?: boolean }) {
 
     if (!user) {
         throwUnauthorized("You must be logged in to access this resource.");
     }
 
     for (const validate of validators) {
+        // If we are allowing inactive/unassigned users to bypass restrictions (e.g. during login)
+        if (options?.allowInactiveOrUnassigned) {
+            const errorStr = validate(user);
+            // We know the strings returned by these two specific validations
+            if (errorStr && (
+                errorStr.includes("account is inactive") || 
+                errorStr.includes("assigned a role")
+            )) {
+                continue;
+            }
+        }
+
         const error = validate(user);
 
         if (error) {

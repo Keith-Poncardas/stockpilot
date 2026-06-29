@@ -5,13 +5,14 @@ import { Link } from "react-router-dom";
 import { ButtonLoading } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { FormField } from "@/components/ui/form-field";
-import { loginSchema, type LoginInput } from "./auth.validation";
 import { useMutation } from "@apollo/client";
-import { LOGIN } from "./auth.operation";
 import { useAuthStore } from "@/store";
 import { useState } from "react";
 import Alert from "@/components/ui/alert";
-import { ErrorCode } from "@/constants";
+import { loginSchema, type LoginInput } from "../auth.validation";
+import { handleGraphQLError } from "@/lib/utils";
+import { AuthFooter, AuthHeading } from "../components";
+import { LOGIN } from "../operations";
 
 export function LoginPage() {
 
@@ -37,15 +38,7 @@ export function LoginPage() {
             // PublicRoute detects the token and redirects automatically
         },
         onError: (err) => {
-            const isInternalError = err.graphQLErrors?.some(
-                (graphqlErr) => graphqlErr.extensions?.code === ErrorCode.INTERNAL_SERVER_ERROR
-            );
-
-            if (isInternalError) {
-                setError("Internal Server Error. Please try again later.");
-            } else {
-                setError(err.message);
-            }
+            setError(handleGraphQLError(err));
         },
     });
 
@@ -64,14 +57,10 @@ export function LoginPage() {
 
     return (
         <>
-            {/* Heading */}
-            <h3 className="text-2xl font-bold text-gray-900 text-center">
-                Welcome back!
-            </h3>
-
-            <p className="text-gray-500 text-sm mb-6 text-center">
-                Sign in to your account to continue.
-            </p>
+            <AuthHeading
+                title="Welcome back!"
+                description="Sign in to your account to continue."
+            />
 
             {error && (
                 <Alert variant="error" className="font-bold">
@@ -118,7 +107,7 @@ export function LoginPage() {
                         />
                         <Link
                             to="/forgot-password"
-                            className="text-amber-600 font-semibold hover:underline pointer-events-none opacity-50"
+                            className="text-amber-600 font-semibold hover:underline transition-colors"
                         >
                             Forgot password?
                         </Link>
@@ -136,6 +125,12 @@ export function LoginPage() {
 
                 </FieldGroup>
             </form>
+
+            <AuthFooter
+                text="Don't have an account?"
+                linkText="Create one"
+                linkTo="/signup"
+            />
         </>
     );
 }

@@ -48,7 +48,7 @@ model User {
     email          String             @unique @db.VarChar
     passwordHash   String             @map("password_hash") @db.VarChar
     role           UserRole           @default(UNASSIGNED)
-    status         UserStatus         @default(ACTIVE)
+    status         UserStatus         @default(INACTIVE)
     approvalStatus UserApprovalStatus @default(PENDING)
     tokenVersion   Int                @default(0) @map("token_version")
     createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamp(6)

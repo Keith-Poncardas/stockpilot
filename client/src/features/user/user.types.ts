@@ -18,7 +18,7 @@ export interface IUserDetail extends Omit<IUser, 'isCurrentUser'> {
     stockMovementProcessed: number;
 }
 
-export type IUserIdentify = Pick<IUser, 'firstName' | 'lastName' | 'email' | 'role'>;
+export type IUserIdentify = Pick<IUser, 'id' | 'firstName' | 'lastName' | 'email' | 'role' | 'status'>;
 
 export interface UserRowInfoCellProps {
     row: Row<IUser>

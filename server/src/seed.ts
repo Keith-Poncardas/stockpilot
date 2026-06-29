@@ -35,30 +35,30 @@ async function main() {
         console.log(`⚠️  Super admin already exists (${email}). Skipping super admin seed.`);
     }
 
-    // Seed dummy users
-    console.log(`\n⏳ Seeding dummy users...`);
-    let seededCount = 0;
-    const defaultPasswordHash = await argon2.hash("password123");
+    // // Seed dummy users
+    // console.log(`\n⏳ Seeding dummy users...`);
+    // let seededCount = 0;
+    // const defaultPasswordHash = await argon2.hash("password123");
 
-    for (const dummy of dummyUsers) {
-        const existingDummy = await prisma.user.findUnique({ where: { email: dummy.email } });
+    // for (const dummy of dummyUsers) {
+    //     const existingDummy = await prisma.user.findUnique({ where: { email: dummy.email } });
 
-        if (!existingDummy) {
-            await prisma.user.create({
-                data: {
-                    firstName: dummy.firstName,
-                    lastName: dummy.lastName,
-                    email: dummy.email,
-                    role: dummy.role as UserRole,
-                    status: dummy.status as UserStatus,
-                    passwordHash: defaultPasswordHash,
-                }
-            });
-            seededCount++;
-        }
-    }
+    //     if (!existingDummy) {
+    //         await prisma.user.create({
+    //             data: {
+    //                 firstName: dummy.firstName,
+    //                 lastName: dummy.lastName,
+    //                 email: dummy.email,
+    //                 role: dummy.role as UserRole,
+    //                 status: dummy.status as UserStatus,
+    //                 passwordHash: defaultPasswordHash,
+    //             }
+    //         });
+    //         seededCount++;
+    //     }
+    // }
 
-    console.log(`✅ Seeded ${seededCount} dummy users.`);
+    // console.log(`✅ Seeded ${seededCount} dummy users.`);
 }
 
 main()

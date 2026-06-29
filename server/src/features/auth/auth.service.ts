@@ -1,8 +1,9 @@
-import { prisma } from "@/lib";
+import { prisma, mailer } from "@/lib";
+import { generateOtpEmailHtml } from "./templates/otpEmail";
 import { generateToken, throwBadInput, throwUnauthorized, requireValidUserAccess, generateOtp } from "@/utils";
 import * as argon2 from "argon2";
 import { ChangePasswordInput, changePasswordSchema, LoginInput, loginSchema, SignUpInput, signUpSchema, VerifyOtpInput, verifyOtpSchema, ResendOtpInput, resendOtpSchema } from "./auth.validation";
-import { Prisma, UserStatus } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 export class AuthService {
 
@@ -38,7 +39,7 @@ export class AuthService {
 
         if (!validPassword) throwUnauthorized("Invalid email or password");
 
-        requireValidUserAccess(user);
+        requireValidUserAccess(user, { allowInactiveOrUnassigned: true });
 
         const token = generateToken({
             userId: user.id,
@@ -98,9 +99,22 @@ export class AuthService {
             },
         });
 
-        // TODO: In a real app, you would send the `otp` via email here.
-        // For development/testing, we log it:
+        // For development/testing, we also log it:
         console.log(`[DEV ONLY] OTP for ${email}: ${otp}`);
+
+        try {
+            const info = await mailer.sendMail({
+                from: `"StockPilot" <${process.env.SMTP_EMAIL}>`,
+                to: email, // This will now successfully send to any address!
+                subject: 'Your StockPilot Verification Code',
+                html: generateOtpEmailHtml(otp, firstName),
+            });
+
+            console.log("Email sent successfully! Message ID:", info.messageId);
+        } catch (error) {
+            console.error("Failed to send email with Nodemailer:", error);
+            // Non-blocking error
+        }
 
         return pending;
     }
@@ -134,14 +148,16 @@ export class AuthService {
                     firstName: pending.firstName,
                     lastName: pending.lastName,
                     email: pending.email,
-                    passwordHash: pending.passwordHash,
-                    status: UserStatus.ACTIVE,
+                    passwordHash: pending.passwordHash
                 },
             }),
             prisma.pendingRegistration.delete({
                 where: { id: pending.id },
             })
         ]);
+
+        // Don't need requireValidUserAccess for brand new verified user, they might be inactive or unassigned 
+        // But if there's any other check we can do it, though for signups they are just created.
 
         // 6. Generate auth token and return
         const token = generateToken({
@@ -178,6 +194,16 @@ export class AuthService {
 
         if (!pending) throwBadInput("No pending registration found. Please sign up first.");
 
+        // Rate limit: Enforce 60 seconds cooldown between OTP requests
+        // Since expiresAt is always set to exactly 15 mins after generation, we can deduce the generation time
+        const otpGeneratedAt = new Date(pending.expiresAt.getTime() - 15 * 60 * 1000);
+        const msSinceLastOtp = Date.now() - otpGeneratedAt.getTime();
+
+        if (msSinceLastOtp < 60000) {
+            const secondsLeft = Math.ceil((60000 - msSinceLastOtp) / 1000);
+            throwBadInput(`Please wait ${secondsLeft} seconds before requesting a new OTP.`);
+        }
+
         // 3. Generate new OTP and update
         const otp = generateOtp();
         const hashedOtp = await argon2.hash(otp);
@@ -194,6 +220,20 @@ export class AuthService {
         });
 
         console.log(`[DEV ONLY] Resent OTP for ${email}: ${otp}`);
+
+        try {
+            const info = await mailer.sendMail({
+                from: `"StockPilot" <${process.env.SMTP_EMAIL}>`,
+                to: email, // This will now successfully send to any address!
+                subject: 'Your StockPilot Verification Code',
+                html: generateOtpEmailHtml(otp, updatedPending.firstName),
+            });
+
+            console.log("Email sent successfully! Message ID:", info.messageId);
+        } catch (error) {
+            console.error("Failed to send email with Nodemailer:", error);
+            // Non-blocking error
+        }
 
         return updatedPending;
     }

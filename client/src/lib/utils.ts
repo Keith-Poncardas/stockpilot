@@ -40,4 +40,16 @@ export function getRoleColor(role?: string) {
   return ROLE_COLORS[upperRole] || ROLE_COLORS.DEFAULT;
 }
 
+import { ErrorCode } from "@/constants";
 
+export function handleGraphQLError(err: any): string {
+  const isInternalError = err?.graphQLErrors?.some(
+    (graphqlErr: any) => graphqlErr?.extensions?.code === ErrorCode.INTERNAL_SERVER_ERROR
+  );
+
+  if (isInternalError) {
+    return "Internal Server Error. Please try again later.";
+  }
+
+  return err?.message || "An unexpected error occurred.";
+}

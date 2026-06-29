@@ -6,16 +6,17 @@ import { throwUnauthorized } from "@/utils";
 
 export const authResolver = {
 
-    Query: protectResolvers({
+    Query: {
 
         /**
          * Get current authenticated user
          */
         me: async (_: unknown, __: unknown, context: GraphQLContext) => {
+            if (!context.user) throwUnauthorized("You must be logged in to access this resource.");
             return context.user;
         },
 
-    }),
+    },
 
     Mutation: {
 
