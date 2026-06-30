@@ -14,7 +14,7 @@ export const authTypeDefs = `#graphql
 
     # Change password input
     input ChangePasswordInput {
-        oldPassword: String!
+        email: String!
         newPassword: String!
         confirmPassword: String!
     }
@@ -22,6 +22,12 @@ export const authTypeDefs = `#graphql
     # Query to get current authenticated user
     type Query {
         me: User
+    }
+
+    # Forgot password response
+    type ForgotPasswordResponse {
+        id: ID!
+        email: String!
     }
 
     # Sign up input
@@ -32,8 +38,8 @@ export const authTypeDefs = `#graphql
         password: String!
     }
 
-    # Verify OTP input
-    input VerifyOtpInput {
+    # Verify OTP REGISTRATION input
+    input VerifyOtpRegistrationInput {
         email: String!
         otp: String!
     }
@@ -43,23 +49,43 @@ export const authTypeDefs = `#graphql
         email: String!
     }
 
+    # Forgot Password input
+    input ForgotPasswordInput {
+        email: String!
+    }
+
+    # Verify Forgot Password OTP input
+    input VerifyForgotPasswordOtpInput {
+        email: String!
+        otp: String!
+    }
+
     # Pending Registration type
     type PendingRegistration {
         id: ID!
+        email: String!
         firstName: String!
         lastName: String!
+        expiresAt: String!
+    }
+
+    # Password Reset type
+    type PasswordReset {
+        id: ID!
         email: String!
         expiresAt: String!
-        createdAt: String!
     }
 
     # Mutations for authentication
     type Mutation {
         login(input: LoginInput!): AuthResponse!
-        changePassword(input: ChangePasswordInput!): AuthResponse!
+        changePassword(input: ChangePasswordInput!): User!
         signUp(input: SignUpInput!): PendingRegistration!
-        verifyOtp(input: VerifyOtpInput!): AuthResponse!
-        resendOtp(input: ResendOtpInput!): PendingRegistration!
+        verifyOtpRegistration(input: VerifyOtpRegistrationInput!): AuthResponse!
+        resendOtpSignUp(input: ResendOtpInput!): PendingRegistration!
+        resendOtpForgotPassword(input: ResendOtpInput!): PasswordReset!
+        forgotPassword(input: ForgotPasswordInput!): ForgotPasswordResponse!
+        verifyForgotPasswordOtp(input: VerifyForgotPasswordOtpInput!): ForgotPasswordResponse!
     }
 
 `;

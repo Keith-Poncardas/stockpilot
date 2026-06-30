@@ -1,10 +1,17 @@
-export const generateOtpEmailHtml = (otp: string, firstName: string) => {
+export type OtpEmailType = 'signup' | 'forgot_password';
+
+export const generateOtpEmailHtml = (otp: string, firstName: string, type: OtpEmailType = 'signup') => {
+    const title = type === 'signup' ? 'Verify your email address' : 'Reset your password';
+    const message = type === 'signup' 
+        ? 'Welcome to StockPilot! To complete your sign up and verify your account, please use the following one-time password (OTP):'
+        : 'We received a request to reset your password for your StockPilot account. Please use the following one-time password (OTP) to proceed:';
+
     return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="utf-8">
-      <title>Verify your email</title>
+      <title>${title}</title>
       <style>
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -81,9 +88,9 @@ export const generateOtpEmailHtml = (otp: string, firstName: string) => {
           <h1>StockPilot</h1>
         </div>
         <div class="content">
-          <h2>Verify your email address</h2>
+          <h2>${title}</h2>
           <p>Hi ${firstName},</p>
-          <p>Welcome to StockPilot! To complete your sign up and verify your account, please use the following one-time password (OTP):</p>
+          <p>${message}</p>
           <div class="otp-container">
             <div class="otp-code">${otp}</div>
           </div>

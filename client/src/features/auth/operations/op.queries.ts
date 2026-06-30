@@ -37,14 +37,13 @@ export const SIGN_UP = gql`
             lastName
             email
             expiresAt
-            createdAt
         }
     }
 `;
 
-export const VERIFY_OTP = gql`
-    mutation VerifyOtp($input: VerifyOtpInput!) {
-        verifyOtp(input: $input) {
+export const VERIFY_OTP_REGISTRATION = gql`
+    mutation VerifyOtpRegistration($input: VerifyOtpRegistrationInput!) {
+        verifyOtpRegistration(input: $input) {
             user {
                 id
                 firstName
@@ -58,15 +57,55 @@ export const VERIFY_OTP = gql`
     }
 `;
 
-export const RESEND_OTP = gql`
-    mutation ResendOtp($input: ResendOtpInput!) {
-        resendOtp(input: $input) {
+export const VERIFY_OTP_FORGOT_PASSWORD = gql`
+    mutation VerifyForgotPasswordOtp($input: VerifyForgotPasswordOtpInput!) {
+        verifyForgotPasswordOtp(input: $input) {
+            id
+            email
+        }
+    }
+`;
+
+export const CHANGE_PASSWORD = gql`
+    mutation ChangePassword($input: ChangePasswordInput!) {
+        changePassword(input: $input) {
+            id
+            firstName
+            lastName
+            email
+            role
+            status
+        }
+    }
+`;
+
+export const RESEND_OTP_SIGNUP = gql`
+    mutation resendOtpSignUp($input: ResendOtpInput!) {
+        resendOtpSignUp(input: $input) {
             id
             firstName
             lastName
             email
             expiresAt
-            createdAt
+        }
+    }
+`;
+
+export const RESEND_OTP_FORGOT_PASSWORD = gql`
+    mutation resendOtpForgotPassword($input: ResendOtpInput!) {
+        resendOtpForgotPassword(input: $input) {
+            id
+            email
+            expiresAt
+        }
+    }
+`;
+
+export const FORGOT_PASSWORD = gql`
+    mutation ForgotPassword($input: ForgotPasswordInput!) {
+        forgotPassword(input: $input) {
+            id
+            email
         }
     }
 `;

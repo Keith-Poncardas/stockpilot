@@ -1,7 +1,6 @@
 import { GraphQLContext } from "@/types";
 import { authService } from "./auth.service";
-import { protectResolvers } from "@/graphql/helpers";
-import { ChangePasswordInput, LoginInput, ResendOtpInput, SignUpInput, VerifyOtpInput } from "./auth.validation";
+import { ChangePasswordInput, ForgotPasswordInput, LoginInput, ResendOtpInput, SignUpInput, VerifyOtpRegistrationInput, VerifyForgotPasswordOtpInput } from "./auth.validation";
 import { throwUnauthorized } from "@/utils";
 
 export const authResolver = {
@@ -32,11 +31,9 @@ export const authResolver = {
          */
         changePassword: async (
             _: unknown,
-            { input }: { input: ChangePasswordInput },
-            context: GraphQLContext
+            { input }: { input: ChangePasswordInput }
         ) => {
-            if (!context.user) throwUnauthorized();
-            return authService.changePassword(context.user!.id, input);
+            return authService.changePassword(input);
         },
 
         /**
@@ -49,15 +46,51 @@ export const authResolver = {
         /**
          * Verify OTP for pending registration
          */
-        verifyOtp: async (_: unknown, { input }: { input: VerifyOtpInput }) => {
-            return authService.verifyOtp(input);
+        verifyOtpRegistration: async (
+            _: unknown,
+            { input }: { input: VerifyOtpRegistrationInput }
+        ) => {
+            return authService.verifyOtpRegistration(input);
         },
 
         /**
-         * Resend OTP for pending registration
+         * Resend OTP for signup
          */
-        resendOtp: async (_: unknown, { input }: { input: ResendOtpInput }) => {
-            return authService.resendOtp(input);
+        resendOtpSignUp: async (
+            _: unknown,
+            { input }: { input: ResendOtpInput }
+        ) => {
+            return authService.resendOtpSignUp(input);
+        },
+
+        /**
+         * Resend OTP for forgot password
+         */
+        resendOtpForgotPassword: async (
+            _: unknown,
+            { input }: { input: ResendOtpInput }
+        ) => {
+            return authService.resendOtpForgotPassword(input);
+        },
+
+        /**
+         * Forgot password (send OTP)
+         */
+        forgotPassword: async (
+            _: unknown,
+            { input }: { input: ForgotPasswordInput }
+        ) => {
+            return authService.forgotPassword(input);
+        },
+
+        /**
+         * Verify OTP for forgot password
+         */
+        verifyForgotPasswordOtp: async (
+            _: unknown,
+            { input }: { input: VerifyForgotPasswordOtpInput }
+        ) => {
+            return authService.verifyForgotPasswordOtp(input);
         }
 
     }

@@ -1,28 +1,36 @@
-import { useState, useEffect, type SyntheticEvent } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, type SyntheticEvent } from "react";
+import { useNavigate, Navigate } from "react-router-dom";
 import { ButtonLoading } from "@/components/ui/button";
 import { AuthHeading } from "../components";
 import Alert from "@/components/ui/alert";
 import { handleGraphQLError } from "@/lib/utils";
 import { useMutation } from "@apollo/client";
-import { VERIFY_OTP, RESEND_OTP } from "../operations";
+import { VERIFY_OTP_REGISTRATION, RESEND_OTP_SIGNUP, VERIFY_OTP_FORGOT_PASSWORD, RESEND_OTP_FORGOT_PASSWORD } from "../operations";
 import { useAuthStore } from "@/store";
 import { useOTP } from "@/hooks/useOTP";
+import { useSafeQueryParams } from "../hooks/useSafeQueryParams";
 import { verifyOtpSchema } from "../auth.validation";
 
 export function OTPPage() {
     const navigate = useNavigate();
     const { login } = useAuthStore();
-    const [searchParams] = useSearchParams();
-    const email = searchParams.get("email") || "";
-    const mode = searchParams.get("mode") || "signup";
 
-    const [verifyOtp, { loading: verifyLoading }] = useMutation(VERIFY_OTP);
-    const [resendOtp, { loading: resendLoading }] = useMutation(RESEND_OTP);
+    // Safely retrieve query params — email is null when no active OTP session exists
+    const { email, mode } = useSafeQueryParams("otp");
+
+    const activeMode = mode === "forgot-password" ? "forgot-password" : "signup";
+
+    const verifyMutation = activeMode === 'signup' ? VERIFY_OTP_REGISTRATION : VERIFY_OTP_FORGOT_PASSWORD;
+    const resendMutation = activeMode === 'signup' ? RESEND_OTP_SIGNUP : RESEND_OTP_FORGOT_PASSWORD;
+
+    const [verifyOtp, { loading: verifyLoading }] = useMutation(verifyMutation);
+    const [resendOtp, { loading: resendLoading }] = useMutation(resendMutation);
     const loading = verifyLoading || resendLoading;
 
     const [error, setError] = useState<string | null>(null);
 
+    // ── Guard: no active OTP session → redirect before rendering the page ────
+    // NOTE: Must be placed AFTER all hook calls to comply with Rules of Hooks.
     const {
         otp,
         activeOTPIndex,
@@ -35,13 +43,6 @@ export function OTPPage() {
         formatTime,
         resetOTP
     } = useOTP({ length: 6, initialTimeLeft: 60 });
-
-    // Protect route
-    useEffect(() => {
-        if (!email) {
-            navigate(mode === "forgot-password" ? "/forgot-password" : "/signup", { replace: true });
-        }
-    }, [email, navigate, mode]);
 
     const handleResend = async () => {
         if (timeLeft > 0) return;
@@ -81,21 +82,37 @@ export function OTPPage() {
                     }
                 }
             });
-            if (mode === "forgot-password") {
-                navigate(`/reset-password?token=${data.verifyOtp.token}`, { replace: true });
+
+            if (activeMode === "forgot-password") {
+                // Seed the change-password session before navigating.
+                // OTP keys are cleared by ChangePasswordPage on mount.
+                sessionStorage.setItem("auth_email_change-password", email);
+                navigate(`/change-password?email=${email}`, {
+                    replace: true,
+                    state: {
+                        otpVerified: true,
+                        otp: validationResult.data.otp
+                    }
+                });
             } else {
-                login(data.verifyOtp.user, data.verifyOtp.token, false);
+                // Login immediately — PublicRoute will redirect away from /otp.
+                // OTP keys are naturally orphaned once the user is authenticated.
+                login(data.verifyOtpRegistration.user, data.verifyOtpRegistration.token, false);
             }
         } catch (err: any) {
             setError(handleGraphQLError(err));
         }
     };
 
+    if (!email) {
+        return <Navigate to={activeMode === "forgot-password" ? "/forgot-password" : "/signup"} replace />;
+    }
+
     return (
         <>
             <AuthHeading
-                title={mode === "forgot-password" ? "Reset your password" : "Verify your email"}
-                description={email ? `We've sent a 6-digit code to ${email}${mode === "forgot-password" ? " to reset your password" : ""}.` : "We've sent a 6-digit code to your email address."}
+                title={activeMode === "forgot-password" ? "Reset your password" : "Verify your email"}
+                description={email ? `We've sent a 6-digit code to ${email}${activeMode === "forgot-password" ? " to reset your password" : ""}.` : "We've sent a 6-digit code to your email address."}
             />
 
             {error && (

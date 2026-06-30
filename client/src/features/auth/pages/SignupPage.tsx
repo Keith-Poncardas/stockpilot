@@ -35,6 +35,8 @@ export function SignupPage() {
         try {
             const { confirmPassword, ...input } = data;
             await signUp({ variables: { input } });
+            sessionStorage.setItem("auth_email_otp", data.email);
+            sessionStorage.setItem("auth_mode_otp", "signup");
             navigate(`/otp?email=${encodeURIComponent(data.email)}`);
         } catch (err: any) {
             setError(handleGraphQLError(err));
