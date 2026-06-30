@@ -1,6 +1,6 @@
 import { prisma } from "@/lib";
 import { productIdSchema, UUIDInput } from "@/schemas";
-import { createPaginator, smartDelete, throwConflict, throwNotFound } from "@/utils";
+import { buildSearchQuery, createPaginator, smartDelete, throwConflict, throwNotFound } from "@/utils";
 import { Prisma, SaleStatus } from "@prisma/client";
 import { CreateProductInput, createProductSchema, EditProductInput, editProductSchema, PaginatedProductsInput, paginatedProductsSchema } from "./product.validation";
 import { ProductStatus } from "@/enums";
@@ -37,7 +37,7 @@ export class ProductService {
             },
         });
 
-        if (!product || product.deletedAt !== null) throwNotFound('Product not found');
+        if (!product) throwNotFound('Product not found');
 
         /** Total Units Sold (this month) = Sum of quantities from all sales in the current month.  */
         const unitsSoldMonth = product.saleItems.reduce(
@@ -103,28 +103,17 @@ export class ProductService {
             maxPrice,
             dateFrom,
             dateTo,
-            withDeleted,
             orderBy,
             orderDirection
         } = filter;
 
         const where: Prisma.ProductWhereInput = {
 
-            /** Filtering by deletedAt */
-            deletedAt: withDeleted ? undefined : null,
-
             /** Filtering by status */
-            ...(status !== ProductStatus.ALL && { isActive: status === ProductStatus.ACTIVE }),
+            ...(status && status !== ProductStatus.ALL && { status: status as any }),
 
             /** Filtering by search */
-            ...(search && {
-                OR: [
-                    { id: { equals: search, mode: "insensitive" } },
-                    { sku: { contains: search, mode: "insensitive" } },
-                    { name: { contains: search, mode: "insensitive" } },
-                    { description: { contains: search, mode: "insensitive" } },
-                ],
-            }),
+            ...(search && buildSearchQuery(search, ['id:equals', 'sku', 'name', 'description'])),
 
             /** Filtering by price */
             ...((minPrice !== undefined || maxPrice !== undefined) && {
@@ -166,19 +155,6 @@ export class ProductService {
     }
 
     /**
-     * Get total number of products
-     */
-    async totalProducts(withDeleted = false) {
-
-        return prisma.product.count({
-            where: {
-                deletedAt: withDeleted ? undefined : null,
-            }
-        });
-
-    }
-
-    /**
      * Creates a new product and, optionally, adds initial stock.
      */
     async createProduct(input: CreateProductInput) {
@@ -190,14 +166,7 @@ export class ProductService {
             /** Checking for the existence of a product based on name and SKU (excluding archived products) */
             const existingProduct = await tx.product.findFirst({
                 where: {
-                    deletedAt: null,
                     OR: [
-                        {
-                            name: {
-                                equals: rest.name.trim(),
-                                mode: "insensitive"
-                            }
-                        },
                         {
                             sku: {
                                 equals: rest.sku.toUpperCase(),
@@ -254,18 +223,12 @@ export class ProductService {
         const product = await prisma.product.findUnique({ where: { id: productId } });
         if (!product) throwNotFound('Product not found');
 
-        // Guard: cannot edit an archived product
-        if (product.deletedAt !== null) {
-            throwConflict('Cannot edit an archived product. Restore it first.');
-        }
-
         const editedProduct = await prisma.$transaction(async (tx) => {
 
             // Check for name/SKU conflict against other active (non-archived) products
             const duplicate = await tx.product.findFirst({
                 where: {
                     id: { not: productId },
-                    deletedAt: null,
                     OR: [
                         {
                             name: {
@@ -304,84 +267,6 @@ export class ProductService {
         });
 
         return editedProduct;
-
-    }
-
-    /**
-     * Deletes a product.
-     * - If the product has business history (sales or stock movements), it is soft-deleted (archived).
-     * - If the product has never been used, it is hard-deleted along with its inventory record.
-     */
-    async deleteProduct(productID: UUIDInput) {
-
-        const id = productIdSchema.parse(productID);
-
-        // Guard: existence check
-        const product = await prisma.product.findUnique({ where: { id } });
-        if (!product) throwNotFound('Product not found');
-
-        // Guard: already archived
-        if (product.deletedAt !== null) {
-            throwConflict('Product is already archived');
-        }
-
-        return smartDelete({
-            id,
-            historyChecks: [
-                {
-                    label: 'stockMovements',
-                    count: (id) => prisma.stockMovement.count({ where: { productId: id } }),
-                },
-                {
-                    label: 'saleItems',
-                    count: (id) => prisma.saleItem.count({ where: { productId: id } }),
-                },
-            ],
-            softDelete: {
-                execute: (id) =>
-                    prisma.product.update({
-                        where: { id },
-                        data: { isActive: false, deletedAt: new Date() },
-                    }).then(() => void 0),
-            },
-            hardDelete: {
-                execute: async (tx, id) => {
-                    await tx.inventory.deleteMany({ where: { productId: id } });
-                    await tx.product.delete({ where: { id } });
-                },
-            },
-        });
-    }
-
-    /**
-     * Restores a previously soft-deleted (archived) product.
-     * Sets deletedAt back to null and re-activates isActive.
-     */
-    async restoreProduct(productID: UUIDInput) {
-
-        const id = productIdSchema.parse(productID);
-
-        // Guard: existence check
-        const product = await prisma.product.findUnique({ where: { id } });
-        if (!product) throwNotFound('Product not found');
-
-        // Guard: already active (not archived)
-        if (product.deletedAt === null) {
-            throwConflict(
-                'Product is not archived and does not need to be restored'
-            );
-        }
-
-        /** Restoring product — clear deletedAt and re-activate */
-        const restoredProduct = await prisma.product.update({
-            where: { id },
-            data: {
-                isActive: true,
-                deletedAt: null,
-            }
-        });
-
-        return restoredProduct;
 
     }
 

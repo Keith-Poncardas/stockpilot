@@ -1,21 +1,21 @@
 import { GraphQLContext } from "@/types";
-import { PaginationInput, throwUnauthorized } from "@/utils";
+import { throwUnauthorized } from "@/utils";
 import { productService } from "./product.service";
-import { CreateProductInput, EditProductInput, FilterProductsInput } from "./product.validation";
+import { CreateProductInput, EditProductInput, PaginatedProductsInput } from "./product.validation";
+import { protectResolvers } from "@/graphql/helpers";
+import { UUIDInput } from "@/schemas";
 
 export const productResolver = {
 
-    Query: {
+    Query: protectResolvers({
 
         /**
          * Get product by id
          */
         getProduct: async (
             _: unknown,
-            { productId }: { productId: string },
-            ctx: GraphQLContext
+            { productId }: { productId: UUIDInput }
         ) => {
-            if (!ctx.user) throwUnauthorized();
             return productService.getProduct(productId);
         },
 
@@ -24,32 +24,12 @@ export const productResolver = {
          */
         getProducts: async (
             _: unknown,
-            {
-                pagination,
-                filter
-            }: {
-                pagination: PaginationInput,
-                filter?: FilterProductsInput
-            },
-            ctx: GraphQLContext
+            { args }: { args: PaginatedProductsInput }
         ) => {
-            if (!ctx.user) throwUnauthorized();
-            return productService.getProducts(pagination, filter);
+            return productService.getProducts(args);
         },
 
-        /**
-         * Get total count of products
-         */
-        totalProducts: async (
-            _: unknown,
-            { filter }: { filter?: { withDeleted?: boolean } },
-            ctx: GraphQLContext
-        ) => {
-            if (!ctx.user) throwUnauthorized();
-            return productService.totalProducts(filter?.withDeleted ?? false);
-        },
-
-    },
+    }),
 
     Mutation: {
 
@@ -75,30 +55,6 @@ export const productResolver = {
         ) => {
             if (!ctx.user) throwUnauthorized();
             return productService.editProduct(input);
-        },
-
-        /**
-         * Soft-delete a product
-         */
-        softDeleteProduct: async (
-            _: unknown,
-            { input }: { input: { id: string } },
-            ctx: GraphQLContext
-        ) => {
-            if (!ctx.user) throwUnauthorized();
-            return productService.deleteProduct(input.id);
-        },
-
-        /**
-         * Restore a soft-deleted product
-         */
-        restoreProduct: async (
-            _: unknown,
-            { input }: { input: { id: string } },
-            ctx: GraphQLContext
-        ) => {
-            if (!ctx.user) throwUnauthorized();
-            return productService.restoreProduct(input.id);
         },
 
     }

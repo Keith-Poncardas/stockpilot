@@ -8,10 +8,9 @@ export const productTypeDefs = `#graphql
         description: String!
         unitPrice: Float!
         costPrice: Float!
-        isActive: Boolean!
+        status: String!
         createdAt: String!
         updatedAt: String!
-        deletedAt: String
     }
 
     # Product Info Type
@@ -80,9 +79,15 @@ export const productTypeDefs = `#graphql
         maxPrice: Float
         dateFrom: String
         dateTo: String
-        withDeleted: Boolean
         orderBy: String
         orderDirection: String
+    }
+
+    # Paginated Products Input Type
+    input PaginatedProductsInput {
+        page: Int!
+        limit: Int!
+        filter: GetProductsInput!
     }
 
     # Add To Inventory Input Type
@@ -127,16 +132,10 @@ export const productTypeDefs = `#graphql
         id: ID!
     }
 
-    # Total Products Input Type
-    input TotalProductsInput {
-        withDeleted: Boolean
-    }
-
     # Query Type
     type Query {
-        getProduct(productId: GetProductByIdInput!): ProductDetails!
-        getProducts(pagination: PaginationInput, filter: GetProductsInput): PaginatedProducts!
-        totalProducts(filter: TotalProductsInput): Int!
+        getProduct(productId: ID!): ProductDetails!
+        getProducts(args: PaginatedProductsInput!): PaginatedProducts!
     }
 
     # Mutation Type

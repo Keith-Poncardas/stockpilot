@@ -67,7 +67,6 @@ export const filterProductsSchema = dateRangeSchema.extend({
     status: productStatusSchema.default(ProductStatus.ALL),
     minPrice: minMaxSchema.optional(),
     maxPrice: minMaxSchema.optional(),
-    withDeleted: z.coerce.boolean().default(false),
     orderBy: productOrderBySchema.default(ProductOrderBy.CREATED_AT),
     orderDirection: orderDirectionLowerSchema.default(OrderDirectionLower.DESC),
 }).refine(

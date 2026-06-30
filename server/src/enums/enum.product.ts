@@ -4,7 +4,10 @@
 export enum ProductStatus {
     ALL = "ALL",
     ACTIVE = "ACTIVE",
-    INACTIVE = "INACTIVE"
+    INACTIVE = "INACTIVE",
+    DISCONTINUED = "DISCONTINUED",
+    DRAFT = "DRAFT",
+    ARCHIVED = "ARCHIVED"
 }
 
 /**

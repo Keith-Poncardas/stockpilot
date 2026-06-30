@@ -4,6 +4,7 @@ import {
     UserCircle,
     LogOut,
     X,
+    Box,
 } from 'lucide-react'
 import AppLogo from '@/components/AppLogo'
 import { UserProfileDetails } from '@/components/UserProfileDetails'
@@ -45,14 +46,14 @@ const NAV_SECTIONS: NavSectionConfig[] = [
     //         { label: 'Customers', icon: <Users size={16} />, route: "/customers" },
     //     ],
     // },
-    // {
-    //     section: 'Inventory',
-    //     items: [
-    //         { label: 'Products', icon: <Box size={16} />, route: "/products" },
-    //         { label: 'Inventory', icon: <Warehouse size={16} />, badge: '3', badgeDanger: true, route: "/inventory" },
-    //         { label: 'Stock Movements', icon: <ArrowUpDown size={16} />, route: "/stock-movements" },
-    //     ],
-    // },
+    {
+        section: 'Inventory',
+        items: [
+            { label: 'Products', icon: <Box size={16} />, route: "/products" },
+            // { label: 'Inventory', icon: <Warehouse size={16} />, badge: '3', badgeDanger: true, route: "/inventory" },
+            // { label: 'Stock Movements', icon: <ArrowUpDown size={16} />, route: "/stock-movements" },
+        ],
+    },
     {
         section: 'Administration',
         items: [

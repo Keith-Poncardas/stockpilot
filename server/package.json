@@ -10,7 +10,8 @@
         "seed": "tsx src/seed.ts",
         "prisma:generate": "prisma generate",
         "prisma:migrate": "prisma migrate dev",
-        "prisma:studio": "prisma studio"
+        "prisma:studio": "prisma studio",
+        "db:migrate": "prisma migrate dev"
     },
     "dependencies": {
         "@apollo/server": "^5.5.1",

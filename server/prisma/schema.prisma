@@ -22,6 +22,14 @@ enum UserStatus {
     TERMINATED
 }
 
+enum ProductStatus {
+    ACTIVE
+    INACTIVE
+    DISCONTINUED
+    DRAFT
+    ARCHIVED
+}
+
 enum UserApprovalStatus {
     PENDING
     APPROVED
@@ -91,16 +99,15 @@ model PendingRegistration {
 }
 
 model Product {
-    id          String    @id @default(uuid()) @db.Uuid
-    sku         String    @unique @db.VarChar
-    name        String    @db.VarChar
-    description String?   @db.Text
-    unitPrice   Decimal   @map("unit_price") @db.Decimal(10, 2)
-    costPrice   Decimal?  @map("cost_price") @db.Decimal(10, 2)
-    isActive    Boolean   @default(true) @map("is_active")
-    createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
-    updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamp(6)
-    deletedAt   DateTime? @map("deleted_at") @db.Timestamp(6)
+    id          String        @id @default(uuid()) @db.Uuid
+    sku         String        @unique @db.VarChar
+    name        String        @db.VarChar
+    description String?       @db.Text
+    unitPrice   Decimal       @map("unit_price") @db.Decimal(10, 2)
+    costPrice   Decimal?      @map("cost_price") @db.Decimal(10, 2)
+    status      ProductStatus @default(DRAFT)
+    createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+    updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamp(6)
 
     inventory      Inventory?
     saleItems      SaleItem[]

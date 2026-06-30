@@ -1,5 +1,5 @@
 import { prisma } from "@/lib";
-import { createPaginator, generateReadablePassword, smartDelete, throwConflict, throwNotFound } from "@/utils";
+import { buildSearchQuery, createPaginator, generateReadablePassword, smartDelete, throwConflict, throwNotFound } from "@/utils";
 import { Prisma, UserApprovalStatus, UserRole, UserStatus } from "@prisma/client";
 import { AssignRoleInput, assignRoleSchema, ChangeUserApprovalStatusInput, changeUserApprovalStatusSchema, EditUserInput, editUserSchema, PaginatedUsersInput, paginatedUsersSchema, UpdateUserStatusInput, updateUserStatusSchema, UserIdInput } from "./user.validation";
 import * as argon2 from "argon2";
@@ -116,15 +116,7 @@ export class UserService {
             ...(approvalStatus && { approvalStatus }),
 
             /** Full-text search across key fields */
-            ...(search && {
-                AND: search.trim().split(/\s+/).map((word) => ({
-                    OR: [
-                        { email: { contains: word, mode: "insensitive" } },
-                        { firstName: { contains: word, mode: "insensitive" } },
-                        { lastName: { contains: word, mode: "insensitive" } },
-                    ],
-                })),
-            }),
+            ...(search && buildSearchQuery(search, ['email', 'firstName', 'lastName'])),
 
             /** Creation date range */
             ...((dateFrom || dateTo) && {
