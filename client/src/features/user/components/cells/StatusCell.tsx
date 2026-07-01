@@ -1,7 +1,7 @@
 import { ApprovalStatus, AVAILABLE_STATUSES, UserRole, UserStatus } from "@/features/user/user.constants";
 import type { UserRowInfoCellProps } from "../../user.types";
 import { useOptimisticMutation } from "@/hooks/useOptimisticMutation";
-import { CHANGE_USER_STATUS } from "../../operations";
+import { CHANGE_USER_STATUS, GET_USER_METRICS } from "../../operations";
 import { getOptions } from "../../user.utils";
 import { getStatusColor } from "@/lib/utils";
 import ActionPopover from "@/components/ActionPopover";
@@ -31,7 +31,8 @@ export function StatusCell({ row }: UserRowInfoCellProps) {
             },
             buildVariables: ({ status }) => ({
                 input: { userId: id, status }
-            })
+            }),
+            refetchQueries: [GET_USER_METRICS]
         });
     }
 

@@ -28,6 +28,16 @@ export const GET_USERS = gql`
   }
 `;
 
+export const GET_USER_METRICS = gql`
+    query GetUserMetrics {
+        getUserMetrics {
+            total
+            active
+            pendingApproval
+        }
+    }
+`;
+
 export const GET_USER = gql`
     query GetUser($userId: ID!) {
         getUser(userId: $userId) {

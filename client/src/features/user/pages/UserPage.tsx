@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { useQuery } from '@apollo/client'
 import IconInput from '@/components/IconInput'
-import { SearchIcon, Filter, Calendar, RotateCcw, Users } from 'lucide-react'
+import { SearchIcon, Filter, Calendar, RotateCcw, Users, CheckCircle, Clock } from 'lucide-react'
 import { columns } from '../user.columns'
-import { GET_USERS } from '../operations/op.queries'
+import { GET_USERS, GET_USER_METRICS } from '../operations/op.queries'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useDataTable } from '@/hooks/useDataTable'
 import { DataTable } from '@/components/ui/data-table'
@@ -15,6 +15,7 @@ import SectionHeader from '@/components/SectionHeader'
 import { FilterPopover } from '@/components/FilterPopover'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ServerCrash } from 'lucide-react';
+import { MetricCard } from '@/components/MetricCard'
 
 const roleOptions = [
     { value: 'all', label: 'All Roles' },
@@ -94,6 +95,12 @@ export function UserPage() {
         notifyOnNetworkStatusChange: true,
     })
 
+    const { data: userMetricsData, refetch: refetchUserMetrics } = useQuery(GET_USER_METRICS, {
+        variables: {},
+        fetchPolicy: 'cache-first',
+        notifyOnNetworkStatusChange: true,
+    });
+
     React.useEffect(() => {
         if (data?.getUsers) {
             setQueryData({
@@ -113,17 +120,50 @@ export function UserPage() {
     ];
 
     function refresh() {
+        refetchUserMetrics();
         refetch();
         setGlobalFilter('');
+    }
+
+    function handleReset() {
+        setRoleFilter('')
+        setStatusFilter('')
+        setDateFrom('')
+        setDateTo('')
+        setAcsDescFilter('')
+        setApprovalStatusFilter('')
+        setGlobalFilter('')
     }
 
     return (
         <>
             <SectionHeader
                 title="Users"
-                subtitle="Manage all system users and their roles"
+                subtitle={`${userMetricsData?.getUserMetrics?.total?.toLocaleString() ?? 0} team members and access control`}
                 icon={Users}
             />
+
+            {/* Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <MetricCard
+                    value={userMetricsData?.getUserMetrics?.total?.toLocaleString() ?? '-'}
+                    label="Total Users"
+                    icon={<Users className="w-5 h-5" />}
+                    iconContainerClass="bg-blue-50 text-blue-600"
+                />
+                <MetricCard
+                    value={userMetricsData?.getUserMetrics?.active?.toLocaleString() ?? '-'}
+                    label="Active Users"
+                    icon={<CheckCircle className="w-5 h-5" />}
+                    iconContainerClass="bg-green-50 text-green-600"
+                />
+                <MetricCard
+                    value={userMetricsData?.getUserMetrics?.pendingApproval?.toLocaleString() ?? '-'}
+                    label="Pending Approval"
+                    icon={<Clock className="w-5 h-5" />}
+                    iconContainerClass="bg-amber-50 text-amber-600"
+                />
+            </div>
 
             {/* filters */}
             <div className="p-4 bg-white border border-gray-200 rounded-sm flex items-center gap-2">
@@ -186,16 +226,9 @@ export function UserPage() {
 
                 {(roleFilter || statusFilter || dateFrom || dateTo || acsDescFilter || approvalStatusFilter || globalFilter) && (
                     <Button
-                        onClick={() => {
-                            setRoleFilter('')
-                            setStatusFilter('')
-                            setDateFrom('')
-                            setDateTo('')
-                            setAcsDescFilter('')
-                            setApprovalStatusFilter('')
-                            setGlobalFilter('')
-                        }}
-                        className="h-8 lg:h-9 px-3 lg:px-4 text-xs lg:text-sm bg-red-500 hover:bg-red-600 text-white"
+                        size='lg'
+                        variant="soft-danger"
+                        onClick={handleReset}
                     >
                         Reset
                     </Button>

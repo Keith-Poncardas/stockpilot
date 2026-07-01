@@ -2,7 +2,7 @@ import { prisma } from "@/lib";
 import { productIdSchema, UUIDInput } from "@/schemas";
 import { buildSearchQuery, createPaginator, smartDelete, throwConflict, throwNotFound } from "@/utils";
 import { Prisma, SaleStatus } from "@prisma/client";
-import { CreateProductInput, createProductSchema, EditProductInput, editProductSchema, PaginatedProductsInput, paginatedProductsSchema } from "./product.validation";
+import { ChangeProductStatusInput, changeProductStatusSchema, CreateProductInput, createProductSchema, EditProductInput, editProductSchema, PaginatedProductsInput, paginatedProductsSchema } from "./product.validation";
 import { ProductStatus } from "@/enums";
 
 export class ProductService {
@@ -88,6 +88,25 @@ export class ProductService {
     }
 
     /**
+     * Get the total count of all products
+     */
+    async getTotalProductsCount(): Promise<number> {
+        return await prisma.product.count();
+    }
+
+    /**
+     * Get product metrics (Total, Active, Draft)
+     */
+    async getProductMetrics() {
+        const [total, active, draft] = await Promise.all([
+            prisma.product.count(),
+            prisma.product.count({ where: { status: ProductStatus.ACTIVE } }),
+            prisma.product.count({ where: { status: ProductStatus.DRAFT } }),
+        ]);
+        return { total, active, draft };
+    }
+
+    /**
      * Get a paginated list of products with optional filters:
      */
     async getProducts(args: PaginatedProductsInput) {
@@ -110,10 +129,10 @@ export class ProductService {
         const where: Prisma.ProductWhereInput = {
 
             /** Filtering by status */
-            ...(status && status !== ProductStatus.ALL && { status: status as any }),
+            ...(status && { status }),
 
             /** Filtering by search */
-            ...(search && buildSearchQuery(search, ['id:equals', 'sku', 'name', 'description'])),
+            ...(search && buildSearchQuery(search, ['sku', 'name', 'description'])),
 
             /** Filtering by price */
             ...((minPrice !== undefined || maxPrice !== undefined) && {
@@ -140,7 +159,9 @@ export class ProductService {
                 include: { inventory: true },
                 skip: params.skip,
                 take: params.limit,
-                orderBy: { [orderBy]: orderDirection },
+                orderBy: {
+                    [orderBy]: orderDirection
+                },
             }),
 
             prisma.product.count({ where }),
@@ -268,6 +289,27 @@ export class ProductService {
 
         return editedProduct;
 
+    }
+
+    /**
+     * Change the status of a product.
+     */
+    async changeStatus(input: ChangeProductStatusInput) {
+        const { productId, status } = changeProductStatusSchema.parse(input);
+
+        const product = await prisma.product.findUnique({ where: { id: productId } });
+        if (!product) throwNotFound('Product not found');
+
+        if (product.status === ProductStatus.DISCONTINUED) {
+            throwConflict('Cannot change status of a discontinued product.');
+        }
+
+        const updatedProduct = await prisma.product.update({
+            where: { id: productId },
+            data: { status },
+        });
+
+        return updatedProduct;
     }
 
 }

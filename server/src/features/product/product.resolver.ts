@@ -1,7 +1,7 @@
 import { GraphQLContext } from "@/types";
 import { throwUnauthorized } from "@/utils";
 import { productService } from "./product.service";
-import { CreateProductInput, EditProductInput, PaginatedProductsInput } from "./product.validation";
+import { ChangeProductStatusInput, CreateProductInput, EditProductInput, PaginatedProductsInput } from "./product.validation";
 import { protectResolvers } from "@/graphql/helpers";
 import { UUIDInput } from "@/schemas";
 
@@ -29,19 +29,31 @@ export const productResolver = {
             return productService.getProducts(args);
         },
 
+        /**
+         * Get total products count
+         */
+        getTotalProductsCount: async () => {
+            return productService.getTotalProductsCount();
+        },
+
+        /**
+         * Get product metrics (Total, Active, Draft)
+         */
+        getProductMetrics: async () => {
+            return productService.getProductMetrics();
+        },
+
     }),
 
-    Mutation: {
+    Mutation: protectResolvers({
 
         /**
          * Create a new product
          */
         createProduct: async (
             _: unknown,
-            input: CreateProductInput,
-            ctx: GraphQLContext
+            { input }: { input: CreateProductInput },
         ) => {
-            if (!ctx.user) throwUnauthorized();
             return productService.createProduct(input);
         },
 
@@ -50,13 +62,21 @@ export const productResolver = {
          */
         editProduct: async (
             _: unknown,
-            input: EditProductInput,
-            ctx: GraphQLContext
+            { input }: { input: EditProductInput }
         ) => {
-            if (!ctx.user) throwUnauthorized();
             return productService.editProduct(input);
         },
 
-    }
+        /**
+         * Change a product's status
+         */
+        changeProductStatus: async (
+            _: unknown,
+            { input }: { input: ChangeProductStatusInput },
+        ) => {
+            return productService.changeStatus(input);
+        },
+
+    })
 
 };

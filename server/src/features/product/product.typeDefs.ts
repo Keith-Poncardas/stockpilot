@@ -58,6 +58,13 @@ export const productTypeDefs = `#graphql
         hasNextPage: Boolean!
     }
 
+    # Product Metrics Type
+    type ProductMetrics {
+        total: Int!
+        active: Int!
+        draft: Int!
+    }
+
     # Paginated Products Type
     type PaginatedProducts {
         data: [Product!]
@@ -70,17 +77,35 @@ export const productTypeDefs = `#graphql
         limit: Int!
     }
 
+    enum ProductStatus {
+        ACTIVE
+        INACTIVE
+        DISCONTINUED
+        DRAFT
+        ARCHIVED
+    }
+
+    enum ProductOrderBy {
+        createdAt
+        name
+        unitPrice
+    }
+
+    enum OrderDirectionLower {
+        asc
+        desc
+    }
+
     # Get Products Input Type
     input GetProductsInput {
         search: String
-        status: String
-        stockStatus: String
+        status: ProductStatus
         minPrice: Float
         maxPrice: Float
         dateFrom: String
         dateTo: String
-        orderBy: String
-        orderDirection: String
+        orderBy: ProductOrderBy
+        orderDirection: OrderDirectionLower
     }
 
     # Paginated Products Input Type
@@ -127,6 +152,12 @@ export const productTypeDefs = `#graphql
         id: ID!
     }
 
+    # Change Product Status Input Type
+    input ChangeProductStatusInput {
+        productId: ID!
+        status: ProductStatus!
+    }
+
     # Get Product By ID Input Type
     input GetProductByIdInput {
         id: ID!
@@ -136,12 +167,15 @@ export const productTypeDefs = `#graphql
     type Query {
         getProduct(productId: ID!): ProductDetails!
         getProducts(args: PaginatedProductsInput!): PaginatedProducts!
+        getTotalProductsCount: Int!
+        getProductMetrics: ProductMetrics!
     }
 
     # Mutation Type
     type Mutation {
         createProduct(input: CreateProductInput!): Product!
         editProduct(input: EditProductInput!): Product!
+        changeProductStatus(input: ChangeProductStatusInput!): Product!
         softDeleteProduct(input: SoftDeleteProductInput!): Product!
         restoreProduct(input: RestoreProductInput!): Product!
     }

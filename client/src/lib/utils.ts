@@ -5,6 +5,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function formatNumber(
+  number: number,
+  locale: string = "en-US"
+): string {
+  return new Intl.NumberFormat(locale).format(number);
+}
+
 export function formatDate(
   date: string | number | Date,
   locale: string = "en-US"

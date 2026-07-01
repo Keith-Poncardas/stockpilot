@@ -1,7 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { ProtectedRoute, PublicRoute } from './routes'
-import AuthLayout from './layout/AuthLayout'
-import { LoginPage, OTPPage, SignupPage, UserLayout, UserPage, UserViewPage, PendingApprovalPage, ForgotPasswordPage, ChangePasswordPage } from './features'
+import { LoginPage, OTPPage, SignupPage, UserLayout, UserPage, UserViewPage, PendingApprovalPage, ForgotPasswordPage, ChangePasswordPage, AuthLayout, ProductLayout, ProductPage } from './features'
 import MainLayout from './layout/MainLayout'
 import { EmptyState } from './components/ui/empty-state'
 
@@ -34,9 +33,13 @@ function App() {
             <Route path=":userId/view" element={<UserViewPage />} />
           </Route>
 
+          <Route path="/products" element={<ProductLayout />}>
+            <Route index element={<ProductPage />} />
+          </Route>
+
           <Route path="*" element={
             <EmptyState
-              title="404 - Page Not Found"
+              title="Page Not Found"
               description="The page you are looking for does not exist or has been moved."
               showBackButton
             />

@@ -1,6 +1,7 @@
 import { PrismaClient, UserRole, UserStatus } from "@prisma/client";
 import argon2 from "argon2";
 import dummyUsers from "./dummy-users.json";
+import dummyProducts from "./dummy-products.json";
 
 const prisma = new PrismaClient();
 
@@ -59,6 +60,28 @@ async function main() {
     // }
 
     // console.log(`✅ Seeded ${seededCount} dummy users.`);
+
+    // Seed dummy products
+    console.log(`\n⏳ Seeding dummy products...`);
+    let productCount = 0;
+
+    for (const product of dummyProducts) {
+        await prisma.product.upsert({
+            where: { sku: product.sku },
+            update: {},
+            create: {
+                sku: product.sku,
+                name: product.name,
+                description: product.description,
+                unitPrice: product.unitPrice,
+                costPrice: product.costPrice,
+                // status omitted — Prisma default is DRAFT
+            },
+        });
+        productCount++;
+    }
+
+    console.log(`✅ Seeded ${productCount} dummy products (status: DRAFT).`);
 }
 
 main()

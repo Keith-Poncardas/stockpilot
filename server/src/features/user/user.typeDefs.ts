@@ -84,6 +84,13 @@ export const userTypeDefs = `#graphql
         meta: Pagination!
     }
 
+    # User Metrics Type
+    type UserMetrics {
+        total: Int!
+        active: Int!
+        pendingApproval: Int!
+    }
+
     # Response when resetting a password (includes new generated password)
     type ResetPasswordResponse {
         id: ID!
@@ -158,6 +165,7 @@ export const userTypeDefs = `#graphql
     type Query {
         getUser(userId: ID!): UserDetail
         getUsers(args: GetUsersInput!): PaginatedUser
+        getUserMetrics: UserMetrics!
     }
 
     # Mutation type

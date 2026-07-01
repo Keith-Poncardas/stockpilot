@@ -1,7 +1,7 @@
 import { ApprovalStatus, AVAILABLE_APPROVAL_STATUSES, UserStatus } from "@/features/user/user.constants";
 import type { UserRowInfoCellProps } from "../../user.types";
 import { useOptimisticMutation } from "@/hooks/useOptimisticMutation";
-import { APPROVE_REJECT_USER } from "../../operations";
+import { APPROVE_REJECT_USER, GET_USER_METRICS } from "../../operations";
 import { getOptions } from "../../user.utils";
 import { getApprovalStatusColor } from "@/lib/utils";
 import ActionPopover from "@/components/ActionPopover";
@@ -30,6 +30,7 @@ export function ApprovalStatusCell({ row }: UserRowInfoCellProps) {
             buildVariables: ({ approvalStatus }) => ({
                 input: { userId: id, approvalStatus }
             }),
+            refetchQueries: [GET_USER_METRICS]
         });
     }
 

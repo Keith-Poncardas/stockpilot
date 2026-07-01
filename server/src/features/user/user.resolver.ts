@@ -22,6 +22,13 @@ export const userResolver = {
             return userService.getUsers(args);
         },
 
+        /**
+         * Get user metrics (Total, Active, Pending Approval)
+         */
+        getUserMetrics: async () => {
+            return userService.getUserMetrics();
+        },
+
     }),
 
     Mutation: protectResolvers({

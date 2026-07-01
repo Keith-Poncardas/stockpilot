@@ -4,7 +4,7 @@ import Navbar from './Navbar'
 
 function MainLayout() {
     return (
-        <div id="screen-app" className="flex h-screen overflow-hidden bg-gray-50">
+        <div className="flex h-screen overflow-hidden bg-gray-50">
             {/*
              * Single <Sidebar> handles both desktop (relative, in-flow) and
              * mobile (fixed, slides in). No separate SidebarDrawer needed.
@@ -15,8 +15,10 @@ function MainLayout() {
             <div className="flex flex-1 flex-col overflow-hidden">
                 <Navbar />
 
-                <main id="main-area" className="flex-1 overflow-y-auto p-5 bg-[#F8F7F4]">
-                    <Outlet />
+                <main className="flex-1 overflow-y-auto p-5 bg-[#F8F7F4]">
+                    <div className="flex flex-col gap-3">
+                        <Outlet />
+                    </div>
                 </main>
             </div>
         </div>

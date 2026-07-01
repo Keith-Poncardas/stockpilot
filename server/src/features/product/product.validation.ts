@@ -1,6 +1,7 @@
-import { OrderDirectionLower, ProductOrderBy, ProductStatus } from "@/enums";
+import { OrderDirectionLower, ProductOrderBy } from "@/enums";
 import { dateRangeSchema, orderDirectionLowerSchema, paginationSchema, productIdSchema, searchSchema } from "@/schemas";
 import { createMinMaxRefine, minMaxRefineMessage } from "@/utils";
+import { ProductStatus } from "@prisma/client";
 import z from "zod";
 
 /**
@@ -64,7 +65,7 @@ const baseProductSchema = z.object({
  */
 export const filterProductsSchema = dateRangeSchema.extend({
     search: searchSchema,
-    status: productStatusSchema.default(ProductStatus.ALL),
+    status: productStatusSchema.optional(),
     minPrice: minMaxSchema.optional(),
     maxPrice: minMaxSchema.optional(),
     orderBy: productOrderBySchema.default(ProductOrderBy.CREATED_AT),
@@ -96,9 +97,18 @@ export const editProductSchema = baseProductSchema.extend({
 });
 
 /**
+ * CHANGE PRODUCT STATUS SCHEMA VALIDATION
+ */
+export const changeProductStatusSchema = z.object({
+    productId: productIdSchema,
+    status: productStatusSchema,
+});
+
+/**
  * PRODUCT TYPE DEFINITIONS
  */
 export type PaginatedProductsInput = z.infer<typeof paginatedProductsSchema>;
 export type FilterProductsInput = z.infer<typeof filterProductsSchema>;
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type EditProductInput = z.infer<typeof editProductSchema>;
+export type ChangeProductStatusInput = z.infer<typeof changeProductStatusSchema>;

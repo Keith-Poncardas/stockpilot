@@ -1,0 +1,282 @@
+[
+  {
+    "sku": "PRD-001",
+    "name": "Wireless Bluetooth Headphones",
+    "description": "Over-ear noise-cancelling headphones with 30-hour battery life.",
+    "unitPrice": 89.99,
+    "costPrice": 42.00
+  },
+  {
+    "sku": "PRD-002",
+    "name": "Mechanical Keyboard",
+    "description": "Compact TKL layout with Cherry MX Blue switches and RGB backlight.",
+    "unitPrice": 129.99,
+    "costPrice": 65.00
+  },
+  {
+    "sku": "PRD-003",
+    "name": "USB-C Hub 7-in-1",
+    "description": "Multi-port hub with HDMI, USB-A, SD card slot, and 100W PD pass-through.",
+    "unitPrice": 49.99,
+    "costPrice": 22.50
+  },
+  {
+    "sku": "PRD-004",
+    "name": "Ergonomic Office Chair",
+    "description": "Adjustable lumbar support, breathable mesh back, and 5-year warranty.",
+    "unitPrice": 349.00,
+    "costPrice": 180.00
+  },
+  {
+    "sku": "PRD-005",
+    "name": "Standing Desk Mat",
+    "description": "Anti-fatigue mat with beveled edges and non-slip bottom, 20x36 inches.",
+    "unitPrice": 39.99,
+    "costPrice": 15.00
+  },
+  {
+    "sku": "PRD-006",
+    "name": "4K Webcam",
+    "description": "Ultra HD webcam with built-in stereo microphone and auto light correction.",
+    "unitPrice": 119.99,
+    "costPrice": 58.00
+  },
+  {
+    "sku": "PRD-007",
+    "name": "Laptop Stand Aluminum",
+    "description": "Adjustable height and angle, foldable design, supports up to 17-inch laptops.",
+    "unitPrice": 45.99,
+    "costPrice": 18.00
+  },
+  {
+    "sku": "PRD-008",
+    "name": "Wireless Charging Pad",
+    "description": "15W fast wireless charger compatible with Qi-enabled devices.",
+    "unitPrice": 29.99,
+    "costPrice": 11.00
+  },
+  {
+    "sku": "PRD-009",
+    "name": "Smart LED Desk Lamp",
+    "description": "Touch-sensitive dimming, 5 color temperatures, USB-A charging port.",
+    "unitPrice": 54.99,
+    "costPrice": 24.00
+  },
+  {
+    "sku": "PRD-010",
+    "name": "Portable SSD 1TB",
+    "description": "USB 3.2 Gen 2 external SSD with read speeds up to 1050 MB/s.",
+    "unitPrice": 99.99,
+    "costPrice": 52.00
+  },
+  {
+    "sku": "PRD-011",
+    "name": "Mouse Pad XL Desk Mat",
+    "description": "Extended 36x18 inch desk mat with smooth micro-weave surface.",
+    "unitPrice": 24.99,
+    "costPrice": 8.50
+  },
+  {
+    "sku": "PRD-012",
+    "name": "Noise Machine Sleep Aid",
+    "description": "Compact white noise machine with 20 soothing sounds and timer.",
+    "unitPrice": 49.95,
+    "costPrice": 21.00
+  },
+  {
+    "sku": "PRD-013",
+    "name": "Cable Management Box",
+    "description": "Wooden cable organizer box hides power strips and cords, medium size.",
+    "unitPrice": 32.99,
+    "costPrice": 12.00
+  },
+  {
+    "sku": "PRD-014",
+    "name": "Monitor Light Bar",
+    "description": "Screen bar with asymmetric optical design, zero screen glare.",
+    "unitPrice": 69.99,
+    "costPrice": 30.00
+  },
+  {
+    "sku": "PRD-015",
+    "name": "Dual Monitor Arm",
+    "description": "Full-motion articulating arm for two monitors up to 32 inches.",
+    "unitPrice": 89.99,
+    "costPrice": 40.00
+  },
+  {
+    "sku": "PRD-016",
+    "name": "Thermal Paste Premium",
+    "description": "High-performance CPU thermal compound, 4g syringe, nano-diamond formula.",
+    "unitPrice": 9.99,
+    "costPrice": 3.00
+  },
+  {
+    "sku": "PRD-017",
+    "name": "Smart Power Strip",
+    "description": "6 AC outlets and 4 USB ports with individual surge protection per outlet.",
+    "unitPrice": 59.99,
+    "costPrice": 26.00
+  },
+  {
+    "sku": "PRD-018",
+    "name": "Blue Light Blocking Glasses",
+    "description": "Anti-glare lenses for screen use, lightweight TR90 frame.",
+    "unitPrice": 22.99,
+    "costPrice": 7.50
+  },
+  {
+    "sku": "PRD-019",
+    "name": "Magnetic Phone Mount",
+    "description": "Universal strong-hold magnetic car and desk mount with 360° rotation.",
+    "unitPrice": 18.99,
+    "costPrice": 5.50
+  },
+  {
+    "sku": "PRD-020",
+    "name": "Portable Bluetooth Speaker",
+    "description": "IPX7 waterproof, 360° sound, 24-hour playtime, built-in microphone.",
+    "unitPrice": 79.99,
+    "costPrice": 35.00
+  },
+  {
+    "sku": "PRD-021",
+    "name": "Drawing Tablet 10-inch",
+    "description": "8192 pressure levels, battery-free pen, compatible with Windows and macOS.",
+    "unitPrice": 69.99,
+    "costPrice": 32.00
+  },
+  {
+    "sku": "PRD-022",
+    "name": "Mini PC Stick",
+    "description": "Quad-core processor, 4GB RAM, 64GB storage, HDMI output.",
+    "unitPrice": 189.99,
+    "costPrice": 95.00
+  },
+  {
+    "sku": "PRD-023",
+    "name": "Webcam Privacy Cover",
+    "description": "Ultra-thin sliding cover for laptop cameras, pack of 3.",
+    "unitPrice": 7.99,
+    "costPrice": 1.50
+  },
+  {
+    "sku": "PRD-024",
+    "name": "Microfiber Cleaning Kit",
+    "description": "Screen cleaning solution with 4 microfiber cloths, electronics safe.",
+    "unitPrice": 12.99,
+    "costPrice": 3.50
+  },
+  {
+    "sku": "PRD-025",
+    "name": "HDMI 2.1 Cable 2m",
+    "description": "48Gbps bandwidth, supports 8K@60Hz and 4K@120Hz with eARC.",
+    "unitPrice": 16.99,
+    "costPrice": 5.00
+  },
+  {
+    "sku": "PRD-026",
+    "name": "Smart Plug WiFi",
+    "description": "App-controlled outlet with scheduling, energy monitoring, and voice assistant support.",
+    "unitPrice": 14.99,
+    "costPrice": 5.50
+  },
+  {
+    "sku": "PRD-027",
+    "name": "Fingerprint Door Lock",
+    "description": "Biometric keypad lock, auto-lock, 100 fingerprint capacity.",
+    "unitPrice": 139.99,
+    "costPrice": 68.00
+  },
+  {
+    "sku": "PRD-028",
+    "name": "Action Camera 4K",
+    "description": "Waterproof to 40m, 4K/60fps video, image stabilization, wide-angle lens.",
+    "unitPrice": 249.99,
+    "costPrice": 120.00
+  },
+  {
+    "sku": "PRD-029",
+    "name": "Solar Power Bank 26800mAh",
+    "description": "Dual solar panels, 3 USB outputs, LED flashlight, rugged build.",
+    "unitPrice": 44.99,
+    "costPrice": 19.00
+  },
+  {
+    "sku": "PRD-030",
+    "name": "Foldable Drone Mini",
+    "description": "3-axis gimbal, 4K camera, 30-min flight time, follow-me mode.",
+    "unitPrice": 329.00,
+    "costPrice": 160.00
+  },
+  {
+    "sku": "PRD-031",
+    "name": "Smart Thermostat",
+    "description": "Wi-Fi enabled, 7-day scheduling, works with Alexa and Google Home.",
+    "unitPrice": 119.00,
+    "costPrice": 55.00
+  },
+  {
+    "sku": "PRD-032",
+    "name": "Mesh WiFi System 3-pack",
+    "description": "Tri-band AX5400, covers up to 6000 sq ft, seamless roaming.",
+    "unitPrice": 299.99,
+    "costPrice": 145.00
+  },
+  {
+    "sku": "PRD-033",
+    "name": "Electric Standing Desk",
+    "description": "Dual motor, memory presets, anti-collision, 48x24 inch top.",
+    "unitPrice": 449.00,
+    "costPrice": 210.00
+  },
+  {
+    "sku": "PRD-034",
+    "name": "Wireless Presenter Clicker",
+    "description": "100ft range, plug-and-play USB receiver, laser pointer.",
+    "unitPrice": 27.99,
+    "costPrice": 9.00
+  },
+  {
+    "sku": "PRD-035",
+    "name": "Laptop Privacy Screen 15.6\"",
+    "description": "Anti-peep filter, reduces blue light, maintains full brightness at front view.",
+    "unitPrice": 34.99,
+    "costPrice": 13.00
+  },
+  {
+    "sku": "PRD-036",
+    "name": "RGB LED Strip 5m",
+    "description": "Music sync, app control, 16 million colors, cuttable every 3 LEDs.",
+    "unitPrice": 21.99,
+    "costPrice": 7.00
+  },
+  {
+    "sku": "PRD-037",
+    "name": "Cordless Vacuum Handheld",
+    "description": "15000Pa suction, 30-min runtime, HEPA filter, for desk and car use.",
+    "unitPrice": 59.99,
+    "costPrice": 26.50
+  },
+  {
+    "sku": "PRD-038",
+    "name": "Smart Scale Body Composition",
+    "description": "Measures 13 body metrics via bioelectrical impedance, syncs to app.",
+    "unitPrice": 34.99,
+    "costPrice": 14.00
+  },
+  {
+    "sku": "PRD-039",
+    "name": "Air Purifier HEPA H13",
+    "description": "Covers 400 sq ft, removes 99.97% of particles, whisper-quiet sleep mode.",
+    "unitPrice": 89.99,
+    "costPrice": 42.00
+  },
+  {
+    "sku": "PRD-040",
+    "name": "Smart Doorbell Camera",
+    "description": "2K HDR video, color night vision, two-way talk, motion zone detection.",
+    "unitPrice": 119.99,
+    "costPrice": 56.00
+  }
+]

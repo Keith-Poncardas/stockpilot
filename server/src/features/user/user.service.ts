@@ -152,6 +152,19 @@ export class UserService {
     }
 
     /**
+     * Get user metrics (Total, Active, Pending Approval)
+     */
+    async getUserMetrics() {
+        const [total, active, pendingApproval] = await Promise.all([
+            prisma.user.count(),
+            prisma.user.count({ where: { status: UserStatus.ACTIVE } }),
+            prisma.user.count({ where: { approvalStatus: UserApprovalStatus.PENDING } }),
+        ]);
+        return { total, active, pendingApproval };
+    }
+
+
+    /**
      * Reset user password
      */
     async resetPassword(userId: UserIdInput) {
