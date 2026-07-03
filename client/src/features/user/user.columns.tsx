@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import { getRoleColor, getStatusColor, getApprovalStatusColor, cn, formatDate } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/checkbox"
-import { StatusCell, UserInfoCell, RoleCell, ApprovalStatusCell, ActionCell } from "./components/cells"
+import { StatusCell, UserInfoCell, RoleCell, ApprovalStatusCell, ActionsCell } from "./components/cells"
 import type { IUser } from "./user.types"
 
 // --- Columns Definition ---
@@ -93,8 +93,8 @@ export const columns: ColumnDef<IUser>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
-    cell: ({ row }) => <ActionCell row={row} />,
-    size: 100,
+    header: () => <div className="text-center">Actions</div>,
+    cell: ({ row }) => <ActionsCell row={row} />,
+    size: 80,
   },
 ];

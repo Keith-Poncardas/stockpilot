@@ -3,4 +3,4 @@ export * from "./UserInfoCell";
 export * from "./StatusCell";
 export * from "./RoleCell";
 export * from "./ApprovalStatusCell";
-export * from "./ActionCell";
+export * from "./ActionsCell";

@@ -94,7 +94,10 @@ export function ProductPage() {
         notifyOnNetworkStatusChange: true,
     })
 
-    const { data: productMetricsData } = useQuery(GET_PRODUCT_METRICS);
+    const { data: productMetricsData } = useQuery(GET_PRODUCT_METRICS, {
+        fetchPolicy: 'cache-first',
+        notifyOnNetworkStatusChange: true,
+    });
 
     React.useEffect(() => {
         if (data?.getProducts) {

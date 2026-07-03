@@ -3,7 +3,7 @@ import { cn, formatDate } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { IProduct } from "./product.types"
 import { getProductStatusColor } from "./product.utils"
-import { StatusCell } from "./components"
+import { StatusCell, ActionsCell } from "./components"
 
 function formatCurrency(value: number) {
     return new Intl.NumberFormat('en-US', {
@@ -107,5 +107,11 @@ export const columns: ColumnDef<IProduct>[] = [
             <span className="text-sm text-gray-400" style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}>{formatDate(row.original.createdAt)}</span>
         ),
         size: 140,
+    },
+    {
+        id: "actions",
+        header: () => <div className="text-center">Actions</div>,
+        cell: ({ row }) => <ActionsCell row={row} />,
+        size: 80,
     },
 ]
