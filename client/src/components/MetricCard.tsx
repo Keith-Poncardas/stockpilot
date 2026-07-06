@@ -20,12 +20,12 @@ export function MetricCard({
 }: MetricCardProps) {
     return (
         <div className={cn(
-            "bg-white rounded-sm border border-gray-200 p-5 flex items-center justify-between",
+            "bg-white rounded-2xl border border-[#E3E1DC] p-5 flex items-center justify-between",
             className
         )}>
             <div className="flex flex-col gap-1">
-                <span className="text-sm font-medium text-gray-500">{label}</span>
-                <span className={cn("text-3xl font-bold font-mono tracking-tight", valueClass)}>
+                <span className="text-xs uppercase tracking-wide text-[#9C9A91] font-semibold">{label}</span>
+                <span className={cn("font-display text-2xl font-semibold", valueClass)}>
                     {value}
                 </span>
             </div>

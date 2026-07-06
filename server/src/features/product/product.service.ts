@@ -14,28 +14,60 @@ export class ProductService {
 
         const id = productIdSchema.parse(productId);
 
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+
+        const trendStart = new Date(endOfToday);
+        trendStart.setDate(trendStart.getDate() - 6); // last 7 days
+        trendStart.setHours(0, 0, 0, 0);
+
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const daysElapsed = now.getDate();
 
-        const product = await prisma.product.findUnique({
-            where: { id },
-            include: {
-                inventory: true,
-                saleItems: {
-                    where: {
-                        sale: {
-                            status: SaleStatus.COMPLETED,
-                            saleDate: { gte: startOfMonth },
+        const [product, stockMovements, trendItems] = await Promise.all([
+
+            prisma.product.findUnique({
+                where: { id },
+                include: {
+                    inventory: true,
+                    saleItems: {
+                        where: {
+                            sale: {
+                                status: SaleStatus.COMPLETED,
+                                saleDate: { gte: startOfMonth },
+                            },
+                        },
+                        select: {
+                            quantity: true,
+                            unitPrice: true,
+                            saleId: true,
                         },
                     },
-                    select: {
-                        quantity: true,
-                        unitPrice: true,
+                },
+            }),
+
+            prisma.stockMovement.findMany({
+                where: { productId: id, type: 'IN' },
+                orderBy: { createdAt: 'desc' },
+                select: { quantity: true, createdAt: true },
+            }),
+
+            prisma.saleItem.findMany({
+                where: {
+                    productId: id,
+                    sale: {
+                        status: SaleStatus.COMPLETED,
+                        saleDate: { gte: trendStart, lte: endOfToday },
                     },
                 },
-            },
-        });
+                select: {
+                    quantity: true,
+                    sale: { select: { saleDate: true } },
+                },
+            }),
+
+        ]);
 
         if (!product) throwNotFound('Product not found');
 
@@ -62,27 +94,61 @@ export class ProductService {
                 100
                 : null;
 
+        /** Unique transactions (sales) */
+        const uniqueSaleIds = new Set(product.saleItems.map(item => item.saleId));
+        const transactions = uniqueSaleIds.size;
+
+        /** Average per sale = total revenue / number of transactions */
+        const avgPerSale = transactions > 0 ? revenueMonth / transactions : 0;
+
+        /** Max stock = sum of all IN stock movements (total ever received) */
+        const maxStock = stockMovements.reduce((sum, m) => sum + m.quantity, 0);
+
+        /** Last restock date = most recent IN movement */
+        const lastRestockDate = stockMovements[0]?.createdAt?.toISOString() ?? null;
+
+        /** Estimated days of stock = current quantity / avg units sold per day */
+        const avgUnitsSoldPerDay = daysElapsed > 0 ? unitsSoldMonth / daysElapsed : 0;
+        const quantityOnHand = product.inventory?.quantityOnHand ?? 0;
+        const estimatedDaysOfStock = avgUnitsSoldPerDay > 0
+            ? Math.floor(quantityOnHand / avgUnitsSoldPerDay)
+            : 0;
+
+        /** Sell-through rate = units sold / (units sold + units on hand) × 100 */
+        const totalUnits = unitsSoldMonth + quantityOnHand;
+        const sellThroughRate = totalUnits > 0
+            ? parseFloat(((unitsSoldMonth / totalUnits) * 100).toFixed(1))
+            : 0;
+
         return {
             productInfo: {
                 id: product.id,
                 sku: product.sku,
                 name: product.name,
-                description: product.description,
+                description: product.description ?? '',
                 unitPrice: Number(product.unitPrice),
                 costPrice: product.costPrice ? Number(product.costPrice) : null,
-                grossMargin: grossMargin !== null ? parseFloat(grossMargin.toFixed(1)) : null, // e.g. 50.4
+                grossMargin: grossMargin !== null ? parseFloat(grossMargin.toFixed(1)) : null,
+                status: product.status,
                 createdAt: product.createdAt,
                 updatedAt: product.updatedAt,
             },
             inventoryStatus: {
-                quantityOnHand: product.inventory?.quantityOnHand ?? 0,
+                quantityOnHand,
                 reorderLevel: product.inventory?.reorderLevel ?? 0,
+                maxStock,
+                lastRestockDate,
+                estimatedDaysOfStock,
             },
             salesSummary: {
                 unitsSoldMonth,
                 revenueMonth: parseFloat(revenueMonth.toFixed(2)),
                 avgSalePerDay: parseFloat(avgSalePerDay.toFixed(2)),
+                transactions,
+                avgPerSale: parseFloat(avgPerSale.toFixed(2)),
+                sellThroughRate,
             },
+            salesTrend: this.buildSalesTrend(trendItems, endOfToday, 7),
         };
 
     }
@@ -312,6 +378,69 @@ export class ProductService {
         return updatedProduct;
     }
 
+    /**
+     * Get daily sales trend for a product over the last N days.
+     * Can be called standalone; internally reuses buildSalesTrend.
+     */
+    async getProductSalesTrend(productId: UUIDInput, days = 7) {
+
+        const id = productIdSchema.parse(productId);
+
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+
+        const startOfRange = new Date(endOfToday);
+        startOfRange.setDate(startOfRange.getDate() - (days - 1));
+        startOfRange.setHours(0, 0, 0, 0);
+
+        const saleItems = await prisma.saleItem.findMany({
+            where: {
+                productId: id,
+                sale: {
+                    status: SaleStatus.COMPLETED,
+                    saleDate: { gte: startOfRange, lte: endOfToday },
+                },
+            },
+            select: {
+                quantity: true,
+                sale: { select: { saleDate: true } },
+            },
+        });
+
+        return this.buildSalesTrend(saleItems, endOfToday, days);
+
+    }
+
+    /**
+     * Converts raw saleItems into a day-by-day trend array of length `days`,
+     * filling any days with no sales as 0.
+     */
+    private buildSalesTrend(
+        saleItems: { quantity: number; sale: { saleDate: Date } }[],
+        endOfToday: Date,
+        days: number
+    ) {
+        const dailyBucket = new Map<string, number>();
+        for (const item of saleItems) {
+            const key = item.sale.saleDate.toISOString().split('T')[0];
+            dailyBucket.set(key, (dailyBucket.get(key) ?? 0) + item.quantity);
+        }
+
+        const todayKey = endOfToday.toISOString().split('T')[0];
+        return Array.from({ length: days }, (_, i) => {
+            const date = new Date(endOfToday);
+            date.setDate(date.getDate() - (days - 1 - i));
+            const key = date.toISOString().split('T')[0];
+            return {
+                date: key,
+                label: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                unitsSold: dailyBucket.get(key) ?? 0,
+                isToday: key === todayKey,
+            };
+        });
+    }
+
 }
 
 export const productService = new ProductService();
+

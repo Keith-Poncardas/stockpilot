@@ -8,7 +8,7 @@ export const productTypeDefs = `#graphql
         description: String!
         unitPrice: Float!
         costPrice: Float!
-        status: String!
+        status: ProductStatus!
         createdAt: String!
         updatedAt: String!
     }
@@ -22,6 +22,7 @@ export const productTypeDefs = `#graphql
         unitPrice: Float!
         costPrice: Float
         grossMargin: Float
+        status: ProductStatus!
         createdAt: String!
         updatedAt: String!
     }
@@ -30,6 +31,9 @@ export const productTypeDefs = `#graphql
     type InventoryStatus {
         quantityOnHand: Int!
         reorderLevel: Int!
+        maxStock: Int!
+        lastRestockDate: String
+        estimatedDaysOfStock: Int!
     }
 
     # Sales Summary Type
@@ -37,6 +41,17 @@ export const productTypeDefs = `#graphql
         unitsSoldMonth: Int!
         revenueMonth: Float!
         avgSalePerDay: Float!
+        transactions: Int!
+        avgPerSale: Float!
+        sellThroughRate: Float!
+    }
+
+    # Sales Trend Point Type
+    type SalesTrendPoint {
+        date: String!
+        label: String!
+        unitsSold: Int!
+        isToday: Boolean!
     }
 
     # Product Details Type
@@ -44,6 +59,7 @@ export const productTypeDefs = `#graphql
         productInfo: ProductInfo!
         inventoryStatus: InventoryStatus!
         salesSummary: SalesSummary!
+        salesTrend: [SalesTrendPoint!]!
     }
 
     # Pagination metadata

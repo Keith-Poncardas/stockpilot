@@ -22,6 +22,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         soft: "bg-amber-400/15 text-amber-500 hover:bg-amber-400/25 font-bold transition-colors",
         "soft-danger": "text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors",
+        glass: "bg-white/5 hover:bg-white/10 border border-white/10 text-white",
       },
       size: {
         default:

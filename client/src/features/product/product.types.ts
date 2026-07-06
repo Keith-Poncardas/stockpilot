@@ -8,6 +8,7 @@ export interface IProduct {
     description: string
     unitPrice: number
     costPrice: number
+    margin?: number
     status: ProductStatus
     createdAt: string
     updatedAt: string

@@ -1,17 +1,9 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { cn, formatDate } from "@/lib/utils"
+import { cn, formatDate, formatCurrency } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { IProduct } from "./product.types"
 import { getProductStatusColor } from "./product.utils"
 import { StatusCell, ActionsCell } from "./components"
-
-function formatCurrency(value: number) {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'PHP',
-        minimumFractionDigits: 2,
-    }).format(value)
-}
 
 export const columns: ColumnDef<IProduct>[] = [
     {

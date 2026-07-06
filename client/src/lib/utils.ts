@@ -12,12 +12,33 @@ export function formatNumber(
   return new Intl.NumberFormat(locale).format(number);
 }
 
+export function formatCurrency(
+  value: number,
+  currency: string = "PHP",
+  locale: string = "en-PH"
+): string {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+  }).format(value);
+}
+
 export function formatDate(
   date: string | number | Date,
   locale: string = "en-US"
 ): string {
-  const parsedDate =
-    date instanceof Date ? date : new Date(Number(date));
+  let parsedDate: Date;
+  if (date instanceof Date) {
+    parsedDate = date;
+  } else if (typeof date === 'number') {
+    parsedDate = new Date(date);
+  } else if (typeof date === 'string') {
+    const isNumeric = /^\d+$/.test(date);
+    parsedDate = new Date(isNumeric ? Number(date) : date);
+  } else {
+    parsedDate = new Date(date as any);
+  }
 
   if (isNaN(parsedDate.getTime())) {
     throw new Error("Invalid date");

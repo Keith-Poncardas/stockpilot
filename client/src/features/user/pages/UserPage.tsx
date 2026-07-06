@@ -1,16 +1,14 @@
 import * as React from 'react'
 import { useQuery } from '@apollo/client'
-import IconInput from '@/components/IconInput'
-import { SearchIcon, Filter, Calendar, RotateCcw, Users, CheckCircle, Clock } from 'lucide-react'
+import { Filter, Calendar, Users, CheckCircle, Clock } from 'lucide-react'
 import { columns } from '../user.columns'
 import { GET_USERS, GET_USER_METRICS } from '../operations/op.queries'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useDataTable } from '@/hooks/useDataTable'
-import { DataTable } from '@/components/ui/data-table'
-import { DataTablePagination } from '@/components/ui/data-table-pagination'
+import { DataTableLayout } from '@/components/ui/data-table-layout'
+import { DataTableToolbar } from '@/components/ui/data-table-toolbar'
 import { SelectFilter } from '@/components/ui/select-filter'
 import { DatePicker } from '@/components/ui/date-picker'
-import { Button } from '@/components/ui/button'
 import SectionHeader from '@/components/SectionHeader'
 import { FilterPopover } from '@/components/FilterPopover'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -166,21 +164,14 @@ export function UserPage() {
             </div>
 
             {/* filters */}
-            <div className="p-4 bg-white border border-gray-200 rounded-sm flex items-center gap-2">
-                <div className="max-w-xs flex-1">
-                    <IconInput
-                        placeholder="Search users..."
-                        startAddon={<SearchIcon className="text-muted-foreground w-4 h-4 lg:w-4 lg:h-4" />}
-                        value={globalFilter}
-                        onChange={(e) => setGlobalFilter(e.target.value)}
-                        className="h-8 text-xs lg:h-9 lg:text-sm"
-                    />
-                </div>
-
-                <Button variant="outline" size="icon" className="h-8 w-8 lg:h-9 lg:w-9 border-slate-200" onClick={refresh}>
-                    <RotateCcw className="h-4 w-4 text-muted-foreground" strokeWidth={2} />
-                </Button>
-
+            <DataTableToolbar
+                searchQuery={globalFilter}
+                setSearchQuery={setGlobalFilter}
+                searchPlaceholder="Search users..."
+                onRefresh={refresh}
+                hasActiveFilters={!!(roleFilter || statusFilter || dateFrom || dateTo || acsDescFilter || approvalStatusFilter || globalFilter)}
+                onResetFilters={handleReset}
+            >
                 <FilterPopover
                     title="Role & Status"
                     description="Filter users by role and status."
@@ -223,31 +214,15 @@ export function UserPage() {
                     </div>
                     {dateError && <p className="text-xs text-red-500 font-medium">{dateError}</p>}
                 </FilterPopover>
+            </DataTableToolbar>
 
-                {(roleFilter || statusFilter || dateFrom || dateTo || acsDescFilter || approvalStatusFilter || globalFilter) && (
-                    <Button
-                        size='lg'
-                        variant="soft-danger"
-                        onClick={handleReset}
-                    >
-                        Reset
-                    </Button>
-                )}
-            </div>
-
-            <div className='bg-white border border-gray-200 rounded-md overflow-hidden'>
-
-                {/* users table UI */}
-                {!error && !isEmpty && <DataTable table={table} isLoading={loading} />}
-
-                {/* empty state */}
-                {isEmpty && <EmptyState />}
-
-                {error && <EmptyState title='Something went wrong' description="Failed to load users" icon={ServerCrash} />}
-
-                {/* table pagination UI */}
-                {!error && !isEmpty && <DataTablePagination table={table} />}
-            </div>
+            <DataTableLayout
+                table={table}
+                isLoading={loading}
+                error={error}
+                isEmpty={isEmpty}
+                errorState={<EmptyState title='Something went wrong' description="Failed to load users" icon={ServerCrash} />}
+            />
         </>
     )
 }

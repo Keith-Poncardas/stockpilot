@@ -19,7 +19,7 @@ export function ActionsCell({ row }: ProductRowInfoCellProps) {
                     <PopoverClose asChild>
                         <Button onClick={handleViewClick} variant="ghost" className="w-full justify-start px-2.5 py-2 h-auto text-xs font-semibold tracking-wide text-gray-700 uppercase">
                             <Eye size={15} strokeWidth={2.2} className="text-gray-500 mr-1" />
-                            View
+                            Details
                         </Button>
                     </PopoverClose>
                     <PopoverClose asChild>

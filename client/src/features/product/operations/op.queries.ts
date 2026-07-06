@@ -1,5 +1,45 @@
 import { gql } from '@apollo/client';
 
+export const GET_PRODUCT = gql`
+  query GetProduct($productId: ID!) {
+    getProduct(productId: $productId) {
+      productInfo {
+        id
+        sku
+        name
+        description
+        unitPrice
+        costPrice
+        grossMargin
+        status
+        createdAt
+        updatedAt
+      }
+      inventoryStatus {
+        quantityOnHand
+        reorderLevel
+        maxStock
+        lastRestockDate
+        estimatedDaysOfStock
+      }
+      salesSummary {
+        unitsSoldMonth
+        revenueMonth
+        avgSalePerDay
+        transactions
+        avgPerSale
+        sellThroughRate
+      }
+      salesTrend {
+        date
+        label
+        unitsSold
+        isToday
+      }
+    }
+  }
+`;
+
 export const GET_PRODUCTS = gql`
   query GetProducts($args: PaginatedProductsInput!) {
     getProducts(args: $args) {
