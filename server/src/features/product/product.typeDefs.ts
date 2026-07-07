@@ -5,9 +5,9 @@ export const productTypeDefs = `#graphql
         id: ID!
         sku: String!
         name: String!
-        description: String!
+        description: String
         unitPrice: Float!
-        costPrice: Float!
+        costPrice: Float
         status: ProductStatus!
         createdAt: String!
         updatedAt: String!
@@ -18,7 +18,7 @@ export const productTypeDefs = `#graphql
         id: ID!
         sku: String!
         name: String!
-        description: String!
+        description: String
         unitPrice: Float!
         costPrice: Float
         grossMargin: Float

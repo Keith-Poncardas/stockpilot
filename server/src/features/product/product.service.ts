@@ -1,9 +1,10 @@
 import { prisma } from "@/lib";
 import { productIdSchema, UUIDInput } from "@/schemas";
-import { buildSearchQuery, createPaginator, smartDelete, throwConflict, throwNotFound } from "@/utils";
-import { Prisma, SaleStatus } from "@prisma/client";
+import { buildSearchQuery, createPaginator, throwConflict, throwNotFound, getCurrentMonthMetrics, getTrendDateRange } from "@/utils";
+import { MovementType, Prisma, SaleStatus } from "@prisma/client";
 import { ChangeProductStatusInput, changeProductStatusSchema, CreateProductInput, createProductSchema, EditProductInput, editProductSchema, PaginatedProductsInput, paginatedProductsSchema } from "./product.validation";
 import { ProductStatus } from "@/enums";
+import { calculateGrossMargin, calculateInventoryMetrics, calculateSaleSummary, buildSalesTrend } from "./product.util";
 
 export class ProductService {
 
@@ -14,19 +15,64 @@ export class ProductService {
 
         const id = productIdSchema.parse(productId);
 
-        const endOfToday = new Date();
-        endOfToday.setHours(23, 59, 59, 999);
+        const [
+            productInfo,
+            inventoryStatus,
+            salesSummary,
+            salesTrend
+        ] = await Promise.all([
+            this.productInfo(id),
+            this.inventoryStatus(id),
+            this.saleSummary(id),
+            this.salesTrend(id)
+        ]);
 
-        const trendStart = new Date(endOfToday);
-        trendStart.setDate(trendStart.getDate() - 6); // last 7 days
-        trendStart.setHours(0, 0, 0, 0);
+        return {
+            productInfo,
+            inventoryStatus,
+            salesSummary,
+            salesTrend,
+        };
 
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const daysElapsed = now.getDate();
+    }
 
-        const [product, stockMovements, trendItems] = await Promise.all([
+    /**
+     * Get product info by product ID
+     */
+    async productInfo(productId: UUIDInput) {
+        const id = productIdSchema.parse(productId);
 
+        const product = await prisma.product.findUnique({
+            where: { id }
+        });
+
+        if (!product) throwNotFound('Product not found');
+
+        const grossMargin = calculateGrossMargin(
+            product.unitPrice,
+            product.costPrice
+        );
+
+        const unitPrice = Number(product.unitPrice);
+        const costPrice = product.costPrice ? Number(product.costPrice) : null;
+
+        return {
+            ...product,
+            unitPrice,
+            costPrice,
+            grossMargin,
+        };
+    }
+
+    /**
+     * Get inventory status by product ID
+     */
+    async inventoryStatus(productId: UUIDInput) {
+        const id = productIdSchema.parse(productId);
+
+        const { startOfMonth, daysElapsed } = getCurrentMonthMetrics();
+
+        const [product, stockAggregation] = await Promise.all([
             prisma.product.findUnique({
                 where: { id },
                 include: {
@@ -38,119 +84,92 @@ export class ProductService {
                                 saleDate: { gte: startOfMonth },
                             },
                         },
-                        select: {
-                            quantity: true,
-                            unitPrice: true,
-                            saleId: true,
-                        },
+                        select: { quantity: true },
                     },
                 },
             }),
-
-            prisma.stockMovement.findMany({
-                where: { productId: id, type: 'IN' },
-                orderBy: { createdAt: 'desc' },
-                select: { quantity: true, createdAt: true },
-            }),
-
-            prisma.saleItem.findMany({
-                where: {
-                    productId: id,
-                    sale: {
-                        status: SaleStatus.COMPLETED,
-                        saleDate: { gte: trendStart, lte: endOfToday },
-                    },
-                },
-                select: {
-                    quantity: true,
-                    sale: { select: { saleDate: true } },
-                },
-            }),
-
+            prisma.stockMovement.aggregate({
+                where: { productId: id, type: MovementType.IN },
+                _sum: { quantity: true },
+                _max: { createdAt: true },
+            })
         ]);
 
         if (!product) throwNotFound('Product not found');
 
-        /** Total Units Sold (this month) = Sum of quantities from all sales in the current month.  */
-        const unitsSoldMonth = product.saleItems.reduce(
-            (sum, item) => sum + item.quantity, 0
+        const productInventory = product.inventory ?? {};
+
+        const inventoryMetrics = calculateInventoryMetrics(
+            product.saleItems,
+            stockAggregation,
+            productInventory,
+            daysElapsed
         );
-
-        /** Total Revenue (this month) = Sum of (quantity × unitPrice) for all sales in the current month.  */
-        const revenueMonth = product.saleItems.reduce(
-            (sum, item) => sum + item.quantity * Number(item.unitPrice), 0
-        );
-
-        /** Average Sale Per Day = Total Revenue (this month) / Number of Days Passed (this month) */
-        const avgSalePerDay = daysElapsed > 0
-            ? revenueMonth / daysElapsed
-            : 0;
-
-        /** Gross Profit Margin (GPM) is the percentage of revenue remaining after accounting for the cost of goods sold (COGS). It indicates how efficiently a company is producing its goods or services. */
-        const grossMargin =
-            product.costPrice !== null && Number(product.unitPrice) > 0
-                ? ((Number(product.unitPrice) - Number(product.costPrice)) /
-                    Number(product.unitPrice)) *
-                100
-                : null;
-
-        /** Unique transactions (sales) */
-        const uniqueSaleIds = new Set(product.saleItems.map(item => item.saleId));
-        const transactions = uniqueSaleIds.size;
-
-        /** Average per sale = total revenue / number of transactions */
-        const avgPerSale = transactions > 0 ? revenueMonth / transactions : 0;
-
-        /** Max stock = sum of all IN stock movements (total ever received) */
-        const maxStock = stockMovements.reduce((sum, m) => sum + m.quantity, 0);
-
-        /** Last restock date = most recent IN movement */
-        const lastRestockDate = stockMovements[0]?.createdAt?.toISOString() ?? null;
-
-        /** Estimated days of stock = current quantity / avg units sold per day */
-        const avgUnitsSoldPerDay = daysElapsed > 0 ? unitsSoldMonth / daysElapsed : 0;
-        const quantityOnHand = product.inventory?.quantityOnHand ?? 0;
-        const estimatedDaysOfStock = avgUnitsSoldPerDay > 0
-            ? Math.floor(quantityOnHand / avgUnitsSoldPerDay)
-            : 0;
-
-        /** Sell-through rate = units sold / (units sold + units on hand) × 100 */
-        const totalUnits = unitsSoldMonth + quantityOnHand;
-        const sellThroughRate = totalUnits > 0
-            ? parseFloat(((unitsSoldMonth / totalUnits) * 100).toFixed(1))
-            : 0;
 
         return {
-            productInfo: {
-                id: product.id,
-                sku: product.sku,
-                name: product.name,
-                description: product.description ?? '',
-                unitPrice: Number(product.unitPrice),
-                costPrice: product.costPrice ? Number(product.costPrice) : null,
-                grossMargin: grossMargin !== null ? parseFloat(grossMargin.toFixed(1)) : null,
-                status: product.status,
-                createdAt: product.createdAt,
-                updatedAt: product.updatedAt,
-            },
-            inventoryStatus: {
-                quantityOnHand,
-                reorderLevel: product.inventory?.reorderLevel ?? 0,
-                maxStock,
-                lastRestockDate,
-                estimatedDaysOfStock,
-            },
-            salesSummary: {
-                unitsSoldMonth,
-                revenueMonth: parseFloat(revenueMonth.toFixed(2)),
-                avgSalePerDay: parseFloat(avgSalePerDay.toFixed(2)),
-                transactions,
-                avgPerSale: parseFloat(avgPerSale.toFixed(2)),
-                sellThroughRate,
-            },
-            salesTrend: this.buildSalesTrend(trendItems, endOfToday, 7),
+            ...productInventory,
+            ...inventoryMetrics,
         };
+    }
 
+    /**
+     * Get the sale summary for a product
+     */
+    async saleSummary(productId: UUIDInput) {
+        const id = productIdSchema.parse(productId);
+
+        const { startOfMonth, daysElapsed } = getCurrentMonthMetrics();
+
+        const product = await prisma.product.findUnique({
+            where: { id },
+            include: {
+                inventory: true,
+                saleItems: {
+                    where: {
+                        sale: {
+                            status: SaleStatus.COMPLETED,
+                            saleDate: { gte: startOfMonth },
+                        },
+                    },
+                    select: { quantity: true, unitPrice: true, saleId: true },
+                },
+            },
+        });
+
+        if (!product) throwNotFound('Product not found');
+
+        const quantityOnHand = Number(product.inventory?.quantityOnHand ?? 0);
+
+        return calculateSaleSummary(
+            product.saleItems,
+            quantityOnHand,
+            daysElapsed
+        );
+    }
+
+    /**
+     * Get the sales trend for a product
+     */
+    async salesTrend(productId: UUIDInput, days: number = 7) {
+        const id = productIdSchema.parse(productId);
+
+        const { endOfToday, trendStart } = getTrendDateRange(days);
+
+        const trendItems = await prisma.saleItem.findMany({
+            where: {
+                productId: id,
+                sale: {
+                    status: SaleStatus.COMPLETED,
+                    saleDate: { gte: trendStart, lte: endOfToday },
+                },
+            },
+            select: {
+                quantity: true,
+                sale: { select: { saleDate: true } },
+            },
+        });
+
+        return buildSalesTrend(trendItems, endOfToday, days);
     }
 
     /**
@@ -376,68 +395,6 @@ export class ProductService {
         });
 
         return updatedProduct;
-    }
-
-    /**
-     * Get daily sales trend for a product over the last N days.
-     * Can be called standalone; internally reuses buildSalesTrend.
-     */
-    async getProductSalesTrend(productId: UUIDInput, days = 7) {
-
-        const id = productIdSchema.parse(productId);
-
-        const endOfToday = new Date();
-        endOfToday.setHours(23, 59, 59, 999);
-
-        const startOfRange = new Date(endOfToday);
-        startOfRange.setDate(startOfRange.getDate() - (days - 1));
-        startOfRange.setHours(0, 0, 0, 0);
-
-        const saleItems = await prisma.saleItem.findMany({
-            where: {
-                productId: id,
-                sale: {
-                    status: SaleStatus.COMPLETED,
-                    saleDate: { gte: startOfRange, lte: endOfToday },
-                },
-            },
-            select: {
-                quantity: true,
-                sale: { select: { saleDate: true } },
-            },
-        });
-
-        return this.buildSalesTrend(saleItems, endOfToday, days);
-
-    }
-
-    /**
-     * Converts raw saleItems into a day-by-day trend array of length `days`,
-     * filling any days with no sales as 0.
-     */
-    private buildSalesTrend(
-        saleItems: { quantity: number; sale: { saleDate: Date } }[],
-        endOfToday: Date,
-        days: number
-    ) {
-        const dailyBucket = new Map<string, number>();
-        for (const item of saleItems) {
-            const key = item.sale.saleDate.toISOString().split('T')[0];
-            dailyBucket.set(key, (dailyBucket.get(key) ?? 0) + item.quantity);
-        }
-
-        const todayKey = endOfToday.toISOString().split('T')[0];
-        return Array.from({ length: days }, (_, i) => {
-            const date = new Date(endOfToday);
-            date.setDate(date.getDate() - (days - 1 - i));
-            const key = date.toISOString().split('T')[0];
-            return {
-                date: key,
-                label: date.toLocaleDateString('en-US', { weekday: 'short' }),
-                unitsSold: dailyBucket.get(key) ?? 0,
-                isToday: key === todayKey,
-            };
-        });
     }
 
 }

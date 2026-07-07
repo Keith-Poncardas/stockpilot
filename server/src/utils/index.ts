@@ -7,3 +7,4 @@ export * from "./utils.minMaxRefine";
 export * from "./utils.smartDelete";
 export * from "./utils.access";
 export * from "./utils.search";
+export * from "./utils.date";
