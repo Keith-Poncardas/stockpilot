@@ -5,15 +5,23 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Label } from "./label";
 import { Checkbox } from "./checkbox";
 
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 interface FormFieldProps<TFieldValues extends FieldValues> {
     name: Path<TFieldValues>;
     control: Control<TFieldValues>;
-    label: string;
+    label: React.ReactNode;
     required?: boolean;
     placeholder?: string;
-    type?: "text" | "email" | "password" | "checkBox";
+    type?: "text" | "email" | "password" | "checkBox" | "textarea" | "select" | "number";
     disabled?: boolean;
     icon?: React.ReactNode;
+    options?: { label: string; value: string }[];
+    description?: React.ReactNode;
+    min?: number | string;
+    max?: number | string;
+    step?: number | string;
 }
 
 function FormField<TFieldValues extends FieldValues>({
@@ -25,6 +33,11 @@ function FormField<TFieldValues extends FieldValues>({
     type = "text",
     disabled,
     icon,
+    options,
+    description,
+    min,
+    max,
+    step,
 }: FormFieldProps<TFieldValues>) {
 
     if (type === "checkBox") {
@@ -56,10 +69,33 @@ function FormField<TFieldValues extends FieldValues>({
                     <Field data-invalid={fieldState.invalid}>
                         <FieldLabel htmlFor={name} className="text-[13px] font-semibold text-gray-700 m-0">
                             {label}
-                            {required && <span className="text-red-500 ml-0.5">*</span>}
+                            {required && <span className="text-amber-700 ml-0.5">*</span>}
                         </FieldLabel>
 
-                        {type === "password" ? (
+                        {type === "select" ? (
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={disabled}>
+                                <SelectTrigger aria-invalid={fieldState.invalid} className="w-full h-9 bg-white border-gray-300 rounded-md">
+                                    <SelectValue placeholder={placeholder} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {options?.map((option) => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        ) : type === "textarea" ? (
+                            <Textarea
+                                {...field}
+                                id={name}
+                                placeholder={placeholder}
+                                aria-invalid={fieldState.invalid}
+                                disabled={disabled}
+                                className="resize-none"
+                                rows={3}
+                            />
+                        ) : type === "password" ? (
                             <InputPassword
                                 {...field}
                                 id={name}
@@ -77,9 +113,15 @@ function FormField<TFieldValues extends FieldValues>({
                                 aria-invalid={fieldState.invalid}
                                 disabled={disabled}
                                 icon={icon}
+                                min={min}
+                                max={max}
+                                step={step}
                             />
                         )}
 
+                        {description && !fieldState.invalid && (
+                            <p className="text-xs text-slate-400">{description}</p>
+                        )}
                         {fieldState.invalid && (
                             <FieldError errors={[fieldState.error]} className="text-red-600 text-xs font-normal" />
                         )}

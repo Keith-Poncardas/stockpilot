@@ -31,3 +31,15 @@ export function ProductBarcode({ value }: ProductBarcodeProps) {
         </section>
     );
 }
+
+ProductBarcode.Skeleton = function ProductBarcodeSkeleton() {
+    return (
+        <section className="bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6">
+            <div className="h-6 w-24 bg-[#F0EFEA] animate-pulse rounded-md mb-4" />
+            <div className="bg-[#F7F7F5] rounded-xl p-4 flex flex-col items-center justify-center min-h-30">
+                <div className="h-14 w-full max-w-50 bg-[#E3E1DC] animate-pulse rounded-md" />
+                <div className="h-4 w-32 bg-[#E3E1DC] animate-pulse rounded-md mt-4" />
+            </div>
+        </section>
+    );
+}

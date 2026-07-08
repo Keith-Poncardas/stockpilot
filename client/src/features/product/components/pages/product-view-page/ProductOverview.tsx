@@ -48,3 +48,36 @@ export function ProductOverview({ product }: ProductOverviewProps) {
         </section>
     )
 }
+
+ProductOverview.Skeleton = function ProductOverviewSkeleton() {
+    return (
+        <section className="bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6">
+            <div className="flex flex-col sm:flex-row gap-6">
+                <div className="w-full sm:w-40 sm:h-40 h-48 rounded-xl bg-[#F0EFEA] border border-[#E3E1DC] flex items-center justify-center shrink-0 animate-pulse">
+                    <Image className="w-12 h-12 text-[#B7B4AC]/50" strokeWidth={1.5} />
+                </div>
+                <div className="flex-1 mt-2 sm:mt-0">
+                    <div className="space-y-2.5">
+                        <div className="h-4 w-full bg-[#F0EFEA] animate-pulse rounded-md" />
+                        <div className="h-4 w-5/6 bg-[#F0EFEA] animate-pulse rounded-md" />
+                        <div className="h-4 w-4/6 bg-[#F0EFEA] animate-pulse rounded-md" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 mt-8">
+                        <div>
+                            <div className="h-3 w-20 bg-[#F0EFEA] animate-pulse rounded-md mb-2" />
+                            <div className="h-8 w-28 bg-[#F0EFEA] animate-pulse rounded-md mt-1" />
+                        </div>
+                        <div>
+                            <div className="h-3 w-20 bg-[#F0EFEA] animate-pulse rounded-md mb-2" />
+                            <div className="h-8 w-28 bg-[#F0EFEA] animate-pulse rounded-md mt-1" />
+                        </div>
+                        <div>
+                            <div className="h-3 w-16 bg-[#F0EFEA] animate-pulse rounded-md mb-2" />
+                            <div className="h-8 w-24 bg-[#F0EFEA] animate-pulse rounded-md mt-1" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    )
+}

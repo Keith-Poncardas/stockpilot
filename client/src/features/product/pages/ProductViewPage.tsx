@@ -1,11 +1,13 @@
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
-import { Header, ProductOverview, InventoryHealth, PerformanceMetrics, ProductBarcode, SalesTrendChart, ProductRecordDetails } from '../components';
+import { Header, ProductOverview, InventoryHealth, PerformanceMetrics, ProductBarcode, SalesTrendChart, ProductRecordDetails, ProductViewPageSkeleton } from '../components';
 import { GET_PRODUCT } from '../operations';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StockMovementLedger } from '@/components/ui/stock-movement-ledger';
 import { handleGraphQLError } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { MobileActionBar } from '@/components/ui/mobile-action-bar';
 
 const dummySalesTrend = [
     { date: '2026-07-01T00:00:00.000Z', label: 'Wed', unitsSold: 30, isToday: false },
@@ -25,13 +27,7 @@ export function ProductViewPage() {
         skip: !productId,
     });
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <Loader2 className="w-8 h-8 animate-spin text-[#9C9A91]" />
-            </div>
-        );
-    }
+    if (loading) return <ProductViewPageSkeleton />;
 
     if (error || !data?.getProduct) {
         return (
@@ -41,7 +37,6 @@ export function ProductViewPage() {
                 description={handleGraphQLError(error?.graphQLErrors[0]?.message ?? error?.networkError?.message)}
                 showBackButton
             />
-
         );
     }
 
@@ -49,9 +44,26 @@ export function ProductViewPage() {
 
     return (
         <>
-            <Header name={productInfo.name} sku={productInfo.sku} status={productInfo.status} />
+            <Header
+                title={productInfo.name}
+                subtitle={productInfo.sku}
+                status={productInfo.status}
+                actions={
+                    <>
+                        <Button variant="glass" className="px-3.5 py-2 font-semibold">
+                            Print Barcode
+                        </Button>
+                        <Button variant="glass" className="px-3.5 py-2 font-semibold">
+                            Adjust Stock
+                        </Button>
+                        <Button className="px-3.5 py-2">
+                            Edit Product
+                        </Button>
+                    </>
+                }
+            />
 
-            <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6 max-sm:mb-15">
 
                 <div className="lg:col-span-2 flex flex-col gap-6">
 
@@ -127,8 +139,6 @@ export function ProductViewPage() {
                         viewAllTo={`/products/${productId}/movements`}
                     />
 
-
-
                 </div>
 
                 <div className="flex flex-col gap-6">
@@ -154,6 +164,18 @@ export function ProductViewPage() {
                 </div>
 
             </main>
+
+            <MobileActionBar>
+                <MobileActionBar.Action type="button">
+                    Print Barcode
+                </MobileActionBar.Action>
+                <MobileActionBar.Action type="button">
+                    Adjust Stock
+                </MobileActionBar.Action>
+                <MobileActionBar.Primary type="button">
+                    Edit Product
+                </MobileActionBar.Primary>
+            </MobileActionBar>
         </>
     );
 }

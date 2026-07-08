@@ -109,3 +109,40 @@ export function InventoryHealth({ data }: InventoryHealthProps) {
         </section>
     )
 }
+
+InventoryHealth.Skeleton = function InventoryHealthSkeleton() {
+    return (
+        <section className="bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6">
+            <div className="h-6 w-40 bg-[#F0EFEA] animate-pulse rounded-md mb-4" />
+            
+            <div className="flex items-end justify-between mb-2">
+                <div>
+                    <div className="h-3 w-16 bg-[#F0EFEA] animate-pulse rounded-md mb-2" />
+                    <div className="h-10 w-24 bg-[#F0EFEA] animate-pulse rounded-md" />
+                </div>
+                <div className="h-6 w-24 bg-[#F0EFEA] animate-pulse rounded-full" />
+            </div>
+            
+            <div className="w-full h-2.5 rounded-full bg-[#F0EFEA] animate-pulse mt-4" />
+            
+            <div className="flex items-center justify-between mt-3">
+                <div className="h-3 w-4 bg-[#F0EFEA] animate-pulse rounded-md" />
+                <div className="h-3 w-32 bg-[#F0EFEA] animate-pulse rounded-md" />
+                <div className="h-3 w-8 bg-[#F0EFEA] animate-pulse rounded-md" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mt-5 pt-5 border-t border-[#E3E1DC]">
+                <div>
+                    <div className="h-3 w-24 bg-[#F0EFEA] animate-pulse rounded-md mb-2" />
+                    <div className="h-4 w-32 bg-[#F0EFEA] animate-pulse rounded-md mt-1" />
+                </div>
+                <div>
+                    <div className="h-3 w-24 bg-[#F0EFEA] animate-pulse rounded-md mb-2" />
+                    <div className="h-4 w-24 bg-[#F0EFEA] animate-pulse rounded-md mt-1" />
+                </div>
+            </div>
+            
+            <div className="mt-5 h-20 w-full bg-[#F0EFEA] animate-pulse rounded-lg" />
+        </section>
+    );
+}

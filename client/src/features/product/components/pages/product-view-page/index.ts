@@ -1,4 +1,4 @@
-export * from "./Header";
+export * from "../../Header";
 export * from "./ProductOverview";
 export * from "./InventoryHealth";
 export * from "./PerformanceMetrics";

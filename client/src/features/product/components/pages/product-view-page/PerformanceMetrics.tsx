@@ -78,3 +78,30 @@ export function PerformanceMetrics({ data }: PerformanceMetricsProps) {
         </section>
     )
 }
+
+PerformanceMetrics.Skeleton = function PerformanceMetricsSkeleton() {
+    return (
+        <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-white rounded-2xl border border-[#E3E1DC] p-4">
+                <div className="h-3 w-20 bg-[#F0EFEA] animate-pulse rounded-md" />
+                <div className="h-8 w-24 bg-[#F0EFEA] animate-pulse rounded-md mt-2.5" />
+                <div className="h-4 w-12 bg-[#F0EFEA] animate-pulse rounded-md mt-2" />
+            </div>
+            <div className="bg-white rounded-2xl border border-[#E3E1DC] p-4">
+                <div className="h-3 w-16 bg-[#F0EFEA] animate-pulse rounded-md" />
+                <div className="h-8 w-28 bg-[#F0EFEA] animate-pulse rounded-md mt-2.5" />
+                <div className="h-4 w-12 bg-[#F0EFEA] animate-pulse rounded-md mt-2" />
+            </div>
+            <div className="bg-white rounded-2xl border border-[#E3E1DC] p-4">
+                <div className="h-3 w-24 bg-[#F0EFEA] animate-pulse rounded-md" />
+                <div className="h-8 w-16 bg-[#F0EFEA] animate-pulse rounded-md mt-2.5" />
+                <div className="h-3 w-28 bg-[#F0EFEA] animate-pulse rounded-md mt-2" />
+            </div>
+            <div className="bg-white rounded-2xl border border-[#E3E1DC] p-4">
+                <div className="h-3 w-24 bg-[#F0EFEA] animate-pulse rounded-md" />
+                <div className="h-8 w-16 bg-[#F0EFEA] animate-pulse rounded-md mt-2.5" />
+                <div className="h-3 w-24 bg-[#F0EFEA] animate-pulse rounded-md mt-2" />
+            </div>
+        </section>
+    );
+}

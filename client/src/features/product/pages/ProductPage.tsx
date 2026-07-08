@@ -14,6 +14,7 @@ import SectionHeader from '@/components/SectionHeader'
 import { FilterPopover } from '@/components/FilterPopover'
 import { EmptyState } from '@/components/ui/empty-state'
 import { MetricCard } from '@/components/MetricCard'
+import { useNavigate } from 'react-router-dom'
 
 const statusOptions = [
     { value: 'all', label: 'All Statuses' },
@@ -127,6 +128,12 @@ export function ProductPage() {
         setGlobalFilter('')
     }
 
+    const navigate = useNavigate();
+
+    function handleAddProduct() {
+        navigate('/products/new');
+    }
+
     return (
         <>
             <SectionHeader
@@ -134,7 +141,7 @@ export function ProductPage() {
                 subtitle={`${productMetricsData?.getProductMetrics?.total?.toLocaleString() ?? 0} products in catalog`}
                 icon={Box}
                 actions={
-                    <Button size="lg">
+                    <Button size="lg" onClick={handleAddProduct}>
                         <Plus data-icon="inline-start" />
                         Add Product
                     </Button>

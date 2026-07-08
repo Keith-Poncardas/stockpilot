@@ -55,3 +55,16 @@ export function SalesTrendChart({
         </section>
     );
 }
+
+SalesTrendChart.Skeleton = function SalesTrendChartSkeleton() {
+    return (
+        <section className="bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6">
+            <div className="flex items-center justify-between mb-5">
+                <div className="h-6 w-48 bg-[#F0EFEA] animate-pulse rounded-md" />
+                <div className="h-4 w-28 bg-[#F0EFEA] animate-pulse rounded-md" />
+            </div>
+
+            <BarChart data={[]} loading={true} height={160} />
+        </section>
+    );
+}

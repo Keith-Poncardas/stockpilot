@@ -15,7 +15,7 @@ function MainLayout() {
             <div className="flex flex-1 flex-col overflow-hidden">
                 <Navbar />
 
-                <main className="flex-1 overflow-y-auto p-5 bg-[#F5F5F2]">
+                <main className="flex-1 overflow-y-auto p-4 bg-[#F5F5F2]">
                     <div className="flex flex-col gap-3">
                         <Outlet />
                     </div>

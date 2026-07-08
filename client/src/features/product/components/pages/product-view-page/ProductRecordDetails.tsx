@@ -33,3 +33,25 @@ export function ProductRecordDetails({
         </section>
     );
 }
+
+ProductRecordDetails.Skeleton = function ProductRecordDetailsSkeleton() {
+    return (
+        <section className="bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6">
+            <div className="h-6 w-32 bg-[#F0EFEA] animate-pulse rounded-md mb-4" />
+            <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between py-0.5">
+                    <div className="h-4 w-16 bg-[#F0EFEA] animate-pulse rounded-md" />
+                    <div className="h-4 w-20 bg-[#F0EFEA] animate-pulse rounded-md" />
+                </div>
+                <div className="flex items-center justify-between py-0.5">
+                    <div className="h-4 w-20 bg-[#F0EFEA] animate-pulse rounded-md" />
+                    <div className="h-4 w-24 bg-[#F0EFEA] animate-pulse rounded-md" />
+                </div>
+                <div className="flex items-center justify-between py-0.5">
+                    <div className="h-4 w-24 bg-[#F0EFEA] animate-pulse rounded-md" />
+                    <div className="h-4 w-28 bg-[#F0EFEA] animate-pulse rounded-md" />
+                </div>
+            </div>
+        </section>
+    );
+}
