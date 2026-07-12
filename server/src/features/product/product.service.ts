@@ -4,7 +4,7 @@ import { buildSearchQuery, createPaginator, throwConflict, throwNotFound, getCur
 import { MovementType, Prisma, SaleStatus } from "@prisma/client";
 import { ChangeProductStatusInput, changeProductStatusSchema, CreateProductInput, createProductSchema, EditProductInput, editProductSchema, PaginatedProductsInput, paginatedProductsSchema } from "./product.validation";
 import { ProductStatus } from "@/enums";
-import { calculateGrossMargin, calculateInventoryMetrics, calculateSaleSummary, buildSalesTrend } from "./product.util";
+import { calculateGrossMargin, calculateInventoryMetrics, calculateSaleSummary, buildSalesTrend, resolveProductSku } from "./product.util";
 
 export class ProductService {
 
@@ -267,25 +267,21 @@ export class ProductService {
 
         const { addToInventory, ...rest } = createProductSchema.parse(input);
 
+        /**
+         * Resolve SKU: use the user's input (uppercased) or auto-generate a unique one.
+         * Auto-generation retries up to 5 times; a collision is astronomically unlikely.
+         */
+        const resolvedSku = await resolveProductSku(rest.name, rest.sku);
+
         const product = await prisma.$transaction(async (tx) => {
 
-            /** Checking for the existence of a product based on name and SKU (excluding archived products) */
+            /** Guard: reject if the resolved SKU is already taken */
             const existingProduct = await tx.product.findFirst({
-                where: {
-                    OR: [
-                        {
-                            sku: {
-                                equals: rest.sku.toUpperCase(),
-                                mode: "insensitive"
-                            }
-                        }
-                    ]
-                }
+                where: { sku: { equals: resolvedSku, mode: "insensitive" } }
             });
 
-            /** Checking for duplicate products */
             if (existingProduct) {
-                throwConflict('A product with the same name or SKU already exists.');
+                throwConflict('A product with this SKU already exists.');
             }
 
             /** Creating product */
@@ -293,18 +289,19 @@ export class ProductService {
                 data: {
                     ...rest,
                     name: rest.name.trim(),
-                    sku: rest.sku.toUpperCase()
+                    sku: resolvedSku,
                 }
             });
 
-            /** Creating inventory for product if isAdded is true and quantity is greater than 0 */
-            if (addToInventory?.isAdded && addToInventory?.quantity > 0) {
+            /** Creating inventory for product only if a valid starting quantity is provided */
+            if (addToInventory && addToInventory.quantity !== undefined && addToInventory.quantity > 0) {
 
                 await tx.inventory.create({
                     data: {
                         productId: prod.id,
                         quantityOnHand: addToInventory.quantity,
                         reorderLevel: addToInventory.reorderLevel,
+                        maxStock: addToInventory.maxStock,
                     },
                 });
 
@@ -323,7 +320,7 @@ export class ProductService {
      */
     async editProduct(input: EditProductInput) {
 
-        const { productId, ...rest } = editProductSchema.parse(input);
+        const { productId, addToInventory, ...rest } = editProductSchema.parse(input);
 
         // Guard: existence check
         const product = await prisma.product.findUnique({ where: { id: productId } });
@@ -331,42 +328,31 @@ export class ProductService {
 
         const editedProduct = await prisma.$transaction(async (tx) => {
 
-            // Check for name/SKU conflict against other active (non-archived) products
-            const duplicate = await tx.product.findFirst({
-                where: {
-                    id: { not: productId },
-                    OR: [
-                        {
-                            name: {
-                                equals: rest.name.trim(),
-                                mode: "insensitive"
-                            }
-                        },
-                        {
-                            sku: {
-                                equals: rest.sku.toUpperCase(),
-                                mode: "insensitive"
-                            }
-                        }
-                    ]
-                }
-            });
-
-            if (duplicate) {
-                throwConflict(
-                    'A product with the same name or SKU already exists.'
-                );
-            }
-
             /** Editing product */
             const editedProduct = await tx.product.update({
                 where: { id: productId },
                 data: {
                     ...rest,
-                    name: rest.name.trim(),
-                    sku: rest.sku.toUpperCase()
+                    name: rest.name.trim()
                 }
             });
+
+            if (addToInventory) {
+                await tx.inventory.upsert({
+                    where: { productId },
+                    create: {
+                        productId,
+                        quantityOnHand: addToInventory.quantity,
+                        reorderLevel: addToInventory.reorderLevel,
+                        maxStock: addToInventory.maxStock,
+                    },
+                    update: {
+                        quantityOnHand: addToInventory.quantity,
+                        reorderLevel: addToInventory.reorderLevel,
+                        maxStock: addToInventory.maxStock,
+                    }
+                });
+            }
 
             return editedProduct;
 

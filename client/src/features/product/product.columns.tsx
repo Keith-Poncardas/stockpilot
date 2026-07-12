@@ -38,7 +38,7 @@ export const columns: ColumnDef<IProduct>[] = [
         accessorKey: "sku",
         header: "SKU",
         cell: ({ row }) => (
-            <span className="text-xs text-gray-400" style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}>{row.original.sku}</span>
+            <span className="text-xs text-gray-400 truncate block max-w-40" style={{ fontFamily: "'IBM Plex Sans', sans-serif" }} title={row.original.sku}>{row.original.sku}</span>
         ),
         size: 100,
     },
@@ -46,7 +46,7 @@ export const columns: ColumnDef<IProduct>[] = [
         accessorKey: "name",
         header: "Product",
         cell: ({ row }) => (
-            <span className="text-sm font-bold text-gray-900">{row.original.name}</span>
+            <span className="text-sm font-bold text-gray-900 truncate block max-w-100">{row.original.name}</span>
         ),
         size: 260,
     },
@@ -54,7 +54,7 @@ export const columns: ColumnDef<IProduct>[] = [
         accessorKey: "description",
         header: "Description",
         cell: ({ row }) => (
-            <span className="text-sm text-gray-500 line-clamp-1 ">
+            <span className="text-sm text-gray-500 truncate block max-w-100" title={row.original.description ?? undefined}>
                 {row.original.description || '—'}
             </span>
         ),

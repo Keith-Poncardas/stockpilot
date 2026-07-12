@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { Header, ProductOverview, InventoryHealth, PerformanceMetrics, ProductBarcode, SalesTrendChart, ProductRecordDetails, ProductViewPageSkeleton } from '../components';
 import { GET_PRODUCT } from '../operations';
@@ -8,6 +8,7 @@ import { StockMovementLedger } from '@/components/ui/stock-movement-ledger';
 import { handleGraphQLError } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { MobileActionBar } from '@/components/ui/mobile-action-bar';
+import { ProductStatus } from '../product.constants';
 
 const dummySalesTrend = [
     { date: '2026-07-01T00:00:00.000Z', label: 'Wed', unitsSold: 30, isToday: false },
@@ -21,6 +22,7 @@ const dummySalesTrend = [
 
 export function ProductViewPage() {
     const { productId } = useParams<{ productId: string }>();
+    const navigate = useNavigate();
 
     const { data, loading, error } = useQuery(GET_PRODUCT, {
         variables: { productId },
@@ -40,7 +42,13 @@ export function ProductViewPage() {
         );
     }
 
+    function handleEditPage() {
+        navigate(`/products/${productId}/edit`);
+    }
+
     const { productInfo, inventoryStatus, salesSummary } = data.getProduct;
+
+    const isNotEditable = data.getProduct.productInfo?.status === ProductStatus.DISCONTINUED.a;
 
     return (
         <>
@@ -56,7 +64,7 @@ export function ProductViewPage() {
                         <Button variant="glass" className="px-3.5 py-2 font-semibold">
                             Adjust Stock
                         </Button>
-                        <Button className="px-3.5 py-2">
+                        <Button className="px-3.5 py-2" onClick={handleEditPage} disabled={isNotEditable}>
                             Edit Product
                         </Button>
                     </>

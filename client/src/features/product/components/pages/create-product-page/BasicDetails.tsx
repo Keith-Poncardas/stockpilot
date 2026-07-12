@@ -1,5 +1,3 @@
-
-
 import { Box, Barcode } from 'lucide-react';
 import type { Control } from 'react-hook-form';
 import { FormField } from '@/components/ui/form-field';
@@ -7,9 +5,10 @@ import { FormSection } from '@/components/ui/form-section';
 
 interface BasicDetailsProps {
     control: Control<any>;
+    isEditMode?: boolean;
 }
 
-export function BasicDetails({ control }: BasicDetailsProps) {
+export function BasicDetails({ control, isEditMode }: BasicDetailsProps) {
     return (
         <FormSection
             title="Basic details"
@@ -31,10 +30,20 @@ export function BasicDetails({ control }: BasicDetailsProps) {
                     <FormField
                         name="sku"
                         control={control}
-                        label="SKU"
-                        placeholder="SKU-00124"
-                        required
-                        description="Must be unique across all products"
+                        disabled={isEditMode}
+                        label={
+                            isEditMode ? (
+                                <>
+                                    SKU <span className="text-slate-400 font-normal">(not editable)</span>
+                                </>
+                            ) : (
+                                <>
+                                    SKU <span className="text-slate-400 font-normal">(optional)</span>
+                                </>
+                            )
+                        }
+                        placeholder={isEditMode ? "" : "Leave blank to auto-generate"}
+                        description={isEditMode ? "The SKU cannot be changed after creation." : "Must be unique across all products"}
                         icon={
                             <Barcode className="w-4 h-4 text-slate-300" strokeWidth={2} />
                         }
@@ -50,8 +59,6 @@ export function BasicDetails({ control }: BasicDetailsProps) {
                             { value: "DRAFT", label: "Draft — not yet listed" },
                             { value: "ACTIVE", label: "Active — visible & sellable" },
                             { value: "INACTIVE", label: "Inactive — hidden from sale" },
-                            { value: "DISCONTINUED", label: "Discontinued" },
-                            { value: "ARCHIVED", label: "Archived" },
                         ]}
                     />
                 </div>
@@ -72,3 +79,33 @@ export function BasicDetails({ control }: BasicDetailsProps) {
         </FormSection>
     )
 }
+
+BasicDetails.Skeleton = function BasicDetailsSkeleton() {
+    return (
+        <FormSection
+            title="Basic details"
+            description="What the product is, and how it's identified"
+            icon={<Box className="w-4.5 h-4.5" strokeWidth={2} />}
+            iconWrapperClassName="bg-blue-50 text-blue-600"
+        >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="sm:col-span-2 space-y-2">
+                    <div className="h-4 w-24 bg-gray-200 animate-pulse rounded" />
+                    <div className="h-10 w-full bg-gray-200 animate-pulse rounded-md border border-gray-100" />
+                </div>
+                <div className="space-y-2">
+                    <div className="h-4 w-12 bg-gray-200 animate-pulse rounded" />
+                    <div className="h-10 w-full bg-gray-200 animate-pulse rounded-md border border-gray-100" />
+                </div>
+                <div className="space-y-2">
+                    <div className="h-4 w-14 bg-gray-200 animate-pulse rounded" />
+                    <div className="h-10 w-full bg-gray-200 animate-pulse rounded-md border border-gray-100" />
+                </div>
+                <div className="sm:col-span-2 space-y-2">
+                    <div className="h-4 w-20 bg-gray-200 animate-pulse rounded" />
+                    <div className="h-24 w-full bg-gray-200 animate-pulse rounded-md border border-gray-100" />
+                </div>
+            </div>
+        </FormSection>
+    );
+};

@@ -205,6 +205,7 @@ export class InventoryService {
             quantity,
             movementType,
             reorderLevel,
+            maxStock,
             notes
         } = adjustStockSchema.parse(input);
 
@@ -220,6 +221,7 @@ export class InventoryService {
                         ...(movementType === MovementType.ADJUSTMENT && { set: quantity }),
                     },
                     reorderLevel: reorderLevel ?? undefined,
+                    maxStock: maxStock ?? undefined,
                 },
                 include: {
                     product: {

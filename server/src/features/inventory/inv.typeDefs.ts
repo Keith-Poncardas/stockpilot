@@ -118,6 +118,7 @@ export const inventoryTypeDefs = `#graphql
         quantity: Int!
         # Required — must match the nonnegative() constraint in adjustStockSchema
         reorderLevel: Int!
+        maxStock: Int!
         reference: String
         notes: String
     }

@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
-
+import { prisma } from "@/lib";
+import { generateSku, throwConflict } from "@/utils";
 /**
  * Calculates the gross profit margin.
  * @returns Gross margin as a percentage, or null if it cannot be calculated.
@@ -23,7 +24,7 @@ export function calculateGrossMargin(unitPrice: Prisma.Decimal | number, costPri
 export function calculateInventoryMetrics(
     saleItems: { quantity: number }[],
     stockAggregation: { _sum: { quantity: number | null }, _max: { createdAt: Date | null } },
-    inventory: { quantityOnHand?: any, reorderLevel?: any },
+    inventory: { quantityOnHand?: any, reorderLevel?: any, maxStock?: any },
     daysElapsed: number
 ) {
     const quantityOnHand = Number(inventory.quantityOnHand ?? 0);
@@ -36,7 +37,7 @@ export function calculateInventoryMetrics(
         ? Math.floor(quantityOnHand / avgUnitsSoldPerDay)
         : 0;
 
-    const maxStock = stockAggregation._sum.quantity ?? 0;
+    const maxStock = Number(inventory.maxStock ?? 0);
     const lastRestockDate = stockAggregation._max.createdAt?.toISOString() ?? null;
 
     return {
@@ -110,4 +111,26 @@ export function calculateSaleSummary(
         avgPerSale: parseFloat(avgPerSale.toFixed(2)),
         sellThroughRate: parseFloat(sellThroughRate.toFixed(1)),
     };
+}
+
+/**
+ * Resolves a product SKU: uses the provided input (uppercased) or auto-generates a unique one.
+ * Auto-generation retries up to 5 times.
+ */
+export async function resolveProductSku(name: string, inputSku?: string | null): Promise<string> {
+    if (inputSku?.trim()) {
+        return inputSku.toUpperCase();
+    }
+
+    for (let attempt = 0; attempt < 5; attempt++) {
+        const generated = generateSku(name);
+        const conflict = await prisma.product.findFirst({
+            where: { sku: { equals: generated, mode: "insensitive" } },
+            select: { id: true },
+        });
+        if (!conflict) return generated;
+        if (attempt === 4) throwConflict("Could not generate a unique SKU. Please provide one manually.");
+    }
+
+    throwConflict("Could not generate a unique SKU. Please provide one manually.");
 }

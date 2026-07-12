@@ -25,8 +25,10 @@ export function InventoryHealth({ data }: InventoryHealthProps) {
         aiRecommendation
     } = data;
 
-    // Calculate percentage for the progress bar
-    const percentage = Math.min(100, Math.max(0, (onHand / maxStock) * 100));
+    // Calculate percentage for the progress bar based on max stock
+    const percentage = maxStock > 0
+        ? Math.min(100, Math.max(0, (onHand / maxStock) * 100))
+        : 0;
 
     // Determine status
     let statusText = 'In Stock';
@@ -77,7 +79,7 @@ export function InventoryHealth({ data }: InventoryHealthProps) {
             </div>
 
             <div className="flex items-center justify-between mt-2 text-xs text-[#9C9A91] font-mono">
-                <span>0</span>
+                <span>{onHand}</span>
                 <span>Reorder level: {reorderLevel}</span>
                 <span>{maxStock}</span>
             </div>
@@ -114,7 +116,7 @@ InventoryHealth.Skeleton = function InventoryHealthSkeleton() {
     return (
         <section className="bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6">
             <div className="h-6 w-40 bg-[#F0EFEA] animate-pulse rounded-md mb-4" />
-            
+
             <div className="flex items-end justify-between mb-2">
                 <div>
                     <div className="h-3 w-16 bg-[#F0EFEA] animate-pulse rounded-md mb-2" />
@@ -122,9 +124,9 @@ InventoryHealth.Skeleton = function InventoryHealthSkeleton() {
                 </div>
                 <div className="h-6 w-24 bg-[#F0EFEA] animate-pulse rounded-full" />
             </div>
-            
+
             <div className="w-full h-2.5 rounded-full bg-[#F0EFEA] animate-pulse mt-4" />
-            
+
             <div className="flex items-center justify-between mt-3">
                 <div className="h-3 w-4 bg-[#F0EFEA] animate-pulse rounded-md" />
                 <div className="h-3 w-32 bg-[#F0EFEA] animate-pulse rounded-md" />
@@ -141,7 +143,7 @@ InventoryHealth.Skeleton = function InventoryHealthSkeleton() {
                     <div className="h-4 w-24 bg-[#F0EFEA] animate-pulse rounded-md mt-1" />
                 </div>
             </div>
-            
+
             <div className="mt-5 h-20 w-full bg-[#F0EFEA] animate-pulse rounded-lg" />
         </section>
     );

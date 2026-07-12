@@ -5,6 +5,7 @@ import {
     LogOut,
     X,
     Box,
+    Warehouse,
 } from 'lucide-react'
 import AppLogo from '@/components/AppLogo'
 import { UserProfileDetails } from '@/components/UserProfileDetails'
@@ -50,7 +51,7 @@ const NAV_SECTIONS: NavSectionConfig[] = [
         section: 'Inventory',
         items: [
             { label: 'Products', icon: <Box size={16} />, route: "/products" },
-            // { label: 'Inventory', icon: <Warehouse size={16} />, badge: '3', badgeDanger: true, route: "/inventory" },
+            { label: 'Inventory', icon: <Warehouse size={16} />, badge: '3', badgeDanger: true, route: "/inventory" },
             // { label: 'Stock Movements', icon: <ArrowUpDown size={16} />, route: "/stock-movements" },
         ],
     },
@@ -145,22 +146,24 @@ function Sidebar() {
                 {/* Navigation — grows + scrolls */}
                 <nav className="flex-1 overflow-y-auto py-3">
                     {NAV_SECTIONS.map(({ section, items }) => (
-                        <React.Fragment key={section}>
+                        <div key={section} className="mb-3">
                             <NavSection label={section} />
-                            {items.map((item) => {
-                                const isActive = item.route === '/'
-                                    ? location.pathname === '/'
-                                    : location.pathname === item.route || location.pathname.startsWith(`${item.route}/`);
+                            <div className="flex flex-col gap-1">
+                                {items.map((item) => {
+                                    const isActive = item.route === '/'
+                                        ? location.pathname === '/'
+                                        : location.pathname === item.route || location.pathname.startsWith(`${item.route}/`);
 
-                                return (
-                                    <NavItem
-                                        key={item.label}
-                                        {...item}
-                                        active={isActive}
-                                    />
-                                );
-                            })}
-                        </React.Fragment>
+                                    return (
+                                        <NavItem
+                                            key={item.label}
+                                            {...item}
+                                            active={isActive}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
                     ))}
                 </nav>
 

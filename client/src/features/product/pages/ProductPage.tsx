@@ -90,12 +90,12 @@ export function ProductPage() {
                 }
             }
         },
-        fetchPolicy: 'cache-first',
+        fetchPolicy: 'cache-and-network',
         notifyOnNetworkStatusChange: true,
     })
 
     const { data: productMetricsData } = useQuery(GET_PRODUCT_METRICS, {
-        fetchPolicy: 'cache-first',
+        fetchPolicy: 'cache-and-network',
         notifyOnNetworkStatusChange: true,
     });
 

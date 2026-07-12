@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Eye, SquarePen } from "lucide-react"
 import type { ProductRowInfoCellProps } from "../../product.types"
 import { useNavigate } from "react-router-dom"
+import { ProductStatus } from "../../product.constants"
 
 export function ActionsCell({ row }: ProductRowInfoCellProps) {
     const navigate = useNavigate();
@@ -11,6 +12,12 @@ export function ActionsCell({ row }: ProductRowInfoCellProps) {
     function handleViewClick() {
         navigate(`/products/${row.original.id}/view`);
     }
+
+    function handleEditClick() {
+        navigate(`/products/${row.original.id}/edit`);
+    }
+
+    const isNotEditable = row.original.status === ProductStatus.DISCONTINUED.a;
 
     return (
         <div className="flex justify-center">
@@ -23,7 +30,7 @@ export function ActionsCell({ row }: ProductRowInfoCellProps) {
                         </Button>
                     </PopoverClose>
                     <PopoverClose asChild>
-                        <Button variant="ghost" className="w-full justify-start px-2.5 py-2 h-auto text-xs font-semibold tracking-wide text-gray-700 uppercase" disabled>
+                        <Button onClick={handleEditClick} variant="ghost" className="w-full justify-start px-2.5 py-2 h-auto text-xs font-semibold tracking-wide text-gray-700 uppercase" disabled={isNotEditable}>
                             <SquarePen size={15} strokeWidth={2.2} className="text-gray-500 mr-1" />
                             Edit
                         </Button>

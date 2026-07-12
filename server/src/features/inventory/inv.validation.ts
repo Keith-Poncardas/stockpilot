@@ -68,6 +68,10 @@ export const adjustStockSchema = z.object({
         .number()
         .int()
         .nonnegative("Reorder level must be non-negative"),
+    maxStock: z.coerce
+        .number()
+        .int()
+        .nonnegative("Max stock must be non-negative"),
     reference: z
         .string()
         .trim()

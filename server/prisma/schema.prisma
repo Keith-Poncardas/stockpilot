@@ -121,6 +121,7 @@ model Inventory {
     productId      String   @unique @map("product_id") @db.Uuid
     quantityOnHand Int      @default(0) @map("quantity_on_hand")
     reorderLevel   Int      @default(10) @map("reorder_level")
+    maxStock       Int      @default(100) @map("max_stock")
     updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
 
     product Product @relation(fields: [productId], references: [id])

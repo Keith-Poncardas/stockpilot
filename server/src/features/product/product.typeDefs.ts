@@ -133,29 +133,32 @@ export const productTypeDefs = `#graphql
 
     # Add To Inventory Input Type
     input AddToInventoryInput {
-        isAdded: Boolean!
         quantity: Int!
         reorderLevel: Int!
+        maxStock: Int!
     }
 
     # Create Product Input Type
     input CreateProductInput {
         name: String!
         description: String
-        sku: String!
+        sku: String
         unitPrice: Float!
         costPrice: Float
+        status: ProductStatus!
         addToInventory: AddToInventoryInput
     }
 
     # Edit Product Input Type
     input EditProductInput {
-        id: ID!
+        productId: ID!
         name: String!
         description: String
-        sku: String!
+        sku: String
+        status: ProductStatus!
         unitPrice: Float!
         costPrice: Float
+        addToInventory: AddToInventoryInput
     }
 
     # Soft Delete Product Input Type

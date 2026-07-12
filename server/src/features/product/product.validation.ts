@@ -1,6 +1,6 @@
 import { OrderDirectionLower, ProductOrderBy } from "@/enums";
 import { dateRangeSchema, orderDirectionLowerSchema, paginationSchema, productIdSchema, searchSchema } from "@/schemas";
-import { createMinMaxRefine, minMaxRefineMessage } from "@/utils";
+import { createMinMaxRefine, excludeEnumValue, minMaxRefineMessage } from "@/utils";
 import { ProductStatus } from "@prisma/client";
 import z from "zod";
 
@@ -21,15 +21,15 @@ const minMaxSchema = z.coerce.number().nonnegative();
  * ADD TO INVENTORY SCHEMA
  */
 const addToInventorySchema = z.object({
-    isAdded: z.coerce.boolean().default(false),
     quantity: z.coerce.number().int().nonnegative(),
     reorderLevel: z.coerce.number().int().nonnegative(),
+    maxStock: z.coerce.number().int().nonnegative(),
 }).optional();
 
 /**
  * BASE PRODUCT SCHEMA FOR REUSABLE PURPOSES
  */
-const baseProductSchema = z.object({
+const baseProductSchemaObject = z.object({
     name: z
         .string()
         .trim()
@@ -41,11 +41,6 @@ const baseProductSchema = z.object({
         .trim()
         .optional(),
 
-    sku: z
-        .string()
-        .trim()
-        .max(50, "SKU must not exceed 50 characters"),
-
     unitPrice: z.coerce
         .number()
         .nonnegative({ message: "Unit price must be a non-negative number" }),
@@ -54,11 +49,7 @@ const baseProductSchema = z.object({
         .number()
         .nonnegative({ message: "Cost price must be a non-negative number" })
         .optional(),
-})
-    .refine(
-        createMinMaxRefine("costPrice", "unitPrice"),
-        minMaxRefineMessage("costPrice", "unitPrice")
-    );
+});
 
 /**
  *  GET ALL PRODUCTS FILTERED SCHEMA VALIDATION
@@ -83,18 +74,42 @@ export const paginatedProductsSchema = paginationSchema.extend({
 });
 
 /**
+ * ASSIGNABLE PRODUCT STATUS SCHEMA
+ */
+const assignableProductStatusSchema = z.enum(
+    excludeEnumValue(ProductStatus, [
+        ProductStatus.DISCONTINUED,
+        ProductStatus.ARCHIVED
+    ])
+);
+
+/**
  * CREATE PRODUCT SCHEMA VALIDATION
  */
-export const createProductSchema = baseProductSchema.extend({
+export const createProductSchema = baseProductSchemaObject.extend({
+    sku: z
+        .string()
+        .trim()
+        .max(50, "SKU must not exceed 50 characters")
+        .optional(),
+    status: assignableProductStatusSchema,
     addToInventory: addToInventorySchema,
-});
+}).refine(
+    createMinMaxRefine("costPrice", "unitPrice"),
+    minMaxRefineMessage("costPrice", "unitPrice")
+);
 
 /**
  *  EDIT PRODUCT SCHEMA VALIDATION
  */
-export const editProductSchema = baseProductSchema.extend({
+export const editProductSchema = baseProductSchemaObject.extend({
     productId: productIdSchema,
-});
+    status: assignableProductStatusSchema,
+    addToInventory: addToInventorySchema,
+}).refine(
+    createMinMaxRefine("costPrice", "unitPrice"),
+    minMaxRefineMessage("costPrice", "unitPrice")
+);
 
 /**
  * CHANGE PRODUCT STATUS SCHEMA VALIDATION

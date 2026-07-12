@@ -73,3 +73,29 @@ export function Pricing({ control }: PricingProps) {
         </FormSection>
     )
 }
+
+Pricing.Skeleton = function PricingSkeleton() {
+    return (
+        <FormSection
+            title="Pricing"
+            description="What customers pay, and what it costs you"
+            icon={<DollarSign className="w-4.5 h-4.5" strokeWidth={2} />}
+            iconWrapperClassName="bg-amber-50 text-amber-700"
+        >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                    <div className="h-4 w-20 bg-gray-200 animate-pulse rounded" />
+                    <div className="h-10 w-full bg-gray-200 animate-pulse rounded-md border border-gray-100" />
+                </div>
+                <div className="space-y-2">
+                    <div className="h-4 w-24 bg-gray-200 animate-pulse rounded" />
+                    <div className="h-10 w-full bg-gray-200 animate-pulse rounded-md border border-gray-100" />
+                </div>
+                <div className="sm:col-span-2 flex items-center justify-between gap-4 rounded-lg bg-slate-50 border border-slate-200 px-4 py-3">
+                    <div className="h-4 w-32 bg-gray-200 animate-pulse rounded" />
+                    <div className="h-5 w-24 bg-gray-200 animate-pulse rounded" />
+                </div>
+            </div>
+        </FormSection>
+    );
+};

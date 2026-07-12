@@ -8,3 +8,4 @@ export * from "./utils.smartDelete";
 export * from "./utils.access";
 export * from "./utils.search";
 export * from "./utils.date";
+export * from "./utils.generateSku";
