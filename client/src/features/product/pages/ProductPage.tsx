@@ -138,7 +138,7 @@ export function ProductPage() {
         <>
             <SectionHeader
                 title="Products"
-                subtitle={`${productMetricsData?.getProductMetrics?.total?.toLocaleString() ?? 0} products in catalog`}
+                subtitle="Manage your product catalog, pricing, and stock levels"
                 icon={Box}
                 actions={
                     <Button size="lg" onClick={handleAddProduct}>
@@ -196,6 +196,7 @@ export function ProductPage() {
                             value={orderByFilter}
                             onChange={setOrderByFilter}
                             options={orderByOptions}
+                            defaultValue="createdAt"
                             className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
                         />
                         <SelectFilter

@@ -3,9 +3,12 @@ import { createPaginator, throwNotFound } from "@/utils";
 import { MovementType, Prisma } from "@prisma/client";
 import { AdjustStockInput, adjustStockSchema, PaginatedInventoriesInput, paginatedInventoriesSchema } from "./inv.validation";
 import { inventoryIdSchema, UUIDInput } from "@/schemas";
-import { OrderDirection, OrderDirectionLower, StockStatus } from "@/enums";
+import { StockStatus } from "@/enums";
+import { resolveStockStatus } from "./inv.utils";
+
 
 export class InventoryService {
+
 
     /**
      * Returns counts of inventory items grouped by stock status:
@@ -170,7 +173,7 @@ export class InventoryService {
                             description: true,
                             unitPrice: true,
                             costPrice: true,
-                            isActive: true,
+                            status: true,
                         },
                     },
                 },
@@ -186,8 +189,13 @@ export class InventoryService {
 
         ]);
 
+        const mapped = inventories.map((inv) => ({
+            ...inv,
+            stockStatus: resolveStockStatus(inv.quantityOnHand, inv.reorderLevel),
+        }));
+
         return {
-            data: inventories,
+            data: mapped,
             meta: buildMeta(total),
         };
 
@@ -227,6 +235,12 @@ export class InventoryService {
                     product: {
                         select: {
                             id: true,
+                            sku: true,
+                            name: true,
+                            description: true,
+                            unitPrice: true,
+                            costPrice: true,
+                            status: true,
                         }
                     }
                 }

@@ -137,7 +137,7 @@ export function UserPage() {
         <>
             <SectionHeader
                 title="Users"
-                subtitle={`${userMetricsData?.getUserMetrics?.total?.toLocaleString() ?? 0} team members and access control`}
+                subtitle="Manage your team members, roles, and access control"
                 icon={Users}
             />
 

@@ -10,6 +10,12 @@ export const inventoryTypeDefs = `#graphql
         CRITICAL_OUT
     }
 
+    enum StockStatusCustom {
+        WELL_STOCKED
+        LOW_STOCK
+        CRITICAL_OUT
+    }
+
     # Movement type — mirrors the Prisma MovementType enum
     enum MovementType {
         IN
@@ -49,8 +55,11 @@ export const inventoryTypeDefs = `#graphql
         productId: ID!
         quantityOnHand: Int!
         reorderLevel: Int!
+        maxStock: Int!
         updatedAt: String!
         product: InventoryProduct!
+        # Computed by the server — reflects WELL_STOCKED / LOW_STOCK / CRITICAL_OUT
+        stockStatus: StockStatusCustom!
     }
 
     # Counts grouped by stock status — returned by getInventoryStatuses

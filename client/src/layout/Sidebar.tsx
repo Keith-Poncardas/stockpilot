@@ -51,7 +51,7 @@ const NAV_SECTIONS: NavSectionConfig[] = [
         section: 'Inventory',
         items: [
             { label: 'Products', icon: <Box size={16} />, route: "/products" },
-            { label: 'Inventory', icon: <Warehouse size={16} />, badge: '3', badgeDanger: true, route: "/inventory" },
+            { label: 'Inventory', icon: <Warehouse size={16} />, badgeDanger: true, route: "/inventory" },
             // { label: 'Stock Movements', icon: <ArrowUpDown size={16} />, route: "/stock-movements" },
         ],
     },

@@ -54,4 +54,8 @@ export const inventoryResolver = {
 
     }),
 
+    InventoryProduct: {
+        isActive: (parent: any) => parent.status === 'ACTIVE'
+    }
+
 };

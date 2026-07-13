@@ -26,9 +26,9 @@ export function CreateProductPage() {
             description: "",
             unitPrice: undefined,
             costPrice: undefined,
-            quantityOnHand: 0,
-            reorderLevel: 10,
-            maxStock: 100,
+            quantityOnHand: "" as unknown as number,
+            reorderLevel: "" as unknown as number,
+            maxStock: "" as unknown as number,
         }
     });
 
@@ -43,11 +43,13 @@ export function CreateProductPage() {
             unitPrice,
             costPrice,
             status,
-            addToInventory: {
-                quantity: quantityOnHand,
-                reorderLevel,
-                maxStock,
-            },
+            ...(status === "ACTIVE" && quantityOnHand !== undefined ? {
+                addToInventory: {
+                    quantity: quantityOnHand,
+                    reorderLevel: reorderLevel!,
+                    maxStock: maxStock!,
+                }
+            } : {}),
         };
         try {
             await createProduct({ variables: { input } });
