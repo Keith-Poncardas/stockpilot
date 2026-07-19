@@ -1,7 +1,10 @@
 import { Box, Barcode } from 'lucide-react';
-import type { Control } from 'react-hook-form';
+import { Controller, type Control } from 'react-hook-form';
 import { FormField } from '@/components/ui/form-field';
 import { FormSection } from '@/components/ui/form-section';
+import { Field, FieldError, FieldLabel } from '@/components/ui/field';
+import { SelectFilter } from '@/components/ui/select-filter';
+
 
 interface BasicDetailsProps {
     control: Control<any>;
@@ -50,16 +53,33 @@ export function BasicDetails({ control, isEditMode }: BasicDetailsProps) {
                     />
                 </div>
                 <div>
-                    <FormField
+                    <Controller
                         name="status"
                         control={control}
-                        label="Status"
-                        type="select"
-                        options={[
-                            { value: "DRAFT", label: "Draft — not yet listed" },
-                            { value: "ACTIVE", label: "Active — visible & sellable" },
-                            { value: "INACTIVE", label: "Inactive — hidden from sale" },
-                        ]}
+                        render={({ field, fieldState }) => (
+                            <Field data-invalid={fieldState.invalid}>
+                                <FieldLabel className="text-[13px] font-semibold text-gray-700 m-0">
+                                    Status
+                                </FieldLabel>
+                                <SelectFilter
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    options={[
+                                        { value: "DRAFT", label: "Draft — not yet listed" },
+                                        { value: "ACTIVE", label: "Active — visible & sellable" },
+                                        { value: "INACTIVE", label: "Inactive — hidden from sale" },
+                                    ]}
+                                    defaultValue="DRAFT"
+                                    className="w-full h-9"
+                                />
+                                {fieldState.invalid && (
+                                    <FieldError
+                                        errors={[fieldState.error]}
+                                        className="text-xs font-medium text-rose-600"
+                                    />
+                                )}
+                            </Field>
+                        )}
                     />
                 </div>
                 <div className="sm:col-span-2">

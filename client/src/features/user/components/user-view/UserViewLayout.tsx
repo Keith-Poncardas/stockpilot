@@ -17,7 +17,7 @@ export function UserViewLayout({ children, header, isLoading }: UserViewLayoutPr
         <div className="w-full min-h-[calc(100vh-4rem)]">
             {/* Cover Photo */}
             <div className={cn(
-                "h-48 md:h-87.5 w-full relative flex justify-center items-end rounded-md max-w-7xl mx-auto border border-gray-200",
+                "h-48 md:h-45 w-full relative flex justify-center items-end rounded-md max-w-7xl mx-auto border border-gray-200",
                 isLoading ? "bg-slate-200 animate-pulse" : "bg-slate-200"
             )}>
                 <Button

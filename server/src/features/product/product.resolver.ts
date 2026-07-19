@@ -53,8 +53,9 @@ export const productResolver = {
         createProduct: async (
             _: unknown,
             { input }: { input: CreateProductInput },
+            context: GraphQLContext
         ) => {
-            return productService.createProduct(input);
+            return productService.createProduct(input, context.user!.id);
         },
 
         /**
@@ -62,9 +63,10 @@ export const productResolver = {
          */
         editProduct: async (
             _: unknown,
-            { input }: { input: EditProductInput }
+            { input }: { input: EditProductInput },
+            context: GraphQLContext
         ) => {
-            return productService.editProduct(input);
+            return productService.editProduct(input, context.user!.id);
         },
 
         /**

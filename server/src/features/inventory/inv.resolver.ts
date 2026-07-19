@@ -36,6 +36,16 @@ export const inventoryResolver = {
             return inventoryService.getInventories(input);
         },
 
+        /**
+         * Search products for inventory addition
+         */
+        searchInventoryProducts: async (
+            _: unknown,
+            { search }: { search?: string | null }
+        ) => {
+            return inventoryService.searchInventoryProducts(search);
+        },
+
     }),
 
     Mutation: protectResolvers({
@@ -53,9 +63,5 @@ export const inventoryResolver = {
         },
 
     }),
-
-    InventoryProduct: {
-        isActive: (parent: any) => parent.status === 'ACTIVE'
-    }
 
 };

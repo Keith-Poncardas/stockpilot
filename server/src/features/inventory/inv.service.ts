@@ -1,7 +1,7 @@
 import { prisma } from "@/lib";
 import { createPaginator, throwNotFound } from "@/utils";
 import { MovementType, Prisma } from "@prisma/client";
-import { AdjustStockInput, adjustStockSchema, PaginatedInventoriesInput, paginatedInventoriesSchema } from "./inv.validation";
+import { AdjustStockInput, adjustStockSchema, PaginatedInventoriesInput, paginatedInventoriesSchema, searchInventoryProductsSchema } from "./inv.validation";
 import { inventoryIdSchema, UUIDInput } from "@/schemas";
 import { StockStatus } from "@/enums";
 import { resolveStockStatus } from "./inv.utils";
@@ -60,7 +60,16 @@ export class InventoryService {
         const inventory = await prisma.inventory.findUnique({
             where: { id },
             include: {
-                product: true
+                product: true,
+                author: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        role: true
+                    }
+                }
             }
         });
 
@@ -68,8 +77,59 @@ export class InventoryService {
             throwNotFound("Inventory not found");
         }
 
-        return inventory;
+        return {
+            ...inventory,
+            stockStatus: resolveStockStatus(inventory.quantityOnHand, inventory.reorderLevel),
+        };
 
+    }
+
+    /**
+     * Search products for inventory addition:
+     * - Returns up to 5 products if no search is provided.
+     * - Returns matching products if search is provided.
+     * - Adds boolean 'isAddedInventory' flag.
+     */
+    async searchInventoryProducts(searchArg?: string | null) {
+        const { search } = searchInventoryProductsSchema.parse({ search: searchArg });
+
+        let products;
+        
+        if (search) {
+            products = await prisma.product.findMany({
+                where: {
+                    OR: [
+                        { name: { contains: search, mode: 'insensitive' } },
+                        { sku: { contains: search, mode: 'insensitive' } },
+                    ]
+                },
+                take: 20
+            });
+        } else {
+            products = await prisma.product.findMany({
+                take: 5,
+                orderBy: { createdAt: 'desc' }
+            });
+        }
+
+        if (products.length === 0) {
+            return [];
+        }
+
+        const productIds = products.map(p => p.id);
+        const inventories = await prisma.inventory.findMany({
+            where: { productId: { in: productIds } },
+            select: { productId: true }
+        });
+
+        const inventorySet = new Set(inventories.map(inv => inv.productId));
+
+        return products.map(product => ({
+            ...product,
+            unitPrice: Number(product.unitPrice),
+            costPrice: product.costPrice ? Number(product.costPrice) : null,
+            isAddedInventory: inventorySet.has(product.id)
+        }));
     }
 
     /**
@@ -214,8 +274,16 @@ export class InventoryService {
             movementType,
             reorderLevel,
             maxStock,
+            reason,
             notes
         } = adjustStockSchema.parse(input);
+
+        /** Compose audit-log notes: prepend [reason] if provided */
+        const movementNotes = reason
+            ? notes
+                ? `[${reason}] ${notes}`
+                : `[${reason}]`
+            : notes;
 
         const inventory = await prisma.$transaction(async (tx) => {
 
@@ -242,6 +310,14 @@ export class InventoryService {
                             costPrice: true,
                             status: true,
                         }
+                    },
+                    author: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true
+                        }
                     }
                 }
             });
@@ -254,7 +330,7 @@ export class InventoryService {
                     type: movementType,
                     quantity,
                     reference,
-                    notes
+                    notes: movementNotes,
                 },
             });
 
@@ -262,7 +338,10 @@ export class InventoryService {
 
         });
 
-        return inventory;
+        return {
+            ...inventory,
+            stockStatus: resolveStockStatus(inventory.quantityOnHand, inventory.reorderLevel),
+        };
 
     }
 

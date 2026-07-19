@@ -72,6 +72,18 @@ export const adjustStockSchema = z.object({
         .number()
         .int()
         .nonnegative("Max stock must be non-negative"),
+    reason: z
+        .enum([
+            "damaged",
+            "expired",
+            "lost",
+            "recount",
+            "received",
+            "customer_return",
+            "supplier_return",
+            "other",
+        ])
+        .optional(),
     reference: z
         .string()
         .trim()
@@ -80,7 +92,7 @@ export const adjustStockSchema = z.object({
     notes: z
         .string()
         .trim()
-        .max(100, "Notes must not exceed 100 characters")
+        .max(250, "Notes must not exceed 250 characters")
         .optional(),
 });
 
@@ -88,3 +100,9 @@ export const adjustStockSchema = z.object({
 export type InventoryIdInput = z.infer<typeof inventoryIdSchema>;
 export type AdjustStockInput = z.infer<typeof adjustStockSchema>;
 export type PaginatedInventoriesInput = z.infer<typeof paginatedInventoriesSchema>;
+
+/** SEARCH INVENTORY PRODUCTS SCHEMA */
+export const searchInventoryProductsSchema = z.object({
+    search: searchSchema,
+});
+export type SearchInventoryProductsInput = z.infer<typeof searchInventoryProductsSchema>;

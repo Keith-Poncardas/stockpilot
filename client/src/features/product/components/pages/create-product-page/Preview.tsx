@@ -2,6 +2,8 @@ import Barcode from 'react-barcode';
 import { PhilippinePeso, Lightbulb, Hash, EyeOff, TrendingUp } from 'lucide-react';
 import type { Control } from 'react-hook-form';
 import { useProductPreview } from '@/features/product/hooks/useProductPreview';
+import { StatItem } from '@/components/ui/stat-item';
+import { StatusBadge } from '@/components/StatusBadge';
 
 interface PreviewProps {
     control: Control<any>;
@@ -12,7 +14,6 @@ export function Preview({ control }: PreviewProps) {
         displayName,
         displaySku,
         displayStatus,
-        statusColorClass,
         displayPrice,
         displayQty,
         displayReorder,
@@ -51,12 +52,7 @@ export function Preview({ control }: PreviewProps) {
                                 {displayPrice}
                             </p>
                         </div>
-                        <span
-                            id="previewStatus"
-                            className={`text-[10px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded-full transition-colors duration-300 ${statusColorClass}`}
-                        >
-                            {displayStatus}
-                        </span>
+                        <StatusBadge value={displayStatus.toUpperCase()} label={displayStatus} size="sm" />
                     </div>
                     <div className="mt-5 pt-4 border-t border-white/10">
                         <div className="overflow-hidden flex justify-center">
@@ -73,25 +69,8 @@ export function Preview({ control }: PreviewProps) {
                     </div>
                 </div>
                 <dl className="mt-4 grid grid-cols-2 gap-3">
-                    <div className="rounded-lg bg-slate-50 px-3 py-2.5">
-                        <dt className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">
-                            On hand
-                        </dt>
-                        <dd id="previewQty" className="font-mono text-sm font-semibold mt-0.5">
-                            {displayQty}
-                        </dd>
-                    </div>
-                    <div className="rounded-lg bg-slate-50 px-3 py-2.5">
-                        <dt className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">
-                            Reorder at
-                        </dt>
-                        <dd
-                            id="previewReorder"
-                            className="font-mono text-sm font-semibold mt-0.5"
-                        >
-                            {displayReorder}
-                        </dd>
-                    </div>
+                    <StatItem label="On hand" value={displayQty} valueId="previewQty" />
+                    <StatItem label="Reorder at" value={displayReorder} valueId="previewReorder" />
                 </dl>
             </div>
             {/* Tips */}
@@ -160,14 +139,26 @@ Preview.Skeleton = function PreviewSkeleton() {
                     </div>
                 </div>
                 <dl className="mt-4 grid grid-cols-2 gap-3">
-                    <div className="rounded-lg bg-slate-50 px-3 py-2.5 space-y-2">
-                        <div className="h-3 w-16 bg-gray-200 animate-pulse rounded" />
-                        <div className="h-5 w-10 bg-gray-200 animate-pulse rounded" />
-                    </div>
-                    <div className="rounded-lg bg-slate-50 px-3 py-2.5 space-y-2">
-                        <div className="h-3 w-20 bg-gray-200 animate-pulse rounded" />
-                        <div className="h-5 w-10 bg-gray-200 animate-pulse rounded" />
-                    </div>
+                    <StatItem
+                        label="On hand"
+                        className="space-y-2"
+                        value={
+                            <>
+                                <div className="h-3 w-16 bg-gray-200 animate-pulse rounded" />
+                                <div className="h-5 w-10 bg-gray-200 animate-pulse rounded" />
+                            </>
+                        }
+                    />
+                    <StatItem
+                        label="Reorder at"
+                        className="space-y-2"
+                        value={
+                            <>
+                                <div className="h-3 w-20 bg-gray-200 animate-pulse rounded" />
+                                <div className="h-5 w-10 bg-gray-200 animate-pulse rounded" />
+                            </>
+                        }
+                    />
                 </dl>
             </div>
 

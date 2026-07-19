@@ -34,7 +34,7 @@ const NAV_SECTIONS: NavSectionConfig[] = [
         section: 'Main',
         items: [
             {
-                label: 'Home',
+                label: 'Dashboard',
                 icon: <LayoutDashboard size={16} />,
                 route: "/"
             },

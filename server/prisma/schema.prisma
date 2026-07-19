@@ -65,6 +65,7 @@ model User {
     sales          Sale[]
     stockMovements StockMovement[]
     passwordReset  PasswordReset?
+    inventories    Inventory[]
 
     @@map("users")
 }
@@ -119,11 +120,14 @@ model Product {
 model Inventory {
     id             String   @id @default(uuid()) @db.Uuid
     productId      String   @unique @map("product_id") @db.Uuid
+    userId         String   @map("user_id") @db.Uuid
     quantityOnHand Int      @default(0) @map("quantity_on_hand")
     reorderLevel   Int      @default(10) @map("reorder_level")
     maxStock       Int      @default(100) @map("max_stock")
     updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+    createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(6)
 
+    author  User    @relation(fields: [userId], references: [id])
     product Product @relation(fields: [productId], references: [id])
 
     // Prevents negative stock at the DB level — enforce via migration:

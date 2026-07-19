@@ -3,14 +3,7 @@ import type { IProduct } from "@/features/product/product.types";
 import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
-
-const statusStyles: Record<string, { badge: string; dot: string }> = {
-    ACTIVE: { badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-400' },
-    INACTIVE: { badge: 'bg-gray-500/15 text-gray-400 border-gray-500/20', dot: 'bg-gray-400' },
-    DISCONTINUED: { badge: 'bg-red-500/15 text-red-400 border-red-500/20', dot: 'bg-red-400' },
-    DRAFT: { badge: 'bg-amber-500/15 text-amber-400 border-amber-500/20', dot: 'bg-amber-400' },
-    ARCHIVED: { badge: 'bg-slate-500/15 text-slate-400 border-slate-500/20', dot: 'bg-slate-400' },
-};
+import { StatusBadge } from "@/components/StatusBadge";
 
 interface HeaderProps {
     title: string;
@@ -65,15 +58,9 @@ export function Header({
                                 <h1 className="font-display text-xl sm:text-2xl font-semibold tracking-tight">
                                     {title}
                                 </h1>
-                                {productStatus && (() => {
-                                    const s = statusStyles[productStatus] ?? statusStyles['INACTIVE'];
-                                    return (
-                                        <span className={`inline-flex items-center gap-1.5 rounded-full text-xs font-semibold px-2.5 py-1 border ${s.badge}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-                                            {productStatus}
-                                        </span>
-                                    );
-                                })()}
+                                {productStatus && (
+                                    <StatusBadge value={productStatus} />
+                                )}
                             </div>
                             {subtitle && (
                                 <p className="text-slate-400 text-sm mt-1 font-mono">

@@ -7,6 +7,7 @@ import { Checkbox } from "./checkbox";
 
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 
 interface FormFieldProps<TFieldValues extends FieldValues> {
     name: Path<TFieldValues>;
@@ -16,6 +17,7 @@ interface FormFieldProps<TFieldValues extends FieldValues> {
     placeholder?: string;
     type?: "text" | "email" | "password" | "checkBox" | "textarea" | "select" | "number";
     disabled?: boolean;
+    isLoading?: boolean;
     icon?: React.ReactNode;
     options?: { label: string; value: string }[];
     description?: React.ReactNode;
@@ -32,6 +34,7 @@ function FormField<TFieldValues extends FieldValues>({
     placeholder,
     type = "text",
     disabled,
+    isLoading,
     icon,
     options,
     description,
@@ -72,52 +75,59 @@ function FormField<TFieldValues extends FieldValues>({
                             {required && <span className="text-amber-700 ml-0.5">*</span>}
                         </FieldLabel>
 
-                        {type === "select" ? (
-                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={disabled}>
-                                <SelectTrigger aria-invalid={fieldState.invalid} className="w-full h-9 bg-white border-gray-300 rounded-md">
-                                    <SelectValue placeholder={placeholder} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {options?.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        ) : type === "textarea" ? (
-                            <Textarea
-                                {...field}
-                                id={name}
-                                placeholder={placeholder}
-                                aria-invalid={fieldState.invalid}
-                                disabled={disabled}
-                                className="resize-none"
-                                rows={3}
-                            />
-                        ) : type === "password" ? (
-                            <InputPassword
-                                {...field}
-                                id={name}
-                                placeholder={placeholder}
-                                aria-invalid={fieldState.invalid}
-                                disabled={disabled}
-                                icon={icon}
-                            />
-                        ) : (
-                            <Input
-                                {...field}
-                                id={name}
-                                type={type}
-                                placeholder={placeholder}
-                                aria-invalid={fieldState.invalid}
-                                disabled={disabled}
-                                icon={icon}
-                                min={min}
-                                max={max}
-                                step={step}
-                            />
-                        )}
+                        <div className="relative w-full">
+                            {type === "select" ? (
+                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={disabled}>
+                                    <SelectTrigger aria-invalid={fieldState.invalid} className="w-full h-9 bg-white border-gray-300 rounded-md">
+                                        <SelectValue placeholder={placeholder} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {options?.map((option) => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                                {option.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            ) : type === "textarea" ? (
+                                <Textarea
+                                    {...field}
+                                    id={name}
+                                    placeholder={placeholder}
+                                    aria-invalid={fieldState.invalid}
+                                    disabled={disabled}
+                                    className="resize-none"
+                                    rows={3}
+                                />
+                            ) : type === "password" ? (
+                                <InputPassword
+                                    {...field}
+                                    id={name}
+                                    placeholder={placeholder}
+                                    aria-invalid={fieldState.invalid}
+                                    disabled={disabled}
+                                    icon={icon}
+                                />
+                            ) : (
+                                <Input
+                                    {...field}
+                                    id={name}
+                                    type={type}
+                                    placeholder={placeholder}
+                                    aria-invalid={fieldState.invalid}
+                                    disabled={disabled}
+                                    icon={icon}
+                                    min={min}
+                                    max={max}
+                                    step={step}
+                                />
+                            )}
+                            {isLoading && (
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center justify-center pointer-events-none">
+                                    <Loader2 className="h-4 w-4 animate-spin opacity-60" />
+                                </div>
+                            )}
+                        </div>
 
                         {description && !fieldState.invalid && (
                             <p className="text-xs text-slate-400">{description}</p>

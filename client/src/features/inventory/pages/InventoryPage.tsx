@@ -8,6 +8,7 @@ import {
     XCircle,
     ServerCrash,
     SlidersHorizontal,
+    PackagePlus,
 } from 'lucide-react'
 import { columns } from '../inventory.columns'
 import { GET_INVENTORIES, GET_INVENTORY_STATUSES } from '../operations'
@@ -21,6 +22,8 @@ import { FilterPopover } from '@/components/FilterPopover'
 import { EmptyState } from '@/components/ui/empty-state'
 import { MetricCard } from '@/components/MetricCard'
 import type { IInventory } from '../inventory.types'
+import { Button } from '@/components/ui/button'
+import { useNavigate } from 'react-router-dom'
 
 const stockStatusOptions = [
     { value: 'all', label: 'All Statuses' },
@@ -135,12 +138,24 @@ export function InventoryPage() {
         setGlobalFilter('')
     }
 
+    const navigate = useNavigate();
+
+    function handleRecordInventory() {
+        navigate('/inventory/record')
+    }
+
     return (
         <>
             <SectionHeader
                 title="Inventory"
                 subtitle="Monitor real-time stock levels, movements, and track reorder alerts"
                 icon={Warehouse}
+                actions={
+                    <Button onClick={handleRecordInventory} size='lg'>
+                        <PackagePlus className="mr-1" />
+                        Record Inventory
+                    </Button>
+                }
             />
 
             {/* ── Metric Cards ─────────────────────────────────────────────── */}

@@ -29,6 +29,7 @@ export const productTypeDefs = `#graphql
 
     # Inventory Status Type
     type InventoryStatus {
+        id: ID!
         quantityOnHand: Int!
         reorderLevel: Int!
         maxStock: Int!
@@ -54,12 +55,28 @@ export const productTypeDefs = `#graphql
         isToday: Boolean!
     }
 
+    # A single row in the stock movement ledger for a product
+    type StockMovementLedgerItem {
+        id: ID!
+        # IN | OUT | ADJUSTMENT
+        type: MovementType!
+        # Human-readable description (reason code + notes, or type label fallback)
+        description: String!
+        # Optional PO / reference number
+        reference: String
+        # ISO-8601 timestamp
+        date: String!
+        # Signed quantity: negative for OUT movements
+        quantity: Int!
+    }
+
     # Product Details Type
     type ProductDetails {
         productInfo: ProductInfo!
-        inventoryStatus: InventoryStatus!
+        inventoryStatus: InventoryStatus
         salesSummary: SalesSummary!
         salesTrend: [SalesTrendPoint!]!
+        stockMovementLedger: [StockMovementLedgerItem!]!
     }
 
     # Pagination metadata

@@ -38,6 +38,18 @@ export const inventoryTypeDefs = `#graphql
 
     # ─── Types ────────────────────────────────────────────────────────────────
 
+    # Lightweight product for inventory search popup
+    type ProductSearchRecord {
+        id: ID!
+        sku: String!
+        name: String!
+        description: String
+        unitPrice: Float!
+        costPrice: Float
+        status: ProductStatus!
+        isAddedInventory: Boolean!
+    }
+
     # Lightweight product summary embedded inside an Inventory record
     type InventoryProduct {
         id: ID!
@@ -46,7 +58,16 @@ export const inventoryTypeDefs = `#graphql
         description: String
         unitPrice: Float!
         costPrice: Float
-        isActive: Boolean!
+        status: ProductStatus!
+    }
+
+    # Author (user) who last touched this inventory record
+    type InventoryAuthor {
+        id: ID!
+        firstName: String!
+        lastName: String!
+        email: String!
+        role: UserRole!
     }
 
     # Core inventory record (single item)
@@ -57,7 +78,9 @@ export const inventoryTypeDefs = `#graphql
         reorderLevel: Int!
         maxStock: Int!
         updatedAt: String!
+        createdAt: String!
         product: InventoryProduct!
+        author: InventoryAuthor!
         # Computed by the server — reflects WELL_STOCKED / LOW_STOCK / CRITICAL_OUT
         stockStatus: StockStatusCustom!
     }
@@ -128,6 +151,8 @@ export const inventoryTypeDefs = `#graphql
         # Required — must match the nonnegative() constraint in adjustStockSchema
         reorderLevel: Int!
         maxStock: Int!
+        # Human-readable reason code saved to the audit log (e.g. "damaged", "expired")
+        reason: String
         reference: String
         notes: String
     }
@@ -145,6 +170,9 @@ export const inventoryTypeDefs = `#graphql
         # Paginated + filtered inventory list.
         # Uses a single combined input to match paginatedInventoriesSchema shape { page, limit, filter }
         getInventories(input: GetInventoriesInput): PaginatedInventories!
+
+        # Search products for inventory addition (limited to 5 if no search term)
+        searchInventoryProducts(search: String): [ProductSearchRecord!]!
     }
 
     type Mutation {

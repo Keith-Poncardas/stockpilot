@@ -16,6 +16,7 @@ export const GET_PRODUCT = gql`
         updatedAt
       }
       inventoryStatus {
+        id
         quantityOnHand
         reorderLevel
         maxStock
@@ -36,9 +37,18 @@ export const GET_PRODUCT = gql`
         unitsSold
         isToday
       }
+      stockMovementLedger {
+        id
+        type
+        description
+        reference
+        date
+        quantity
+      }
     }
   }
 `;
+
 
 export const GET_PRODUCTS = gql`
   query GetProducts($args: PaginatedProductsInput!) {

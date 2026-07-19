@@ -29,7 +29,7 @@ export const GET_INVENTORIES = gql`
                     description
                     unitPrice
                     costPrice
-                    isActive
+                    status
                 }
             }
             meta {
@@ -53,7 +53,9 @@ export const GET_INVENTORY = gql`
             productId
             quantityOnHand
             reorderLevel
+            maxStock
             updatedAt
+            createdAt
             stockStatus
             product {
                 id
@@ -62,7 +64,14 @@ export const GET_INVENTORY = gql`
                 description
                 unitPrice
                 costPrice
-                isActive
+                status
+            }
+            author {
+                id
+                firstName
+                lastName
+                email
+                role
             }
         }
     }
@@ -82,6 +91,21 @@ export const ADJUST_STOCK = gql`
                 sku
                 name
             }
+        }
+    }
+`;
+
+export const SEARCH_INVENTORY_PRODUCTS = gql`
+    query SearchInventoryProducts($search: String) {
+        searchInventoryProducts(search: $search) {
+            id
+            sku
+            name
+            description
+            unitPrice
+            costPrice
+            status
+            isAddedInventory
         }
     }
 `;

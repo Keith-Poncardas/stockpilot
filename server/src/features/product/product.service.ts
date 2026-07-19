@@ -19,12 +19,14 @@ export class ProductService {
             productInfo,
             inventoryStatus,
             salesSummary,
-            salesTrend
+            salesTrend,
+            stockMovementLedger
         ] = await Promise.all([
             this.productInfo(id),
             this.inventoryStatus(id),
             this.saleSummary(id),
-            this.salesTrend(id)
+            this.salesTrend(id),
+            this.stockMovementLedger(id)
         ]);
 
         return {
@@ -32,7 +34,41 @@ export class ProductService {
             inventoryStatus,
             salesSummary,
             salesTrend,
+            stockMovementLedger,
         };
+
+    }
+
+    /**
+     * Returns the 5 most-recent stock movements for a product,
+     * sorted descending by date, in the ledger display format.
+     */
+    async stockMovementLedger(productId: UUIDInput) {
+
+        const id = productIdSchema.parse(productId);
+
+        const movements = await prisma.stockMovement.findMany({
+            where: { productId: id },
+            orderBy: { createdAt: 'desc' },
+            take: 5,
+            select: {
+                id: true,
+                type: true,
+                quantity: true,
+                reference: true,
+                notes: true,
+                createdAt: true,
+            },
+        });
+
+        return movements.map((m) => ({
+            id: m.id,
+            type: m.type,                        // 'IN' | 'OUT' | 'ADJUSTMENT'
+            description: m.notes ?? m.type,      // notes carry the reason prefix; fall back to type label
+            reference: m.reference ?? null,
+            date: m.createdAt.toISOString(),
+            quantity: m.type === MovementType.OUT ? -Math.abs(m.quantity) : m.quantity,
+        }));
 
     }
 
@@ -97,17 +133,17 @@ export class ProductService {
 
         if (!product) throwNotFound('Product not found');
 
-        const productInventory = product.inventory ?? {};
+        if (!product.inventory) return null;
 
         const inventoryMetrics = calculateInventoryMetrics(
             product.saleItems,
             stockAggregation,
-            productInventory,
+            product.inventory,
             daysElapsed
         );
 
         return {
-            ...productInventory,
+            ...product.inventory,
             ...inventoryMetrics,
         };
     }
@@ -263,7 +299,7 @@ export class ProductService {
     /**
      * Creates a new product and, optionally, adds initial stock.
      */
-    async createProduct(input: CreateProductInput) {
+    async createProduct(input: CreateProductInput, userId: string) {
 
         const { addToInventory, ...rest } = createProductSchema.parse(input);
 
@@ -293,15 +329,27 @@ export class ProductService {
                 }
             });
 
-            /** Creating inventory for product only if a valid starting quantity is provided */
-            if (addToInventory && addToInventory.quantity !== undefined && addToInventory.quantity > 0) {
+            /** Creating inventory for product if inventory configuration is provided and quantity > 0 */
+            if (addToInventory && addToInventory.quantity > 0) {
 
                 await tx.inventory.create({
                     data: {
                         productId: prod.id,
+                        userId,
                         quantityOnHand: addToInventory.quantity,
                         reorderLevel: addToInventory.reorderLevel,
                         maxStock: addToInventory.maxStock,
+                    },
+                });
+
+                /** Record the initial stock movement so the ledger has a starting entry */
+                await tx.stockMovement.create({
+                    data: {
+                        productId: prod.id,
+                        userId,
+                        type: MovementType.IN,
+                        quantity: addToInventory.quantity,
+                        notes: '[received] Initial stock on product creation',
                     },
                 });
 
@@ -318,7 +366,7 @@ export class ProductService {
     /**
      * Edits an existing product.
      */
-    async editProduct(input: EditProductInput) {
+    async editProduct(input: EditProductInput, userId: string) {
 
         const { productId, addToInventory, ...rest } = editProductSchema.parse(input);
 
@@ -342,6 +390,7 @@ export class ProductService {
                     where: { productId },
                     create: {
                         productId,
+                        userId,
                         quantityOnHand: addToInventory.quantity,
                         reorderLevel: addToInventory.reorderLevel,
                         maxStock: addToInventory.maxStock,

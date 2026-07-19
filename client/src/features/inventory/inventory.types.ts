@@ -1,4 +1,5 @@
 import type { Row } from "@tanstack/react-table"
+import type { ProductStatus } from "@/features/product/product.constants"
 
 export type StockStatus = 'WELL_STOCKED' | 'LOW_STOCK' | 'CRITICAL_OUT' | 'ALL'
 export type MovementType = 'IN' | 'OUT' | 'ADJUSTMENT'
@@ -11,7 +12,7 @@ export interface IInventoryProduct {
     description?: string | null
     unitPrice: number
     costPrice?: number | null
-    isActive: boolean
+    status: ProductStatus
 }
 
 export interface IInventory {

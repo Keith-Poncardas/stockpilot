@@ -10,16 +10,6 @@ import { Button } from '@/components/ui/button';
 import { MobileActionBar } from '@/components/ui/mobile-action-bar';
 import { ProductStatus } from '../product.constants';
 
-const dummySalesTrend = [
-    { date: '2026-07-01T00:00:00.000Z', label: 'Wed', unitsSold: 30, isToday: false },
-    { date: '2026-07-02T00:00:00.000Z', label: 'Thu', unitsSold: 35, isToday: false },
-    { date: '2026-07-03T00:00:00.000Z', label: 'Fri', unitsSold: 32, isToday: false },
-    { date: '2026-07-04T00:00:00.000Z', label: 'Sat', unitsSold: 40, isToday: false },
-    { date: '2026-07-05T00:00:00.000Z', label: 'Sun', unitsSold: 45, isToday: false },
-    { date: '2026-07-06T00:00:00.000Z', label: 'Mon', unitsSold: 42, isToday: false },
-    { date: '2026-07-07T00:00:00.000Z', label: 'Tue', unitsSold: 48, isToday: true },
-];
-
 export function ProductViewPage() {
     const { productId } = useParams<{ productId: string }>();
     const navigate = useNavigate();
@@ -42,11 +32,20 @@ export function ProductViewPage() {
         );
     }
 
-    function handleEditPage() {
-        navigate(`/products/${productId}/edit`);
+    function handleEditPage(routeTo: string, id: string) {
+        switch (routeTo) {
+            case 'product':
+                navigate(`/products/${id}/edit`);
+                break;
+            case 'adjust-stock':
+                navigate(`/inventory/${id}/adjust`);
+                break;
+            default:
+                break;
+        }
     }
 
-    const { productInfo, inventoryStatus, salesSummary } = data.getProduct;
+    const { productInfo, inventoryStatus, salesSummary, salesTrend, stockMovementLedger } = data.getProduct;
 
     const isNotEditable = data.getProduct.productInfo?.status === ProductStatus.DISCONTINUED.a;
 
@@ -58,13 +57,23 @@ export function ProductViewPage() {
                 status={productInfo.status}
                 actions={
                     <>
-                        <Button variant="glass" className="px-3.5 py-2 font-semibold">
+                        <Button variant="glass" className="px-3.5 py-2 font-semibold" disabled>
                             Print Barcode
                         </Button>
-                        <Button variant="glass" className="px-3.5 py-2 font-semibold">
+                        <Button
+                            variant="glass"
+                            className="px-3.5 py-2 font-semibold"
+                            onClick={() =>
+                                handleEditPage(
+                                    'adjust-stock',
+                                    inventoryStatus?.id || ''
+                                )
+                            }
+                            disabled={isNotEditable || !inventoryStatus}
+                        >
                             Adjust Stock
                         </Button>
-                        <Button className="px-3.5 py-2" onClick={handleEditPage} disabled={isNotEditable}>
+                        <Button className="px-3.5 py-2" onClick={() => handleEditPage('product', productInfo.id)} disabled={isNotEditable}>
                             Edit Product
                         </Button>
                     </>
@@ -97,53 +106,12 @@ export function ProductViewPage() {
                     />
 
                     <SalesTrendChart
-                        data={dummySalesTrend || data.getProduct.salesTrend}
+                        data={salesTrend}
                         loading={loading}
                     />
 
                     <StockMovementLedger
-                        data={[
-                            {
-                                id: '1',
-                                type: 'IN',
-                                description: 'Received from supplier',
-                                reference: 'PO-2026-0447',
-                                date: '2026-06-28T00:00:00.000Z',
-                                quantity: 50,
-                            },
-                            {
-                                id: '2',
-                                type: 'OUT',
-                                description: 'Sale deduction',
-                                reference: 'SALE-88213',
-                                date: '2026-06-30T00:00:00.000Z',
-                                quantity: -12,
-                            },
-                            {
-                                id: '3',
-                                type: 'OUT',
-                                description: 'Sale deduction',
-                                reference: 'SALE-88250',
-                                date: '2026-07-01T00:00:00.000Z',
-                                quantity: -8,
-                            },
-                            {
-                                id: '4',
-                                type: 'ADJUSTMENT',
-                                description: 'Damaged units removed — stocktake',
-                                reference: 'STOCKTAKE-Q2',
-                                date: '2026-07-02T00:00:00.000Z',
-                                quantity: -2,
-                            },
-                            {
-                                id: '5',
-                                type: 'OUT',
-                                description: 'Sale deduction',
-                                reference: 'SALE-88301',
-                                date: '2026-07-03T00:00:00.000Z',
-                                quantity: -12,
-                            },
-                        ]}
+                        data={stockMovementLedger}
                         viewAllTo={`/products/${productId}/movements`}
                     />
 
@@ -153,11 +121,11 @@ export function ProductViewPage() {
 
                     <InventoryHealth
                         data={{
-                            onHand: inventoryStatus.quantityOnHand,
-                            reorderLevel: inventoryStatus.reorderLevel,
-                            maxStock: inventoryStatus.maxStock,
-                            lastRestockDate: inventoryStatus.lastRestockDate ?? new Date().toISOString(),
-                            estimatedDaysOfStock: inventoryStatus.estimatedDaysOfStock,
+                            onHand: inventoryStatus?.quantityOnHand ?? 0,
+                            reorderLevel: inventoryStatus?.reorderLevel ?? 0,
+                            maxStock: inventoryStatus?.maxStock ?? 0,
+                            lastRestockDate: inventoryStatus?.lastRestockDate ?? new Date().toISOString(),
+                            estimatedDaysOfStock: inventoryStatus?.estimatedDaysOfStock ?? 0,
                         }}
                     />
 

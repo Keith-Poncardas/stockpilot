@@ -43,7 +43,7 @@ export function CreateProductPage() {
             unitPrice,
             costPrice,
             status,
-            ...(status === "ACTIVE" && quantityOnHand !== undefined ? {
+            ...(quantityOnHand !== undefined ? {
                 addToInventory: {
                     quantity: quantityOnHand,
                     reorderLevel: reorderLevel!,

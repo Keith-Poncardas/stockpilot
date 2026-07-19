@@ -8,7 +8,7 @@ export interface StockMovementRecord {
     id: string;
     type: StockMovementType;
     description: string;
-    reference: string;
+    reference: string | null;
     date: string;
     quantity: number;
 }
@@ -51,9 +51,14 @@ export function StockMovementLedger({ data = [], loading = false, viewAllTo }: S
                             <div className="flex items-center gap-3 min-w-0">
                                 <MovementIcon type={record.type} />
                                 <div className="min-w-0">
-                                    <p className="text-sm font-medium truncate">{record.description}</p>
+                                    <p className="text-sm font-medium truncate">
+                                        {record.description || <span className="italic text-[#9C9A91]">No description</span>}
+                                    </p>
                                     <p className="text-xs text-[#9C9A91] font-mono truncate">
-                                        {record.reference} · {formatDate(record.date)}
+                                        {record.reference
+                                            ? <>{record.reference} · {formatDate(record.date)}</>
+                                            : <><span className="italic">No reference</span> · {formatDate(record.date)}</>
+                                        }
                                     </p>
                                 </div>
                             </div>
