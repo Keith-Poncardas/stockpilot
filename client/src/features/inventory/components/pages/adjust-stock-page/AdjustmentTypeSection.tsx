@@ -1,8 +1,7 @@
 import { Controller, useWatch, type Control } from "react-hook-form";
-import { TrendingUp, TrendingDown, SlidersHorizontal, CheckCircle, Minus, Plus } from "lucide-react";
+import { TrendingUp, TrendingDown, SlidersHorizontal, CheckCircle } from "lucide-react";
 import { FormSection } from "@/components/ui/form-section";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { NumberStepper } from "@/components/ui/number-stepper";
 import type { AdjustStockFormValues } from "./types";
 
 
@@ -201,59 +200,27 @@ export function AdjustmentTypeSection({ control }: AdjustmentTypeSectionProps) {
                         required: "Quantity is required",
                         min: { value: 1, message: "Enter a quantity greater than 0" },
                     }}
-                    render={({ field, fieldState }) => {
-                        const decrement = () => field.onChange(Math.max(0, (Number(field.value) || 0) - 1));
-                        const increment = () => field.onChange((Number(field.value) || 0) + 1);
+                    render={({ field, fieldState }) => (
+                        <div className="mt-2 space-y-1">
+                            <NumberStepper
+                                id="quantity-input"
+                                name={field.name}
+                                value={field.value}
+                                onChange={(val) => field.onChange(val)}
+                                onBlur={field.onBlur}
+                                inputRef={field.ref}
+                                invalid={fieldState.invalid}
+                                min={0}
+                                size="lg"
+                            />
 
-                        return (
-                            <div className="mt-2 space-y-1">
-                                <div className="flex items-stretch">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="icon-sm"
-                                        aria-label="Decrease quantity"
-                                        onClick={decrement}
-                                        className="h-auto rounded-r-none border-r-0 border-slate-300 px-6 text-slate-600"
-                                    >
-                                        <Minus className="h-4 w-4" strokeWidth={2} />
-                                    </Button>
-
-                                    <Input
-                                        {...field}
-                                        id="quantity-input"
-                                        type="number"
-                                        min={0}
-                                        inputMode="numeric"
-                                        aria-invalid={fieldState.invalid}
-                                        value={field.value ?? ""}
-                                        onChange={(e) => {
-                                            const raw = e.target.value;
-                                            field.onChange(raw === "" ? "" : Number(raw));
-                                        }}
-                                        className="z-10 rounded-none border-x-0 py-5 text-center text-lg font-semibold tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                                    />
-
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="icon-sm"
-                                        aria-label="Increase quantity"
-                                        onClick={increment}
-                                        className="h-auto rounded-l-none border-l-0 border-slate-300 px-6 text-slate-600"
-                                    >
-                                        <Plus className="h-4 w-4" strokeWidth={2} />
-                                    </Button>
-                                </div>
-
-                                {fieldState.invalid && (
-                                    <p className="text-xs font-medium text-rose-600" aria-live="polite">
-                                        {fieldState.error?.message}
-                                    </p>
-                                )}
-                            </div>
-                        );
-                    }}
+                            {fieldState.invalid && (
+                                <p className="text-xs font-medium text-rose-600" aria-live="polite">
+                                    {fieldState.error?.message}
+                                </p>
+                            )}
+                        </div>
+                    )}
                 />
             </div>
         </FormSection>

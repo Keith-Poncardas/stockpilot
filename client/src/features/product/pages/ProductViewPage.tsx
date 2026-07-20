@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
-import { Header, ProductOverview, InventoryHealth, PerformanceMetrics, ProductBarcode, SalesTrendChart, ProductRecordDetails, ProductViewPageSkeleton } from '../components';
+import { Header, ProductOverview, PerformanceMetrics, ProductBarcode, SalesTrendChart, ProductRecordDetails, ProductViewPageSkeleton } from '../components';
+import { InventoryHealth } from '@/components/InventoryHealth';
 import { GET_PRODUCT } from '../operations';
 import { AlertTriangle } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';

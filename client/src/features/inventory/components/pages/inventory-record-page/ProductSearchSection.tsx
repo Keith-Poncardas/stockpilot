@@ -2,12 +2,14 @@ import type { Control } from "react-hook-form";
 import { FormSection } from "@/components/ui/form-section";
 import { FormField } from "@/components/ui/form-field";
 import { PackagePlus, Search } from "lucide-react";
-import { useWatch } from "react-hook-form";
-import { useQuery } from "@apollo/client";
+import { useWatch, useController } from "react-hook-form";
+import { useQuery, useLazyQuery } from "@apollo/client";
 import { useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { SEARCH_INVENTORY_PRODUCTS } from "@/features/inventory/operations";
-import { formatCurrency } from "@/lib/utils";
+import { GET_PRODUCT } from "@/features/product/operations";
+import { ProductSearchResultItem } from "./ProductSearchResultItem";
+import { ProductSearchPreview } from "./ProductSearchPreview";
 
 interface ProductSearchSectionProps {
     control: Control<any>;
@@ -16,7 +18,9 @@ interface ProductSearchSectionProps {
 export function ProductSearchSection({ control }: ProductSearchSectionProps) {
     const [isOpen, setIsOpen] = useState(false);
 
-    const searchTerm = useWatch({ control, name: "productId" });
+    const { field: productIdField } = useController({ control, name: "productId" });
+    const { field: searchField } = useController({ control, name: "searchQuery" });
+    const searchTerm = useWatch({ control, name: "searchQuery" });
     const debouncedSearch = useDebounce(searchTerm, 300);
 
     const { data, loading } = useQuery(SEARCH_INVENTORY_PRODUCTS, {
@@ -24,7 +28,10 @@ export function ProductSearchSection({ control }: ProductSearchSectionProps) {
         fetchPolicy: "network-only"
     });
 
+    const [fetchProduct, { data: productData, loading: productLoading }] = useLazyQuery(GET_PRODUCT);
+
     const products = data?.searchInventoryProducts || [];
+    const product = productData?.getProduct?.productInfo;
 
     return (
         <FormSection
@@ -40,14 +47,17 @@ export function ProductSearchSection({ control }: ProductSearchSectionProps) {
                     if (!e.currentTarget.contains(e.relatedTarget)) setIsOpen(false);
                 }}
             >
+                {/* Hidden input to ensure productId is technically rendered for required validation, though FormField might handle it if it was bound */}
+                <input type="hidden" value={productIdField.value} name={productIdField.name} />
+
                 <FormField
                     control={control}
-                    name="productId"
+                    name="searchQuery"
                     label="Select product"
                     required
                     placeholder="Search by product name or SKU…"
                     icon={<Search className="h-5 w-4 text-ink/40" />}
-                    isLoading={loading}
+                    isLoading={loading || productLoading}
                 />
 
                 {isOpen && (
@@ -61,31 +71,35 @@ export function ProductSearchSection({ control }: ProductSearchSectionProps) {
                             <li className="px-3.5 py-3 text-sm text-ink/40">No products match your search.</li>
                         )}
                         {!loading && products.map((p: any) => (
-                            <li
+                            <ProductSearchResultItem
                                 key={p.id}
-                                role="option"
-                                aria-disabled={p.isAddedInventory}
-                                className={`flex items-center justify-between gap-3 px-3.5 py-2.5 ${p.isAddedInventory ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-paper'
-                                    }`}
-                            >
-                                <div className="min-w-0">
-                                    <p className="text-sm font-medium text-ink truncate">{p.name}</p>
-                                    <p className="font-mono text-xs text-ink/45 text-foreground/60">{p.sku}</p>
-                                </div>
-                                {p.isAddedInventory ? (
-                                    <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide text-ink/40 border border-hairline rounded px-1.5 py-0.5">In inventory</span>
-                                ) : (
-                                    <span className="shrink-0 font-mono text-xs text-ink/45">{formatCurrency(p.unitPrice)}</span>
-                                )}
-                            </li>
+                                product={p}
+                                onSelect={(selectedProduct) => {
+                                    productIdField.onChange(selectedProduct.id);
+                                    searchField.onChange(selectedProduct.name);
+                                    fetchProduct({ variables: { productId: selectedProduct.id } });
+                                    setIsOpen(false);
+                                }}
+                            />
                         ))}
                     </ul>
                 )}
             </div>
 
-            <div className="mt-4 rounded-lg border border-dashed border-hairline p-4 text-sm text-foreground/50">
-                No product selected yet — search above to add one to this record.
-            </div>
+            {!productIdField.value || !product ? (
+                <div className="mt-4 rounded-lg border border-dashed border-hairline p-4 text-sm text-foreground/50">
+                    No product selected yet — search above to add one to this record.
+                </div>
+            ) : (
+                <ProductSearchPreview
+                    product={product}
+                    onClear={() => {
+                        productIdField.onChange("");
+                        searchField.onChange("");
+                    }}
+                />
+            )}
+
         </FormSection>
     );
 }

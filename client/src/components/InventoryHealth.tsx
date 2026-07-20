@@ -1,4 +1,3 @@
-
 import { Sparkles } from 'lucide-react'
 import { cn, formatDate } from '@/lib/utils'
 
@@ -28,6 +27,11 @@ export function InventoryHealth({ data }: InventoryHealthProps) {
     // Calculate percentage for the progress bar based on max stock
     const percentage = maxStock > 0
         ? Math.min(100, Math.max(0, (onHand / maxStock) * 100))
+        : 0;
+
+    // Calculate position for reorder level indicator
+    const reorderPercentage = maxStock > 0
+        ? Math.min(100, (reorderLevel / maxStock) * 100)
         : 0;
 
     // Determine status
@@ -71,11 +75,19 @@ export function InventoryHealth({ data }: InventoryHealthProps) {
                 </span>
             </div>
 
-            <div className="w-full h-2.5 rounded-full bg-[#F0EFEA] overflow-hidden mt-4">
+            <div className="relative w-full h-2.5 rounded-full bg-[#F0EFEA] overflow-hidden mt-4">
                 <div
                     className={cn("h-full rounded-full transition-all duration-500", barColor)}
                     style={{ width: `${percentage}%` }}
                 />
+
+                {maxStock > 0 && reorderLevel > 0 && (
+                    <div
+                        className="absolute top-0 bottom-0 w-0.5 bg-slate-900/40 z-10"
+                        style={{ left: `${reorderPercentage}%` }}
+                        title={`Reorder level: ${reorderLevel}`}
+                    />
+                )}
             </div>
 
             <div className="flex items-center justify-between mt-2 text-xs text-[#9C9A91] font-mono">

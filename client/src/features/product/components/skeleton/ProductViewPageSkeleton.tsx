@@ -1,5 +1,6 @@
 import { StockMovementLedger } from "@/components/ui/stock-movement-ledger";
-import { Header, InventoryHealth, PerformanceMetrics, ProductBarcode, ProductOverview, ProductRecordDetails, SalesTrendChart } from "../pages";
+import { Header, PerformanceMetrics, ProductBarcode, ProductOverview, ProductRecordDetails, SalesTrendChart } from "../pages";
+import { InventoryHealth } from "@/components/InventoryHealth";
 
 export function ProductViewPageSkeleton() {
     return (

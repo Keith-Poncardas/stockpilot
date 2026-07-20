@@ -1,4 +1,6 @@
 import { useWatch, type Control } from 'react-hook-form';
+import { useQuery } from '@apollo/client';
+import { GET_PRODUCT } from '@/features/product/operations';
 
 export interface ProductPreviewFields {
     name?: string;
@@ -61,5 +63,46 @@ export function useProductPreview(control: Control<any>) {
         displayQty,
         displayReorder,
         barcodeValue,
+    };
+}
+
+export function useFetchedProductPreview(productId: string) {
+    const { data, loading, error } = useQuery(GET_PRODUCT, {
+        variables: { productId },
+        skip: !productId,
+    });
+
+    const productInfo = data?.getProduct?.productInfo;
+    const inventoryStatus = data?.getProduct?.inventoryStatus;
+
+    const displayName = productInfo?.name || 'Select a product';
+    const displaySku = productInfo?.sku ? `SKU — ${productInfo.sku}` : 'SKU —';
+    const displayStatus = productInfo ? (STATUS_LABELS[productInfo.status ?? 'DRAFT'] ?? 'Draft') : '';
+    const statusColorClass = productInfo ? (STATUS_COLORS[productInfo.status ?? 'DRAFT'] ?? STATUS_COLORS.DRAFT) : '';
+
+    const rawPrice = productInfo?.unitPrice;
+    const displayPrice = rawPrice != null
+        ? new Intl.NumberFormat('en-PH', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(rawPrice)
+        : '0.00';
+
+    const displayQty = inventoryStatus?.quantityOnHand != null ? `${inventoryStatus.quantityOnHand} units` : '-';
+    const displayReorder = inventoryStatus?.reorderLevel != null ? `${inventoryStatus.reorderLevel} units` : '-';
+
+    const barcodeValue = productInfo?.sku || 'SKU-PREVIEW';
+
+    return {
+        displayName,
+        displaySku,
+        displayStatus,
+        statusColorClass,
+        displayPrice,
+        displayQty,
+        displayReorder,
+        barcodeValue,
+        loading,
+        error
     };
 }

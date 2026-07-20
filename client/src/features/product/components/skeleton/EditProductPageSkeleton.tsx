@@ -1,5 +1,6 @@
 import { Header } from "../Header";
-import { BasicDetails, InventorySetup, Preview, Pricing } from "../pages";
+import { BasicDetails, InventorySetup, Pricing } from "../pages";
+import { ProductPreview } from "@/components/ProductPreview";
 
 export function EditProductPageSkeleton() {
     return (
@@ -21,7 +22,7 @@ export function EditProductPageSkeleton() {
 
                     </div>
 
-                    <Preview.Skeleton />
+                    <ProductPreview.Skeleton />
 
                 </div>
 

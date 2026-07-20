@@ -1,6 +1,6 @@
 import { Package } from 'lucide-react';
 import type { Control } from 'react-hook-form';
-import { FormField } from '@/components/ui/form-field';
+import { InventoryQuantityFields } from '@/components/InventoryQuantityFields';
 import { FormSection } from '@/components/ui/form-section';
 
 interface InventorySetupProps {
@@ -15,43 +15,7 @@ export function InventorySetup({ control }: InventorySetupProps) {
             icon={<Package className="w-4.5 h-4.5" strokeWidth={2} />}
             iconWrapperClassName="bg-blue-50 text-blue-600"
         >
-            <div className="flex flex-col md:flex-row gap-5">
-                <div className="flex-1">
-                    <FormField
-                        name="quantityOnHand"
-                        control={control}
-                        label="Starting quantity"
-                        type="number"
-                        placeholder="0"
-                        min={0}
-                        step={1}
-                    />
-                </div>
-                <div className="flex-1">
-                    <FormField
-                        name="reorderLevel"
-                        control={control}
-                        label="Reorder level"
-                        type="number"
-                        placeholder="10"
-                        min={0}
-                        step={1}
-                        description="You'll be alerted when stock drops below this"
-                    />
-                </div>
-                <div className="flex-1">
-                    <FormField
-                        name="maxStock"
-                        control={control}
-                        label="Maximum stock"
-                        type="number"
-                        placeholder="100"
-                        min={0}
-                        step={1}
-                        description="Maximum capacity for this product"
-                    />
-                </div>
-            </div>
+            <InventoryQuantityFields control={control} />
         </FormSection>
     )
 }

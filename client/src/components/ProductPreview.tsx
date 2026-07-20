@@ -1,25 +1,30 @@
 import Barcode from 'react-barcode';
 import { PhilippinePeso, Lightbulb, Hash, EyeOff, TrendingUp } from 'lucide-react';
-import type { Control } from 'react-hook-form';
-import { useProductPreview } from '@/features/product/hooks/useProductPreview';
 import { StatItem } from '@/components/ui/stat-item';
-import { StatusBadge } from '@/components/StatusBadge';
+import { StatusBadge, type BadgeVariant } from '@/components/StatusBadge';
+import React from 'react';
 
-interface PreviewProps {
-    control: Control<any>;
+export interface ProductPreviewProps {
+    displayName: string;
+    displaySku: string;
+    displayStatus: string;
+    displayPrice: string;
+    displayQty: React.ReactNode;
+    displayReorder: React.ReactNode;
+    barcodeValue: string;
+    showTips?: boolean;
 }
 
-export function Preview({ control }: PreviewProps) {
-    const {
-        displayName,
-        displaySku,
-        displayStatus,
-        displayPrice,
-        displayQty,
-        displayReorder,
-        barcodeValue,
-    } = useProductPreview(control);
-
+export function ProductPreview({
+    displayName,
+    displaySku,
+    displayStatus,
+    displayPrice,
+    displayQty,
+    displayReorder,
+    barcodeValue,
+    showTips = true
+}: ProductPreviewProps) {
     return (
         <aside className="lg:col-span-1 lg:sticky lg:top-24 flex flex-col gap-5">
             {/* Signature element: live product tag */}
@@ -31,13 +36,13 @@ export function Preview({ control }: PreviewProps) {
                     <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-white/5" />
                     <div className="absolute right-3 top-3 w-3 h-3 rounded-full border-2 border-white/30" />
                     <p
-                        id="previewName"
+
                         className="font-sans font-semibold text-lg leading-snug pr-8 wrap-break-word"
                     >
                         {displayName}
                     </p>
                     <p
-                        id="previewSku"
+
                         className="font-mono text-xs text-white/50 mt-1 tracking-wide"
                     >
                         {displaySku}
@@ -52,7 +57,9 @@ export function Preview({ control }: PreviewProps) {
                                 {displayPrice}
                             </p>
                         </div>
-                        <StatusBadge value={displayStatus.toUpperCase()} label={displayStatus} size="sm" />
+                        {displayStatus && (
+                            <StatusBadge value={displayStatus.toUpperCase() as BadgeVariant} label={displayStatus} size="sm" />
+                        )}
                     </div>
                     <div className="mt-5 pt-4 border-t border-white/10">
                         <div className="overflow-hidden flex justify-center">
@@ -74,45 +81,47 @@ export function Preview({ control }: PreviewProps) {
                 </dl>
             </div>
             {/* Tips */}
-            <div className="bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6">
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-                        <Lightbulb size={14} className="text-amber-500" strokeWidth={2.5} />
+            {showTips && (
+                <div className="bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                            <Lightbulb size={14} className="text-amber-500" strokeWidth={2.5} />
+                        </div>
+                        <p className="text-sm font-semibold text-slate-800">Before you save</p>
                     </div>
-                    <p className="text-sm font-semibold text-slate-800">Before you save</p>
+                    <ul className="flex flex-col gap-3">
+                        <li className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
+                                <Hash size={12} className="text-slate-500" strokeWidth={2.5} />
+                            </div>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                                SKUs <span className="font-medium text-slate-700">can't be changed</span> once a sale references them
+                            </p>
+                        </li>
+                        <li className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
+                                <EyeOff size={12} className="text-slate-500" strokeWidth={2.5} />
+                            </div>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                                <span className="font-medium text-slate-700">Draft products</span> stay hidden from checkout
+                            </p>
+                        </li>
+                        <li className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
+                                <TrendingUp size={12} className="text-slate-500" strokeWidth={2.5} />
+                            </div>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                                Set <span className="font-medium text-slate-700">cost price</span> to track margin on every sale
+                            </p>
+                        </li>
+                    </ul>
                 </div>
-                <ul className="flex flex-col gap-3">
-                    <li className="flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
-                            <Hash size={12} className="text-slate-500" strokeWidth={2.5} />
-                        </div>
-                        <p className="text-xs text-slate-500 leading-relaxed">
-                            SKUs <span className="font-medium text-slate-700">can't be changed</span> once a sale references them
-                        </p>
-                    </li>
-                    <li className="flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
-                            <EyeOff size={12} className="text-slate-500" strokeWidth={2.5} />
-                        </div>
-                        <p className="text-xs text-slate-500 leading-relaxed">
-                            <span className="font-medium text-slate-700">Draft products</span> stay hidden from checkout
-                        </p>
-                    </li>
-                    <li className="flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
-                            <TrendingUp size={12} className="text-slate-500" strokeWidth={2.5} />
-                        </div>
-                        <p className="text-xs text-slate-500 leading-relaxed">
-                            Set <span className="font-medium text-slate-700">cost price</span> to track margin on every sale
-                        </p>
-                    </li>
-                </ul>
-            </div>
+            )}
         </aside>
     );
 }
 
-Preview.Skeleton = function PreviewSkeleton() {
+ProductPreview.Skeleton = function ProductPreviewSkeleton({ showTips = true }: { showTips?: boolean }) {
     return (
         <aside className="lg:col-span-1 lg:sticky lg:top-24 flex flex-col gap-5">
             {/* Signature element: live product tag */}
@@ -163,23 +172,25 @@ Preview.Skeleton = function PreviewSkeleton() {
             </div>
 
             {/* Tips skeleton */}
-            <div className="bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6">
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="w-7 h-7 rounded-lg bg-gray-200 animate-pulse shrink-0" />
-                    <div className="h-5 w-24 bg-gray-200 animate-pulse rounded" />
+            {showTips && (
+                <div className="bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="w-7 h-7 rounded-lg bg-gray-200 animate-pulse shrink-0" />
+                        <div className="h-5 w-24 bg-gray-200 animate-pulse rounded" />
+                    </div>
+                    <ul className="flex flex-col gap-3">
+                        {[1, 2, 3].map((i) => (
+                            <li key={i} className="flex items-start gap-3">
+                                <div className="w-6 h-6 rounded-md bg-gray-200 animate-pulse shrink-0 mt-0.5" />
+                                <div className="space-y-1.5 flex-1 pt-1">
+                                    <div className="h-3.5 w-full bg-gray-200 animate-pulse rounded" />
+                                    <div className="h-3.5 w-4/5 bg-gray-200 animate-pulse rounded" />
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
-                <ul className="flex flex-col gap-3">
-                    {[1, 2, 3].map((i) => (
-                        <li key={i} className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-md bg-gray-200 animate-pulse shrink-0 mt-0.5" />
-                            <div className="space-y-1.5 flex-1 pt-1">
-                                <div className="h-3.5 w-full bg-gray-200 animate-pulse rounded" />
-                                <div className="h-3.5 w-4/5 bg-gray-200 animate-pulse rounded" />
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            </div>
+            )}
         </aside>
     );
 };
