@@ -157,6 +157,14 @@ export const inventoryTypeDefs = `#graphql
         notes: String
     }
 
+    # Create a new inventory record for a product (initial stock-in)
+    input CreateInventoryInput {
+        productId: ID!
+        quantityOnHand: Int!
+        reorderLevel: Int!
+        maxStock: Int!
+    }
+
     # ─── Queries & Mutations ──────────────────────────────────────────────────
 
     type Query {
@@ -178,6 +186,9 @@ export const inventoryTypeDefs = `#graphql
     type Mutation {
         # Adjust stock quantity (creates a StockMovement record automatically).
         adjustStock(input: AdjustStockInput!): Inventory!
+
+        # Create an initial inventory record for a product.
+        createInventory(input: CreateInventoryInput!): Inventory!
     }
 
 `;

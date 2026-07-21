@@ -1,7 +1,7 @@
 import { prisma } from "@/lib";
-import { createPaginator, throwNotFound } from "@/utils";
+import { createPaginator, throwNotFound, throwConflict } from "@/utils";
 import { MovementType, Prisma } from "@prisma/client";
-import { AdjustStockInput, adjustStockSchema, PaginatedInventoriesInput, paginatedInventoriesSchema, searchInventoryProductsSchema } from "./inv.validation";
+import { AdjustStockInput, adjustStockSchema, CreateInventoryInput, createInventorySchema, PaginatedInventoriesInput, paginatedInventoriesSchema, searchInventoryProductsSchema } from "./inv.validation";
 import { inventoryIdSchema, UUIDInput } from "@/schemas";
 import { StockStatus } from "@/enums";
 import { resolveStockStatus } from "./inv.utils";
@@ -94,7 +94,7 @@ export class InventoryService {
         const { search } = searchInventoryProductsSchema.parse({ search: searchArg });
 
         let products;
-        
+
         if (search) {
             products = await prisma.product.findMany({
                 where: {
@@ -336,6 +336,82 @@ export class InventoryService {
 
             return inv;
 
+        });
+
+        return {
+            ...inventory,
+            stockStatus: resolveStockStatus(inventory.quantityOnHand, inventory.reorderLevel),
+        };
+
+    }
+
+    /**
+     * Create an initial inventory record for a product.
+     * - Validates input
+     * - Ensures the product exists
+     * - Prevents duplicate inventory records per product
+     * - Creates inventory + initial IN stock movement in a transaction
+     */
+    async createInventory(userId: string, input: CreateInventoryInput) {
+
+        const { productId, quantityOnHand, reorderLevel, maxStock } = createInventorySchema.parse(input);
+
+        /** Ensure the product exists */
+        const product = await prisma.product.findUnique({ where: { id: productId } });
+        if (!product) throwNotFound("Product");
+
+        /** Guard against duplicate inventory records */
+        const existing = await prisma.inventory.findFirst({ where: { productId } });
+        if (existing) throwConflict("An inventory record for this product already exists");
+
+        const inventory = await prisma.$transaction(async (tx) => {
+
+            /** Create the inventory record */
+            const inv = await tx.inventory.create({
+                data: {
+                    productId,
+                    userId,
+                    quantityOnHand,
+                    reorderLevel,
+                    maxStock,
+                },
+                include: {
+                    product: {
+                        select: {
+                            id: true,
+                            sku: true,
+                            name: true,
+                            description: true,
+                            unitPrice: true,
+                            costPrice: true,
+                            status: true,
+                        },
+                    },
+                    author: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                            role: true,
+                        },
+                    },
+                },
+            });
+
+            /** Record the initial stock-in movement */
+            await tx.stockMovement.create({
+                data: {
+                    productId,
+                    userId,
+                    type: MovementType.IN,
+                    quantity: quantityOnHand,
+                    reference: "INITIAL_STOCK",
+                    notes: "Initial inventory record created",
+                },
+            });
+
+            return inv;
         });
 
         return {

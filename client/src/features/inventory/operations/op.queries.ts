@@ -109,3 +109,22 @@ export const SEARCH_INVENTORY_PRODUCTS = gql`
         }
     }
 `;
+
+export const CREATE_INVENTORY = gql`
+    mutation CreateInventory($input: CreateInventoryInput!) {
+        createInventory(input: $input) {
+            id
+            productId
+            quantityOnHand
+            reorderLevel
+            maxStock
+            createdAt
+            stockStatus
+            product {
+                id
+                sku
+                name
+            }
+        }
+    }
+`;

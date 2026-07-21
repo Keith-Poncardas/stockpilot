@@ -120,6 +120,7 @@ function FormField<TFieldValues extends FieldValues>({
                                     min={min}
                                     max={max}
                                     step={step}
+                                    autoComplete="off"
                                 />
                             )}
                             {isLoading && (

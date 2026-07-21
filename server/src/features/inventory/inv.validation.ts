@@ -1,6 +1,6 @@
 import { MovementType } from "@prisma/client";
 import z from "zod";
-import { inventoryIdSchema, orderDirectionLowerSchema, paginationSchema, searchSchema } from "@/schemas";
+import { inventoryIdSchema, orderDirectionLowerSchema, paginationSchema, searchSchema, uuidSchema } from "@/schemas";
 import { InventoryOrderBy, OrderDirectionLower, StockStatus } from "@/enums";
 import { createMinMaxRefine, minMaxRefineMessage } from "@/utils";
 
@@ -106,3 +106,22 @@ export const searchInventoryProductsSchema = z.object({
     search: searchSchema,
 });
 export type SearchInventoryProductsInput = z.infer<typeof searchInventoryProductsSchema>;
+
+/** CREATE INVENTORY SCHEMA */
+export const createInventorySchema = z.object({
+    productId: uuidSchema("Invalid product ID"),
+    quantityOnHand: z.coerce
+        .number({ message: "Starting quantity is required" })
+        .int("Quantity must be a whole number")
+        .min(1, "Starting quantity must be at least 1"),
+    reorderLevel: z.coerce
+        .number({ message: "Reorder level is required" })
+        .int("Reorder level must be a whole number")
+        .nonnegative("Reorder level cannot be negative"),
+    maxStock: z.coerce
+        .number({ message: "Max stock is required" })
+        .int("Max stock must be a whole number")
+        .nonnegative("Max stock cannot be negative"),
+});
+export type CreateInventoryInput = z.infer<typeof createInventorySchema>;
+

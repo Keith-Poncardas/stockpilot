@@ -1,7 +1,7 @@
 import { GraphQLContext } from "@/types";
 import { inventoryService } from "./inv.service";
 import { protectResolvers } from "@/graphql/helpers";
-import { AdjustStockInput, PaginatedInventoriesInput } from "./inv.validation";
+import { AdjustStockInput, CreateInventoryInput, PaginatedInventoriesInput } from "./inv.validation";
 import { UUIDInput } from "@/schemas";
 
 export const inventoryResolver = {
@@ -60,6 +60,18 @@ export const inventoryResolver = {
             ctx: GraphQLContext
         ) => {
             return inventoryService.adjustStock(ctx.user!.id, input);
+        },
+
+        /**
+         * Create an initial inventory record for a product.
+         * Guards: product must exist, no duplicate inventory allowed.
+         */
+        createInventory: async (
+            _: unknown,
+            { input }: { input: CreateInventoryInput },
+            ctx: GraphQLContext
+        ) => {
+            return inventoryService.createInventory(ctx.user!.id, input);
         },
 
     }),

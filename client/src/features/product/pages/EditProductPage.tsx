@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@apollo/client";
 import { GET_PRODUCT, EDIT_PRODUCT } from "../operations/op.queries";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AlertTriangle } from "lucide-react";
 import { handleGraphQLError } from "@/lib/utils";
@@ -28,7 +28,10 @@ export function EditProductPage() {
 
     const [formError, setFormError] = useState<string | null>(null);
 
-    const { control, handleSubmit, reset } = useForm<ProductFormValues>({
+    const productInfo = data?.getProduct?.productInfo;
+    const inventoryStatus = data?.getProduct?.inventoryStatus;
+
+    const { control, handleSubmit } = useForm<ProductFormValues>({
         resolver: zodResolver(productSchema),
         defaultValues: {
             name: "",
@@ -40,26 +43,19 @@ export function EditProductPage() {
             quantityOnHand: 0,
             reorderLevel: 10,
             maxStock: 100,
-        }
+        },
+        values: productInfo ? {
+            name: productInfo.name,
+            sku: productInfo.sku || "",
+            status: productInfo.status,
+            description: productInfo.description || "",
+            unitPrice: productInfo.unitPrice,
+            costPrice: productInfo.costPrice || undefined,
+            quantityOnHand: inventoryStatus?.quantityOnHand ?? 0,
+            reorderLevel: inventoryStatus?.reorderLevel ?? 10,
+            maxStock: inventoryStatus?.maxStock ?? 100,
+        } : undefined,
     });
-
-    useEffect(() => {
-        if (data?.getProduct?.productInfo && data?.getProduct?.inventoryStatus) {
-            const info = data.getProduct.productInfo;
-            const inventory = data.getProduct.inventoryStatus;
-            reset({
-                name: info.name,
-                sku: info.sku || "",
-                status: info.status,
-                description: info.description || "",
-                unitPrice: info.unitPrice,
-                costPrice: info.costPrice || undefined,
-                quantityOnHand: inventory.quantityOnHand,
-                reorderLevel: inventory.reorderLevel,
-                maxStock: inventory.maxStock,
-            });
-        }
-    }, [data, reset]);
 
     const onSubmit = async (formData: ProductFormValues) => {
         if (!productId) return;
