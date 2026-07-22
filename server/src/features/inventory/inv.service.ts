@@ -3,7 +3,7 @@ import { createPaginator, throwNotFound, throwConflict } from "@/utils";
 import { MovementType, Prisma } from "@prisma/client";
 import { AdjustStockInput, adjustStockSchema, CreateInventoryInput, createInventorySchema, PaginatedInventoriesInput, paginatedInventoriesSchema, searchInventoryProductsSchema } from "./inv.validation";
 import { inventoryIdSchema, UUIDInput } from "@/schemas";
-import { StockStatus } from "@/enums";
+import { ProductStatus, StockStatus } from "@/enums";
 import { resolveStockStatus } from "./inv.utils";
 
 
@@ -98,6 +98,7 @@ export class InventoryService {
         if (search) {
             products = await prisma.product.findMany({
                 where: {
+                    status: { not: ProductStatus.DISCONTINUED },
                     OR: [
                         { name: { contains: search, mode: 'insensitive' } },
                         { sku: { contains: search, mode: 'insensitive' } },
@@ -107,6 +108,9 @@ export class InventoryService {
             });
         } else {
             products = await prisma.product.findMany({
+                where: {
+                    status: { not: ProductStatus.DISCONTINUED }
+                },
                 take: 5,
                 orderBy: { createdAt: 'desc' }
             });

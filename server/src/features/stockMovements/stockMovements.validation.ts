@@ -1,16 +1,20 @@
 import { MovementType } from "@prisma/client";
 import z from "zod";
-import { dateRangeRefine, dateRangeRefineMessage, searchSchema, uuidSchema } from "@/schemas";
-import { OrderDirection, StockMovementOrderBy } from "@/enums";
+import { dateRangeRefine, dateRangeRefineMessage, dateRangeSchema, searchSchema, uuidSchema } from "@/schemas";
+import { OrderDirectionLower, StockMovementOrderBy } from "@/enums";
+import { createMinMaxRefine, minMaxRefineMessage } from "@/utils";
+import { paginationSchema } from "@/schemas";
 
 /**
  * ENUMS
  */
 const movementTypeSchema = z.enum(MovementType);
-const orderDirectionSchema = z.enum(OrderDirection);
 
 /** Sortable columns exposed for stock-movement list queries */
 const orderBySchema = z.enum(StockMovementOrderBy);
+
+/** Sort direction — lowercase to match Prisma's expected values */
+const orderDirectionLowerSchema = z.enum(OrderDirectionLower);
 
 export const stockMoveId = uuidSchema();
 export const stockMovementIdSchema = z.object({
@@ -20,7 +24,7 @@ export const stockMovementIdSchema = z.object({
 export const getMovementDetailsSchema = stockMovementIdSchema;
 
 /**
- * GET ALL STOCK MOVEMENTS — FILTER SCHEMA
+ * FILTER STOCK MOVEMENTS SCHEMA
  *
  * Supported filters:
  *  - search          → product name or SKU (case-insensitive contains)
@@ -30,46 +34,44 @@ export const getMovementDetailsSchema = stockMovementIdSchema;
  *  - minQty / maxQty → quantity range (inclusive)
  *  - dateFrom / dateTo → createdAt date range (inclusive)
  *  - orderBy         → createdAt | quantity
- *  - orderDirection  → ASC | DESC
+ *  - orderDirection  → asc | desc
  */
-export const getAllStockMovementsSchema = z
-    .object({
+export const filterStockMovementsSchema = dateRangeSchema.extend({
 
-        /** Full-text search against the linked product name or SKU */
-        search: searchSchema,
+    /** Full-text search against the linked product name or SKU */
+    search: searchSchema,
 
-        /** Filter by movement type */
-        movementType: movementTypeSchema.optional(),
+    /** Filter by movement type */
+    movementType: movementTypeSchema.optional(),
 
-        /** Filter by a specific product */
-        productId: uuidSchema("Invalid product ID").optional(),
+    /** Filter by a specific product */
+    productId: uuidSchema("Invalid product ID").optional(),
 
-        /** Filter by the user who performed the movement */
-        userId: uuidSchema("Invalid user ID").optional(),
+    /** Filter by the user who performed the movement */
+    userId: uuidSchema("Invalid user ID").optional(),
 
-        /** Quantity range filters */
-        minQty: z.coerce.number().int().nonnegative().optional(),
-        maxQty: z.coerce.number().int().nonnegative().optional(),
+    /** Quantity range filters */
+    minQty: z.coerce.number().int().nonnegative().optional(),
+    maxQty: z.coerce.number().int().nonnegative().optional(),
 
-        /** Date range filters (ISO strings are coerced to Date) */
-        dateFrom: z.coerce.date().optional(),
-        dateTo: z.coerce.date().optional(),
+    /** Sorting */
+    orderBy: orderBySchema.default(StockMovementOrderBy.CREATED_AT),
+    orderDirection: orderDirectionLowerSchema.default(OrderDirectionLower.DESC),
 
-        /** Sorting */
-        orderBy: orderBySchema.default(StockMovementOrderBy.CREATED_AT),
-        orderDirection: orderDirectionSchema.default(OrderDirection.DESC),
+}).refine(
+    createMinMaxRefine("minQty", "maxQty"),
+    minMaxRefineMessage("minQty", "maxQty")
+).refine(dateRangeRefine, dateRangeRefineMessage);
 
-    })
-    .refine(
-        (data) => {
-            if (data.minQty !== undefined && data.maxQty !== undefined) {
-                return data.minQty <= data.maxQty;
-            }
-            return true;
-        },
-        { message: "minQty must be less than or equal to maxQty", path: ["minQty"] }
-    )
-    .refine(dateRangeRefine, dateRangeRefineMessage);
+/**
+ * PAGINATED STOCK MOVEMENTS SCHEMA
+ *
+ * Wraps pagination + filter into a single validated input object,
+ * mirroring the paginatedProductsSchema pattern.
+ */
+export const paginatedStockMovementsSchema = paginationSchema.extend({
+    filter: filterStockMovementsSchema,
+});
 
 /**
  * RECORD MOVEMENT SCHEMA
@@ -133,7 +135,7 @@ export const recordMovementSchema = z.object({
  */
 export type StockMovementIdInput = z.infer<typeof stockMovementIdSchema>;
 export type GetMovementDetailsInput = StockMovementIdInput;
-export type GetAllStockMovementsInput = z.infer<typeof getAllStockMovementsSchema>;
+export type FilterStockMovementsInput = z.infer<typeof filterStockMovementsSchema>;
+export type PaginatedStockMovementsInput = z.infer<typeof paginatedStockMovementsSchema>;
 export type RecordMovementInput = z.infer<typeof recordMovementSchema>;
 export type MovementTypeFilter = z.infer<typeof movementTypeSchema>;
-export type StockMovementOrderBy = z.infer<typeof orderBySchema>;

@@ -78,7 +78,7 @@ export function StockMovementLedger({ data = [], loading = false, viewAllTo }: S
     );
 }
 
-function MovementIcon({ type }: { type: StockMovementType }) {
+export function MovementIcon({ type }: { type: StockMovementType }) {
     switch (type) {
         case 'IN':
             return (

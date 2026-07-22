@@ -1,56 +1,13 @@
 import { prisma } from "@/lib";
-import { createPaginator, PaginationInput } from "@/utils";
+import { buildSearchQuery, createPaginator, throwConflict, throwNotFound } from "@/utils";
 import { MovementType, Prisma } from "@prisma/client";
 import {
-    getAllStockMovementsSchema,
-    GetAllStockMovementsInput,
-    GetMovementDetailsInput,
-    getMovementDetailsSchema,
-    recordMovementSchema,
-    RecordMovementInput,
-    stockMovementIdSchema,
-    StockMovementIdInput,
+    PaginatedStockMovementsInput,
+    paginatedStockMovementsSchema,
 } from "./stockMovements.validation";
-import { throwNotFound, throwConflict } from "@/utils";
 
 export class StockMovementsService {
 
-    /**
-     *  Get stock movement details by ID 
-     */
-    async getMovementDetails(input: GetMovementDetailsInput) {
-
-        const { id } = getMovementDetailsSchema.parse(input);
-
-
-        const stockMovement = await prisma.stockMovement.findUnique({
-            where: {
-                id,
-            },
-            include: {
-                product: {
-                    select: {
-                        id: true,
-                        name: true,
-                        sku: true,
-                    },
-                },
-                user: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                    },
-                },
-            },
-        });
-
-        if (!stockMovement) {
-            throwNotFound("Stock movement not found");
-        }
-
-        return stockMovement;
-    }
 
     /**
      * Get a paginated list of stock movements with optional filters:
@@ -62,9 +19,13 @@ export class StockMovementsService {
      *  - minQty / maxQty → quantity range (inclusive)
      *  - dateFrom / dateTo → createdAt date range (inclusive)
      *  - orderBy       → createdAt | quantity
-     *  - orderDirection → ASC | DESC
+     *  - orderDirection → asc | desc
      */
-    async getAllStockMovements(pagination?: PaginationInput, filter?: GetAllStockMovementsInput) {
+    async getAllStockMovements(args: PaginatedStockMovementsInput) {
+
+        const { limit, page, filter } = paginatedStockMovementsSchema.parse(args);
+
+        const { params, buildMeta } = createPaginator({ limit, page });
 
         const {
             search,
@@ -77,21 +38,13 @@ export class StockMovementsService {
             dateTo,
             orderBy,
             orderDirection,
-        } = getAllStockMovementsSchema.parse(filter ?? {});
-
-        const { params, buildMeta } = createPaginator(pagination);
+        } = filter;
 
         const where: Prisma.StockMovementWhereInput = {
 
             /** Search by linked product name or SKU */
             ...(search && {
-                product: {
-                    OR: [
-                        { id: search },
-                        { name: { contains: search, mode: "insensitive" } },
-                        { sku: { contains: search, mode: "insensitive" } },
-                    ],
-                },
+                product: buildSearchQuery(search, ['name', 'sku']),
             }),
 
             /** Exact movement type filter */
@@ -112,10 +65,10 @@ export class StockMovementsService {
             }),
 
             /** createdAt date range */
-            ...((dateFrom !== undefined || dateTo !== undefined) && {
+            ...((dateFrom || dateTo) && {
                 createdAt: {
-                    ...(dateFrom !== undefined && { gte: dateFrom }),
-                    ...(dateTo !== undefined && { lte: dateTo }),
+                    ...(dateFrom && { gte: dateFrom }),
+                    ...(dateTo && { lte: dateTo }),
                 },
             }),
 
@@ -138,12 +91,15 @@ export class StockMovementsService {
                             id: true,
                             firstName: true,
                             lastName: true,
+                            role: true,
                         },
                     },
                 },
                 skip: params.skip,
                 take: params.limit,
-                orderBy: { [orderBy]: orderDirection === "ASC" ? "asc" : "desc" },
+                orderBy: {
+                    [orderBy]: orderDirection,
+                },
             }),
 
             prisma.stockMovement.count({ where }),
@@ -158,135 +114,49 @@ export class StockMovementsService {
     }
 
     /**
-     * Records a new stock movement and updates the product's inventory.
-     * 
-     * IN: Increments the quantity on hand.
-     * OUT: Decrements the quantity on hand.
-     * ADJUSTMENT: Sets the quantity on hand to the given quantity.
-     * 
+     * Get dashboard-level stock movement metrics in a single round-trip.
+     *
+     * Metrics returned:
+     *  - totalStockIn          → sum of quantity for all IN movements
+     *  - totalStockOut         → sum of quantity for all OUT movements
+     *  - totalStockAdjustments → sum of quantity for all ADJUSTMENT movements
+     *  - lowStockProducts      → count of inventory records where quantityOnHand <= reorderLevel
      */
-    async recordMovement(input: RecordMovementInput) {
+    async getStockMovementDashboardMetrics() {
 
-        const {
-            productId,
-            type,
-            quantity,
-            notes,
-            userId,
-            reorderLevel,
-            reference
-        } = recordMovementSchema.parse(input);
+        const [stockIn, stockOut, stockAdjustments, lowStockProducts] = await Promise.all([
 
-        return await prisma.$transaction(async (tx) => {
+            prisma.stockMovement.aggregate({
+                where: { type: MovementType.IN },
+                _sum: { quantity: true },
+            }),
 
-            /**
-             * Find the product and its inventory
-             */
-            const product = await tx.product.findUnique({
-                where: { id: productId },
-                include: {
-                    inventory: {
-                        select: {
-                            id: true,
-                        }
-                    }
-                }
-            });
+            prisma.stockMovement.aggregate({
+                where: { type: MovementType.OUT },
+                _sum: { quantity: true },
+            }),
 
-            /**
-             * Throw error if product not found
-             */
-            if (!product) throwNotFound("Product not found");
+            prisma.stockMovement.aggregate({
+                where: { type: MovementType.ADJUSTMENT },
+                _sum: { quantity: true },
+            }),
 
-            /**
-             * Create the stock movement
-             */
-            const movement = await tx.stockMovement.create({
-                data: {
-                    productId,
-                    userId,
-                    type,
-                    quantity,
-                    reference,
-                    notes,
-                },
-            });
-
-            /**
-             * Update the inventory
-             */
-            await tx.inventory.update({
-                where: { id: product.inventory!.id },
-                data: {
+            prisma.inventory.count({
+                where: {
                     quantityOnHand: {
-                        ...(type === MovementType.IN && { increment: quantity }),
-                        ...(type === MovementType.OUT && { decrement: quantity }),
-                        ...(type === MovementType.ADJUSTMENT && { set: quantity }),
+                        lte: prisma.inventory.fields.reorderLevel,
                     },
-                    reorderLevel: reorderLevel ?? undefined,
                 },
-                include: {
-                    product: {
-                        select: {
-                            id: true,
-                        }
-                    }
-                }
-            });
+            }),
 
-            return movement;
+        ]);
 
-        })
-
-    }
-
-    /**
-     * Soft delete a stock movement by setting deletedAt to the current timestamp.
-     * Throws 404 if the movement does not exist and 409 if it is already deleted.
-     */
-    async softDeleteStockMovement(input: StockMovementIdInput) {
-
-        const { id } = stockMovementIdSchema.parse(input);
-
-        /** Stamp deletedAt */
-        const softDeletedStockMovement = await prisma.stockMovement.update({
-            where: { id, deletedAt: null },
-            data: { deletedAt: new Date() }
-        });
-
-        /**
-         * If the record was already deleted, update returns null, so we throw 409
-         */
-        if (!softDeletedStockMovement) {
-            throwConflict("Stock movement not found or already deleted");
-        }
-
-        return softDeletedStockMovement;
-
-    }
-
-    /**
-     * Restore a soft-deleted stock movement by setting deletedAt to null.
-     * Throws 404 if the movement does not exist and 409 if it is not deleted.
-     */
-    async restoreStockMovement(input: StockMovementIdInput) {
-
-        const { id } = stockMovementIdSchema.parse(input);
-
-        /** Restore deleted stock movement */
-        const restoredStockMovement = await prisma.stockMovement.update({
-            where: { id, deletedAt: { not: null } },
-            data: { deletedAt: null },
-        });
-
-        /**
-         * If the record was not deleted, update returns null, so we throw 409
-         */
-        if (!restoredStockMovement) {
-            throwConflict("Stock movement not found or not deleted yet");
-        }
-
-        return restoredStockMovement;
+        return {
+            totalStockIn: stockIn._sum.quantity ?? 0,
+            totalStockOut: stockOut._sum.quantity ?? 0,
+            totalStockAdjustments: stockAdjustments._sum.quantity ?? 0,
+            lowStockProducts,
+        };
 
     }
 

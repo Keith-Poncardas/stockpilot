@@ -1,7 +1,5 @@
 export const stockMovementsTypeDefs = `#graphql
 
-    # ─── Enums ───────────────────────────────────────────────────────────────
-
     # Movement type — mirrors the Prisma MovementType enum
     enum MovementType {
         IN
@@ -9,48 +7,16 @@ export const stockMovementsTypeDefs = `#graphql
         ADJUSTMENT
     }
 
-    # Sortable columns for stock movement list queries
+    # Sortable columns for stock movement list queries 
     enum StockMovementOrderBy {
         createdAt
         quantity
     }
 
-    # Sort direction
-    enum OrderDirection {
-        ASC
-        DESC
-    }
-
-    # ─── Types ────────────────────────────────────────────────────────────────
-
-    # Lightweight product summary embedded inside a StockMovement record
-    type StockMovementProduct {
-        id: ID!
-        sku: String!
-        name: String!
-    }
-
-    # Lightweight user summary embedded inside a StockMovement record
-    type StockMovementUser {
-        id: ID!
-        firstName: String!
-        lastName: String!
-    }
-
-    # Core stock movement record
-    type StockMovement {
-        id: ID!
-        productId: ID!
-        userId: ID!
-        type: MovementType!
-        quantity: Int!
-        reference: String
-        notes: String
-        createdAt: String!
-        updatedAt: String!
-        deletedAt: String
-        product: StockMovementProduct!
-        user: StockMovementUser!
+    # Sort direction — lowercase to match Prisma's expected values
+    enum OrderDirectionLower {
+        asc
+        desc
     }
 
     # Pagination metadata (shared shape across features)
@@ -65,27 +31,48 @@ export const stockMovementsTypeDefs = `#graphql
         hasNextPage: Boolean!
     }
 
+    # Lightweight product summary embedded inside a StockMovement record
+    type StockMovementProduct {
+        id: ID!
+        sku: String!
+        name: String!
+    }
+
+    # Core stock movement record
+    type StockMovement {
+        id: ID!
+        productId: ID!
+        userId: ID!
+        type: MovementType!
+        quantity: Int!
+        reference: String
+        notes: String
+        createdAt: String!
+        deletedAt: String
+        product: StockMovementProduct!
+        user: User!
+    }
+
     # Paginated stock movements list response
     type PaginatedStockMovements {
         data: [StockMovement!]!
         meta: Pagination!
     }
 
-    # ─── Inputs ───────────────────────────────────────────────────────────────
-
-    # Pagination input (shared shape across features)
-    input PaginationInput {
-        page: Int!
-        limit: Int!
-    }
-
-    # Get a single stock movement by ID
-    input GetMovementDetailsInput {
-        id: ID!
+    # Dashboard-level aggregated metrics for stock movements
+    type StockMovementDashboardMetrics {
+        # Total quantity from all IN movements
+        totalStockIn: Int!
+        # Total quantity from all OUT movements
+        totalStockOut: Int!
+        # Total quantity from all ADJUSTMENT movements
+        totalStockAdjustments: Int!
+        # Number of inventory records where quantityOnHand <= reorderLevel
+        lowStockProducts: Int!
     }
 
     # Filter + sort options for the stock movements list
-    input GetAllStockMovementsInput {
+    input FilterStockMovementsInput {
         # Full-text search against linked product name or SKU
         search: String
 
@@ -106,46 +93,25 @@ export const stockMovementsTypeDefs = `#graphql
         dateFrom: String
         dateTo: String
 
-        # Sorting (defaults: createdAt DESC)
+        # Sorting (defaults: createdAt desc)
         orderBy: StockMovementOrderBy
-        orderDirection: OrderDirection
+        orderDirection: OrderDirectionLower
     }
 
-    # Record a new stock movement
-    input RecordMovementInput {
-        productId: ID!
-        userId: ID!
-        type: MovementType!
-        quantity: Int!
-        reference: String
-        notes: String
-        reorderLevel: Int
+    # Paginated stock movements input — wraps pagination + filter into a single arg
+    input PaginatedStockMovementsInput {
+        page: Int!
+        limit: Int!
+        filter: FilterStockMovementsInput!
     }
-
-    # Soft-delete / restore input
-    input StockMovementIdInput {
-        id: ID!
-    }
-
-    # ─── Queries & Mutations ──────────────────────────────────────────────────
 
     type Query {
-        # Get a single stock movement by ID (includes product & user)
-        getMovementDetails(input: GetMovementDetailsInput!): StockMovement!
 
         # Paginated + filtered stock movements list
-        getAllStockMovements(pagination: PaginationInput, filter: GetAllStockMovementsInput): PaginatedStockMovements!
-    }
+        getAllStockMovements(args: PaginatedStockMovementsInput!): PaginatedStockMovements!
 
-    type Mutation {
-        # Record a new stock movement and update the linked inventory
-        recordMovement(input: RecordMovementInput!): StockMovement!
-
-        # Soft-delete a stock movement
-        softDeleteStockMovement(input: StockMovementIdInput!): StockMovement!
-
-        # Restore a soft-deleted stock movement
-        restoreStockMovement(input: StockMovementIdInput!): StockMovement!
+        # Aggregated dashboard metrics for the stock movements feature
+        getStockMovementDashboardMetrics: StockMovementDashboardMetrics!
     }
 
 `;
