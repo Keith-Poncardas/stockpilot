@@ -6,6 +6,7 @@ import {
     X,
     Box,
     Warehouse,
+    ArrowUpDown,
 } from 'lucide-react'
 import AppLogo from '@/components/AppLogo'
 import { UserProfileDetails } from '@/components/UserProfileDetails'
@@ -52,7 +53,7 @@ const NAV_SECTIONS: NavSectionConfig[] = [
         items: [
             { label: 'Products', icon: <Box size={16} />, route: "/products" },
             { label: 'Inventory', icon: <Warehouse size={16} />, badgeDanger: true, route: "/inventory" },
-            // { label: 'Stock Movements', icon: <ArrowUpDown size={16} />, route: "/stock-movements" },
+            { label: 'Stock Movements', icon: <ArrowUpDown size={16} />, route: "/stock-movement" },
         ],
     },
     {
