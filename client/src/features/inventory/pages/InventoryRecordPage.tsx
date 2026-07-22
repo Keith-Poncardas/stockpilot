@@ -15,6 +15,7 @@ import { inventoryRecordSchema, type InventoryRecordFormValues, type InventoryRe
 import { CREATE_INVENTORY } from "../operations/op.queries";
 import Alert from "@/components/ui/alert";
 import { useState } from "react";
+import { MobileActionBar } from "@/components/ui/mobile-action-bar";
 
 export function InventoryRecordPage() {
     const navigate = useNavigate();
@@ -107,7 +108,7 @@ export function InventoryRecordPage() {
                 }
             />
 
-            <main className="w-full max-w-7xl mx-auto px-4 pb-32 mt-3 sm:px-6 lg:px-8 lg:pb-12">
+            <main className="w-full max-w-7xl mx-auto px-4 max-sm:pb-24 pb-6 mt-3 sm:px-6 lg:px-8">
 
                 {formError && (
                     <Alert variant="error" className="mb-4">
@@ -118,7 +119,7 @@ export function InventoryRecordPage() {
                 <form
                     id="inventory-form"
                     onSubmit={handleSubmit(onSubmit)}
-                    className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8"
+                    className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start"
                 >
 
                     <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
@@ -140,7 +141,7 @@ export function InventoryRecordPage() {
                         className="lg:col-span-1 order-1 lg:order-2 lg:sticky lg:top-24 flex flex-col gap-5"
                     >
                         {productLoading ? (
-                            <ProductPreview.Skeleton showTips={false} />
+                            <ProductPreview.Skeleton showTips={false} isSticky={false} />
                         ) : (
                             <ProductPreview
                                 displayName={displayName}
@@ -151,6 +152,7 @@ export function InventoryRecordPage() {
                                 displayReorder={displayReorder}
                                 barcodeValue={barcodeValue}
                                 showTips={false}
+                                isSticky={false}
                             />
                         )}
 
@@ -159,8 +161,6 @@ export function InventoryRecordPage() {
                                 onHand: Number(quantityOnHand) || 0,
                                 reorderLevel: Number(reorderLevel) || 0,
                                 maxStock: Number(maxStock) || 0,
-                                lastRestockDate: new Date().toISOString(),
-                                estimatedDaysOfStock: 0,
                             }}
                         />
 
@@ -169,6 +169,15 @@ export function InventoryRecordPage() {
                 </form>
 
             </main>
+
+            <MobileActionBar>
+                <MobileActionBar.Secondary type="button" onClick={() => navigate(-1)}>
+                    Cancel
+                </MobileActionBar.Secondary>
+                <MobileActionBar.Primary type="submit" form="inventory-form" disabled={mutationLoading || !productId}>
+                    {mutationLoading ? "Creating..." : "Create record"}
+                </MobileActionBar.Primary>
+            </MobileActionBar>
 
         </>
     );

@@ -28,11 +28,11 @@ interface StatItemProps {
  */
 export function StatItem({ label, value, valueId, className }: StatItemProps) {
     return (
-        <div className={cn("rounded-lg bg-slate-50 px-3 py-2.5", className)}>
-            <dt className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">
+        <div className={cn("rounded-lg bg-slate-50 px-3 py-2.5 min-w-0", className)}>
+            <dt className="text-[11px] font-medium text-slate-400 uppercase tracking-wide truncate">
                 {label}
             </dt>
-            <dd id={valueId} className="font-mono text-sm font-semibold mt-0.5">
+            <dd id={valueId} className="font-mono text-sm font-semibold mt-0.5 truncate">
                 {value}
             </dd>
         </div>

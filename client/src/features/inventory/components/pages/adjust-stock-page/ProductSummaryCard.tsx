@@ -38,27 +38,27 @@ export function ProductSummaryCard({
                 </div>
             </div>
             <div className="mt-5 grid grid-cols-3 divide-x divide-slate-100 rounded-xl bg-slate-50 py-3">
-                <div className="px-1 text-center sm:px-4">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 sm:text-[11px]">
+                <div className="px-1 text-center sm:px-4 min-w-0">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 sm:text-[11px] truncate">
                         Current Stock
                     </p>
-                    <p className="mt-1 text-xl font-bold tabular-nums text-slate-900 sm:text-2xl">
+                    <p className="mt-1 text-xl font-bold tabular-nums text-slate-900 sm:text-2xl truncate">
                         {currentStock}
                     </p>
                 </div>
-                <div className="px-1 text-center sm:px-4">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 sm:text-[11px]">
+                <div className="px-1 text-center sm:px-4 min-w-0">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 sm:text-[11px] truncate">
                         Reorder Level
                     </p>
-                    <p className="mt-1 text-xl font-bold tabular-nums text-slate-700 sm:text-2xl">
+                    <p className="mt-1 text-xl font-bold tabular-nums text-slate-700 sm:text-2xl truncate">
                         {reorderLevel}
                     </p>
                 </div>
-                <div className="px-1 text-center sm:px-4">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 sm:text-[11px]">
+                <div className="px-1 text-center sm:px-4 min-w-0">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 sm:text-[11px] truncate">
                         Max Stock
                     </p>
-                    <p className="mt-1 text-xl font-bold tabular-nums text-slate-700 sm:text-2xl">
+                    <p className="mt-1 text-xl font-bold tabular-nums text-slate-700 sm:text-2xl truncate">
                         {maxStock}
                     </p>
                 </div>

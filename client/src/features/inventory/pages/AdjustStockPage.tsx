@@ -12,6 +12,7 @@ import { ADJUST_STOCK, GET_INVENTORY } from "../operations";
 import { ProductSummaryCard, AdjustmentTypeSection, ReasonReferenceSection, NotesSection, StockImpactPreview, PerformedBySection } from "../components/pages/adjust-stock-page";
 import type { AdjustStockFormValues } from "../components/pages/adjust-stock-page";
 import { AdjustStockPageSkeleton } from "../components";
+import { MobileActionBar } from "@/components/ui/mobile-action-bar";
 
 /** Maps the UI adjustment-type cards to the API MovementType enum */
 const MOVEMENT_TYPE: Record<AdjustStockFormValues["adjustmentType"], "IN" | "OUT" | "ADJUSTMENT"> = {
@@ -114,7 +115,7 @@ export function AdjustStockPage() {
                 }
             />
 
-            <main className="w-full max-w-7xl mx-auto px-4 pb-32 mt-3 sm:px-6 lg:px-8 lg:pb-12">
+            <div className="w-full max-w-7xl mx-auto px-4 max-sm:pb-24 pb-6 mt-3 sm:px-6 lg:px-8">
 
                 {formError && (
                     <Alert variant="error" className="mb-5" aria-live="polite">
@@ -125,10 +126,10 @@ export function AdjustStockPage() {
                 <form
                     id="adjust-form"
                     onSubmit={handleSubmit(onSubmit)}
-                    className="grid grid-cols-1 gap-6 lg:grid-cols-3"
+                    className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start"
                 >
 
-                    <div className="space-y-5 lg:col-span-2">
+                    <div className="min-w-0 space-y-5 lg:col-span-2">
 
                         {/* Product summary — data from API */}
                         <ProductSummaryCard
@@ -149,7 +150,7 @@ export function AdjustStockPage() {
 
                     </div>
 
-                    <div className="space-y-6 lg:sticky lg:top-20 lg:col-span-1 lg:self-start">
+                    <div className="min-w-0 space-y-6 lg:col-span-1">
 
                         <StockImpactPreview
                             control={control}
@@ -169,8 +170,16 @@ export function AdjustStockPage() {
                 </form>
 
 
-            </main>
+            </div>
 
+            <MobileActionBar>
+                <MobileActionBar.Secondary type="button" onClick={() => navigate(-1)}>
+                    Cancel
+                </MobileActionBar.Secondary>
+                <MobileActionBar.Primary type="submit" form="adjust-form" disabled={mutationLoading}>
+                    {mutationLoading ? "Adjusting..." : "Adjust"}
+                </MobileActionBar.Primary>
+            </MobileActionBar>
         </>
     );
 }

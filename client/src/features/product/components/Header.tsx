@@ -47,7 +47,7 @@ export function Header({
                             <Button
                                 variant="glass"
                                 size="icon-lg"
-                                className="hidden sm:flex rounded-full"
+                                className="flex rounded-full"
                                 onClick={handleBack}
                             >
                                 <ChevronLeft className="w-4 h-4" />
@@ -89,7 +89,7 @@ Header.Skeleton = function HeaderSkeleton() {
                         <Button
                             variant="glass"
                             size="icon-lg"
-                            className="hidden sm:flex rounded-full opacity-50"
+                            className="flex rounded-full opacity-50"
                             disabled
                         >
                             <ChevronLeft className="w-4 h-4" />

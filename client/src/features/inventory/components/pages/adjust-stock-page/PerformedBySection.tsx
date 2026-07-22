@@ -51,10 +51,12 @@ export function PerformedBySection({
                     role={avatarRole}
                     size="lg"
                 />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-slate-900">{name}</p>
-                    <p className="text-xs text-slate-500">{avatarRole.replace("_", " ")}</p>
-                    <p className="mt-0.5 text-xs text-slate-400">{formattedDate}</p>
+                    {avatarRole && (
+                        <p className="truncate text-xs text-slate-500">{avatarRole.replace("_", " ")}</p>
+                    )}
+                    <p className="truncate mt-0.5 text-xs text-slate-400">{formattedDate}</p>
                     {timestampId && (
                         <p id={timestampId} className="sr-only" aria-live="polite" />
                     )}

@@ -37,16 +37,16 @@ export function AdjustStockPageSkeleton({ onCancel, control }: AdjustStockPageSk
                 }
             />
 
-            <main className="w-full max-w-7xl mx-auto px-4 pb-32 mt-3 sm:px-6 lg:px-8 lg:pb-12">
-                <form className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    <div className="space-y-5 lg:col-span-2">
+            <main className="w-full max-w-7xl mx-auto px-4 max-sm:pb-24 pb-6 mt-3 sm:px-6 lg:px-8">
+                <form className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
+                    <div className="min-w-0 space-y-5 lg:col-span-2">
                         <ProductSummaryCard.skeleton />
                         <AdjustmentTypeSection control={control} />
                         <ReasonReferenceSection control={control} />
                         <NotesSection control={control} />
                     </div>
 
-                    <div className="space-y-6 lg:sticky lg:top-20 lg:col-span-1 lg:self-start">
+                    <div className="min-w-0 space-y-6 lg:col-span-1">
                         <StockImpactPreview.skeleton />
                         <PerformedBySection.skeleton />
                     </div>

@@ -14,9 +14,9 @@ export type StockImpactPreviewProps = UseStockImpactPreviewOptions;
 
 function StockValue({ label, value, className }: { label: string; value: number; className?: string }) {
     return (
-        <div className="text-center">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{label}</p>
-            <p className={cn("mt-1 text-2xl font-bold tabular-nums", className)}>
+        <div className="text-center min-w-0 flex-1">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 truncate">{label}</p>
+            <p className={cn("mt-1 text-2xl font-bold tabular-nums truncate", className)}>
                 {value}
             </p>
         </div>

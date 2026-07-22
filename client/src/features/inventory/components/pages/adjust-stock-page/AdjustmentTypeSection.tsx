@@ -117,7 +117,7 @@ export function AdjustmentTypeSection({ control }: AdjustmentTypeSectionProps) {
                                     key={option.value}
                                     htmlFor={inputId}
                                     className={[
-                                        "relative flex cursor-pointer flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-all duration-150",
+                                        "relative flex min-w-0 cursor-pointer flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-all duration-150",
                                         "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2",
                                         isSelected
                                             ? `${option.active.border} ${option.active.bg}`
@@ -140,7 +140,7 @@ export function AdjustmentTypeSection({ control }: AdjustmentTypeSectionProps) {
                                     {/* Icon */}
                                     <span
                                         className={[
-                                            "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
+                                            "flex h-9 w-9 items-center justify-center rounded-lg transition-colors shrink-0",
                                             isSelected
                                                 ? option.active.iconWrapper
                                                 : "bg-slate-100 text-slate-500",
@@ -152,7 +152,7 @@ export function AdjustmentTypeSection({ control }: AdjustmentTypeSectionProps) {
                                     {/* Label */}
                                     <span
                                         className={[
-                                            "text-sm font-semibold transition-colors",
+                                            "w-full truncate text-sm font-semibold transition-colors",
                                             isSelected ? option.active.label : "text-slate-700",
                                         ].join(" ")}
                                     >
@@ -160,7 +160,7 @@ export function AdjustmentTypeSection({ control }: AdjustmentTypeSectionProps) {
                                     </span>
 
                                     {/* Sub-label */}
-                                    <span className="text-xs text-slate-500">{option.sublabel}</span>
+                                    <span className="w-full truncate text-xs text-slate-500">{option.sublabel}</span>
 
                                     {/* Check indicator */}
                                     {isSelected && (

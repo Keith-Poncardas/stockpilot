@@ -5,16 +5,18 @@ export interface InventoryHealthData {
     onHand: number;
     reorderLevel: number;
     maxStock: number;
-    lastRestockDate: string;
-    estimatedDaysOfStock: number;
+    lastRestockDate?: string;
+    estimatedDaysOfStock?: number;
     aiRecommendation?: string;
 }
 
 interface InventoryHealthProps {
     data: InventoryHealthData;
+    showDetails?: boolean;
+    className?: string;
 }
 
-export function InventoryHealth({ data }: InventoryHealthProps) {
+export function InventoryHealth({ data, showDetails, className }: InventoryHealthProps) {
     const {
         onHand,
         reorderLevel,
@@ -23,6 +25,8 @@ export function InventoryHealth({ data }: InventoryHealthProps) {
         estimatedDaysOfStock,
         aiRecommendation
     } = data;
+
+    const renderDetails = showDetails ?? (lastRestockDate !== undefined || estimatedDaysOfStock !== undefined);
 
     // Calculate percentage for the progress bar based on max stock
     const percentage = maxStock > 0
@@ -53,7 +57,7 @@ export function InventoryHealth({ data }: InventoryHealthProps) {
     }
 
     return (
-        <section className="bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6">
+        <section className={cn("bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6", className)}>
             <h2 className="font-display font-semibold text-lg mb-4 flex items-center justify-between">
                 Inventory Health
                 {aiRecommendation && (
@@ -96,20 +100,26 @@ export function InventoryHealth({ data }: InventoryHealthProps) {
                 <span>{maxStock}</span>
             </div>
 
-            <dl className="grid grid-cols-2 gap-4 mt-5 pt-5 border-t border-[#E3E1DC]">
-                <div>
-                    <dt className="text-xs uppercase tracking-wide text-[#9C9A91] font-semibold">
-                        Last Restock
-                    </dt>
-                    <dd className="text-sm font-medium mt-1">{formatDate(lastRestockDate)}</dd>
-                </div>
-                <div>
-                    <dt className="text-xs uppercase tracking-wide text-[#9C9A91] font-semibold">
-                        Days of Stock
-                    </dt>
-                    <dd className="text-sm font-medium mt-1">~{estimatedDaysOfStock} days</dd>
-                </div>
-            </dl>
+            {renderDetails && (
+                <dl className="grid grid-cols-2 gap-4 mt-5 pt-5 border-t border-[#E3E1DC]">
+                    {lastRestockDate !== undefined && (
+                        <div>
+                            <dt className="text-xs uppercase tracking-wide text-[#9C9A91] font-semibold">
+                                Last Restock
+                            </dt>
+                            <dd className="text-sm font-medium mt-1">{formatDate(lastRestockDate)}</dd>
+                        </div>
+                    )}
+                    {estimatedDaysOfStock !== undefined && (
+                        <div>
+                            <dt className="text-xs uppercase tracking-wide text-[#9C9A91] font-semibold">
+                                Days of Stock
+                            </dt>
+                            <dd className="text-sm font-medium mt-1">~{estimatedDaysOfStock} days</dd>
+                        </div>
+                    )}
+                </dl>
+            )}
 
             {aiRecommendation && (
                 <div className="mt-5 p-3 rounded-lg bg-indigo-50/50 border border-indigo-100 flex gap-3 items-start">
@@ -124,9 +134,9 @@ export function InventoryHealth({ data }: InventoryHealthProps) {
     )
 }
 
-InventoryHealth.Skeleton = function InventoryHealthSkeleton() {
+InventoryHealth.Skeleton = function InventoryHealthSkeleton({ showDetails = true, className }: { showDetails?: boolean; className?: string }) {
     return (
-        <section className="bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6">
+        <section className={cn("bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6", className)}>
             <div className="h-6 w-40 bg-[#F0EFEA] animate-pulse rounded-md mb-4" />
 
             <div className="flex items-end justify-between mb-2">
@@ -145,16 +155,18 @@ InventoryHealth.Skeleton = function InventoryHealthSkeleton() {
                 <div className="h-3 w-8 bg-[#F0EFEA] animate-pulse rounded-md" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mt-5 pt-5 border-t border-[#E3E1DC]">
-                <div>
-                    <div className="h-3 w-24 bg-[#F0EFEA] animate-pulse rounded-md mb-2" />
-                    <div className="h-4 w-32 bg-[#F0EFEA] animate-pulse rounded-md mt-1" />
+            {showDetails && (
+                <div className="grid grid-cols-2 gap-4 mt-5 pt-5 border-t border-[#E3E1DC]">
+                    <div>
+                        <div className="h-3 w-24 bg-[#F0EFEA] animate-pulse rounded-md mb-2" />
+                        <div className="h-4 w-32 bg-[#F0EFEA] animate-pulse rounded-md mt-1" />
+                    </div>
+                    <div>
+                        <div className="h-3 w-24 bg-[#F0EFEA] animate-pulse rounded-md mb-2" />
+                        <div className="h-4 w-24 bg-[#F0EFEA] animate-pulse rounded-md mt-1" />
+                    </div>
                 </div>
-                <div>
-                    <div className="h-3 w-24 bg-[#F0EFEA] animate-pulse rounded-md mb-2" />
-                    <div className="h-4 w-24 bg-[#F0EFEA] animate-pulse rounded-md mt-1" />
-                </div>
-            </div>
+            )}
 
             <div className="mt-5 h-20 w-full bg-[#F0EFEA] animate-pulse rounded-lg" />
         </section>

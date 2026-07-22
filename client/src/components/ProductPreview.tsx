@@ -2,6 +2,7 @@ import Barcode from 'react-barcode';
 import { PhilippinePeso, Lightbulb, Hash, EyeOff, TrendingUp } from 'lucide-react';
 import { StatItem } from '@/components/ui/stat-item';
 import { StatusBadge, type BadgeVariant } from '@/components/StatusBadge';
+import { cn } from '@/lib/utils';
 import React from 'react';
 
 export interface ProductPreviewProps {
@@ -13,6 +14,8 @@ export interface ProductPreviewProps {
     displayReorder: React.ReactNode;
     barcodeValue: string;
     showTips?: boolean;
+    isSticky?: boolean;
+    className?: string;
 }
 
 export function ProductPreview({
@@ -23,10 +26,13 @@ export function ProductPreview({
     displayQty,
     displayReorder,
     barcodeValue,
-    showTips = true
+    showTips = true,
+    isSticky = true,
+    className
 }: ProductPreviewProps) {
+    const Component = isSticky ? 'aside' : 'div';
     return (
-        <aside className="lg:col-span-1 lg:sticky lg:top-24 flex flex-col gap-5">
+        <Component className={cn(isSticky && "lg:col-span-1 lg:sticky lg:top-24", "flex flex-col gap-5", className)}>
             {/* Signature element: live product tag */}
             <div className="bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6">
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-4">
@@ -117,13 +123,22 @@ export function ProductPreview({
                     </ul>
                 </div>
             )}
-        </aside>
+        </Component>
     );
 }
 
-ProductPreview.Skeleton = function ProductPreviewSkeleton({ showTips = true }: { showTips?: boolean }) {
+ProductPreview.Skeleton = function ProductPreviewSkeleton({
+    showTips = true,
+    isSticky = true,
+    className
+}: {
+    showTips?: boolean;
+    isSticky?: boolean;
+    className?: string;
+}) {
+    const Component = isSticky ? 'aside' : 'div';
     return (
-        <aside className="lg:col-span-1 lg:sticky lg:top-24 flex flex-col gap-5">
+        <Component className={cn(isSticky && "lg:col-span-1 lg:sticky lg:top-24", "flex flex-col gap-5", className)}>
             {/* Signature element: live product tag */}
             <div className="bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6">
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-4">
@@ -191,6 +206,6 @@ ProductPreview.Skeleton = function ProductPreviewSkeleton({ showTips = true }: {
                     </ul>
                 </div>
             )}
-        </aside>
+        </Component>
     );
 };

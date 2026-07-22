@@ -146,10 +146,10 @@ export function ProductViewPage() {
                 <MobileActionBar.Action type="button">
                     Print Barcode
                 </MobileActionBar.Action>
-                <MobileActionBar.Action type="button">
+                <MobileActionBar.Action type="button" onClick={() => handleEditPage('adjust-stock', inventoryStatus?.id || '')}>
                     Adjust Stock
                 </MobileActionBar.Action>
-                <MobileActionBar.Primary type="button">
+                <MobileActionBar.Primary type="button" onClick={() => handleEditPage('product', productInfo.id)} disabled={isNotEditable}>
                     Edit Product
                 </MobileActionBar.Primary>
             </MobileActionBar>
