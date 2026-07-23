@@ -144,6 +144,10 @@ export function InventoryPage() {
         navigate('/inventory/record')
     }
 
+    function handleStockMovementLog() {
+        navigate('/stock-movement')
+    }
+
     return (
         <>
             <SectionHeader
@@ -151,10 +155,16 @@ export function InventoryPage() {
                 subtitle="Monitor real-time stock levels, movements, and track reorder alerts"
                 icon={Warehouse}
                 actions={
-                    <Button onClick={handleRecordInventory} size='lg'>
-                        <PackagePlus className="mr-1" />
-                        Record Inventory
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button onClick={handleStockMovementLog} size='lg' variant='outline' className='bg-transparent text-muted-foreground'>
+                            <PackagePlus className="mr-1" />
+                            Stock Movement Log
+                        </Button>
+                        <Button onClick={handleRecordInventory} size='lg'>
+                            <PackagePlus className="mr-1" />
+                            Record Inventory
+                        </Button>
+                    </div>
                 }
             />
 
@@ -165,21 +175,17 @@ export function InventoryPage() {
                     label="Well Stocked"
                     icon={<CheckCircle2 className="w-5 h-5" />}
                     iconContainerClass="bg-emerald-50 text-emerald-600"
-                    valueClass="text-emerald-700"
                 />
                 <MetricCard
                     value={statuses?.lowStock?.toLocaleString() ?? '—'}
                     label="Low Stock"
                     icon={<AlertTriangle className="w-5 h-5" />}
-                    iconContainerClass="bg-amber-50 text-amber-600"
-                    valueClass="text-amber-600"
                 />
                 <MetricCard
                     value={statuses?.criticalOut?.toLocaleString() ?? '—'}
                     label="Critical / Out of Stock"
                     icon={<XCircle className="w-5 h-5" />}
                     iconContainerClass="bg-red-50 text-red-600"
-                    valueClass="text-red-600"
                 />
             </div>
 

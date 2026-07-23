@@ -96,16 +96,22 @@ export const ADJUST_STOCK = gql`
 `;
 
 export const SEARCH_INVENTORY_PRODUCTS = gql`
-    query SearchInventoryProducts($search: String) {
-        searchInventoryProducts(search: $search) {
-            id
-            sku
-            name
-            description
-            unitPrice
-            costPrice
-            status
-            isAddedInventory
+    query SearchInventoryProducts($search: String, $cursor: String, $limit: Int) {
+        searchInventoryProducts(search: $search, cursor: $cursor, limit: $limit) {
+            data {
+                id
+                sku
+                name
+                description
+                unitPrice
+                costPrice
+                status
+                isAddedInventory
+            }
+            meta {
+                nextCursor
+                hasNextPage
+            }
         }
     }
 `;

@@ -84,11 +84,6 @@ export const adjustStockSchema = z.object({
             "other",
         ])
         .optional(),
-    reference: z
-        .string()
-        .trim()
-        .max(50, "Reference must not exceed 50 characters")
-        .optional(),
     notes: z
         .string()
         .trim()
@@ -106,6 +101,14 @@ export const searchInventoryProductsSchema = z.object({
     search: searchSchema,
 });
 export type SearchInventoryProductsInput = z.infer<typeof searchInventoryProductsSchema>;
+
+/** SEARCH INVENTORY PRODUCTS — INFINITE SCROLL SCHEMA */
+export const searchInventoryProductsInfiniteSchema = z.object({
+    search: searchSchema,
+    cursor: z.string().uuid().optional().nullable(),
+    limit: z.coerce.number().int().positive().max(100).default(20),
+});
+export type SearchInventoryProductsInfiniteInput = z.infer<typeof searchInventoryProductsInfiniteSchema>;
 
 /** CREATE INVENTORY SCHEMA */
 export const createInventorySchema = z.object({

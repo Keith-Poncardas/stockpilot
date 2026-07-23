@@ -1,7 +1,7 @@
 import { GraphQLContext } from "@/types";
 import { inventoryService } from "./inv.service";
 import { protectResolvers } from "@/graphql/helpers";
-import { AdjustStockInput, CreateInventoryInput, PaginatedInventoriesInput } from "./inv.validation";
+import { AdjustStockInput, CreateInventoryInput, PaginatedInventoriesInput, SearchInventoryProductsInfiniteInput } from "./inv.validation";
 import { UUIDInput } from "@/schemas";
 
 export const inventoryResolver = {
@@ -37,13 +37,13 @@ export const inventoryResolver = {
         },
 
         /**
-         * Search products for inventory addition
+         * Search products for inventory addition — cursor-based infinite scroll
          */
         searchInventoryProducts: async (
             _: unknown,
-            { search }: { search?: string | null }
+            input: SearchInventoryProductsInfiniteInput
         ) => {
-            return inventoryService.searchInventoryProducts(search);
+            return inventoryService.searchInventoryProducts(input);
         },
 
     }),

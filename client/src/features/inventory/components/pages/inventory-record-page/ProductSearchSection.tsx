@@ -1,15 +1,16 @@
 import type { Control } from "react-hook-form";
+import { useState } from "react";
 import { FormSection } from "@/components/ui/form-section";
 import { FormField } from "@/components/ui/form-field";
+import { VirtualInfiniteList } from "@/components/ui/virtual-infinite-list";
 import { PackagePlus, Search } from "lucide-react";
 import { useWatch, useController } from "react-hook-form";
-import { useQuery, useLazyQuery } from "@apollo/client";
-import { useState } from "react";
+import { useLazyQuery } from "@apollo/client";
 import { useDebounce } from "@/hooks/useDebounce";
-import { SEARCH_INVENTORY_PRODUCTS } from "@/features/inventory/operations";
 import { GET_PRODUCT } from "@/features/product/operations";
 import { ProductSearchResultItem } from "./ProductSearchResultItem";
 import { ProductSearchPreview } from "./ProductSearchPreview";
+import { useInfiniteProductSearch } from "../../../hooks/useInfiniteProductSearch";
 
 interface ProductSearchSectionProps {
     control: Control<any>;
@@ -23,15 +24,11 @@ export function ProductSearchSection({ control }: ProductSearchSectionProps) {
     const searchTerm = useWatch({ control, name: "searchQuery" });
     const debouncedSearch = useDebounce(searchTerm, 300);
 
-    const { data, loading } = useQuery(SEARCH_INVENTORY_PRODUCTS, {
-        variables: { search: debouncedSearch },
-        fetchPolicy: "network-only"
-    });
-
     const [fetchProduct, { data: productData, loading: productLoading }] = useLazyQuery(GET_PRODUCT);
-
-    const products = data?.searchInventoryProducts || [];
     const product = productData?.getProduct?.productInfo;
+
+    const { items, loading, isFetchingMore, hasNextPage, loadMore } =
+        useInfiniteProductSearch(debouncedSearch);
 
     return (
         <FormSection
@@ -47,7 +44,7 @@ export function ProductSearchSection({ control }: ProductSearchSectionProps) {
                     if (!e.currentTarget.contains(e.relatedTarget)) setIsOpen(false);
                 }}
             >
-                {/* Hidden input to ensure productId is technically rendered for required validation, though FormField might handle it if it was bound */}
+                {/* Hidden input so productId participates in form validation */}
                 <input type="hidden" value={productIdField.value} name={productIdField.name} />
 
                 <FormField
@@ -61,19 +58,17 @@ export function ProductSearchSection({ control }: ProductSearchSectionProps) {
                 />
 
                 {isOpen && (
-                    <ul
-                        className="absolute z-30 mt-1.5 max-h-72 w-full overflow-auto rounded-lg border border-hairline bg-white py-1 shadow-lg shadow-ink/10"
-                    >
-                        {loading && (
-                            <li className="px-3.5 py-3 text-sm text-ink/40">Loading...</li>
-                        )}
-                        {!loading && products.length === 0 && (
-                            <li className="px-3.5 py-3 text-sm text-ink/40">No products match your search.</li>
-                        )}
-                        {!loading && products.map((p: any) => (
+                    <VirtualInfiniteList
+                        items={items}
+                        loading={loading}
+                        isFetchingMore={isFetchingMore}
+                        hasNextPage={hasNextPage}
+                        onLoadMore={loadMore}
+                        emptyMessage="No products match your search."
+                        aria-label="Product search results"
+                        renderItem={(product) => (
                             <ProductSearchResultItem
-                                key={p.id}
-                                product={p}
+                                product={product}
                                 onSelect={(selectedProduct) => {
                                     productIdField.onChange(selectedProduct.id);
                                     searchField.onChange(selectedProduct.name);
@@ -81,8 +76,8 @@ export function ProductSearchSection({ control }: ProductSearchSectionProps) {
                                     setIsOpen(false);
                                 }}
                             />
-                        ))}
-                    </ul>
+                        )}
+                    />
                 )}
             </div>
 
@@ -99,7 +94,6 @@ export function ProductSearchSection({ control }: ProductSearchSectionProps) {
                     }}
                 />
             )}
-
         </FormSection>
     );
 }

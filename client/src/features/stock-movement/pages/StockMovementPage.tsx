@@ -24,6 +24,7 @@ import SectionHeader from "@/components/SectionHeader";
 import { FilterPopover } from "@/components/FilterPopover";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MetricCard } from "@/components/MetricCard";
+import { useNavigate } from "react-router-dom";
 
 const movementTypeOptions = [
     { value: "all", label: "All Movement Types" },
@@ -155,6 +156,12 @@ export function StockMovementPage() {
         setGlobalFilter("");
     }
 
+    const navigate = useNavigate();
+
+    function handleRecordMovement() {
+        navigate("/inventory/record");
+    }
+
     return (
         <>
             <SectionHeader
@@ -162,7 +169,7 @@ export function StockMovementPage() {
                 subtitle="Manage and track all stock adjustments in your warehouse."
                 icon={ArrowUpDown}
                 actions={
-                    <Button size="lg">
+                    <Button size="lg" onClick={handleRecordMovement}>
                         <Plus data-icon="inline-start" />
                         Record Movement
                     </Button>
@@ -176,28 +183,28 @@ export function StockMovementPage() {
                     label="Total Stock In"
                     icon={<ArrowDownRight className="w-5 h-5" />}
                     iconContainerClass="bg-emerald-50 text-emerald-600"
-                    valueClass="text-emerald-700"
+
                 />
                 <MetricCard
                     value={metrics?.totalStockOut?.toLocaleString() ?? "-"}
                     label="Total Stock Out"
                     icon={<ArrowUpRight className="w-5 h-5" />}
                     iconContainerClass="bg-blue-50 text-blue-600"
-                    valueClass="text-blue-700"
+
                 />
                 <MetricCard
                     value={metrics?.totalStockAdjustments?.toLocaleString() ?? "-"}
                     label="Total Adjustments"
                     icon={<SlidersHorizontal className="w-5 h-5" />}
                     iconContainerClass="bg-purple-50 text-purple-600"
-                    valueClass="text-purple-700"
+
                 />
                 <MetricCard
                     value={metrics?.lowStockProducts?.toLocaleString() ?? "-"}
                     label="Low Stock Products"
                     icon={<AlertTriangle className="w-5 h-5" />}
                     iconContainerClass="bg-amber-50 text-amber-600"
-                    valueClass="text-amber-600"
+
                 />
             </div>
 

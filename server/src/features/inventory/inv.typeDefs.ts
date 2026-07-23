@@ -50,6 +50,20 @@ export const inventoryTypeDefs = `#graphql
         isAddedInventory: Boolean!
     }
 
+    # Infinite-scroll metadata — mirrors InfiniteScrollMeta in utils.infiniteScroll.ts
+    type InfiniteScrollMeta {
+        # Cursor to pass on the next request to load the following page. Null when no more pages.
+        nextCursor: String
+        # True when there are more items beyond this batch.
+        hasNextPage: Boolean!
+    }
+
+    # Infinite-scroll result wrapping ProductSearchRecord items
+    type InfiniteProductSearchResult {
+        data: [ProductSearchRecord!]!
+        meta: InfiniteScrollMeta!
+    }
+
     # Lightweight product summary embedded inside an Inventory record
     type InventoryProduct {
         id: ID!
@@ -153,7 +167,6 @@ export const inventoryTypeDefs = `#graphql
         maxStock: Int!
         # Human-readable reason code saved to the audit log (e.g. "damaged", "expired")
         reason: String
-        reference: String
         notes: String
     }
 
@@ -179,8 +192,9 @@ export const inventoryTypeDefs = `#graphql
         # Uses a single combined input to match paginatedInventoriesSchema shape { page, limit, filter }
         getInventories(input: GetInventoriesInput): PaginatedInventories!
 
-        # Search products for inventory addition (limited to 5 if no search term)
-        searchInventoryProducts(search: String): [ProductSearchRecord!]!
+        # Search products for inventory addition — cursor-based infinite scroll.
+        # Omit cursor to load the first page; pass meta.nextCursor to load subsequent pages.
+        searchInventoryProducts(search: String, cursor: String, limit: Int): InfiniteProductSearchResult!
     }
 
     type Mutation {

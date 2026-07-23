@@ -1,9 +1,23 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import type { IStockMovement } from "./stock-movement.types";
 import { MovementIcon } from "@/components/ui/stock-movement-ledger";
 import { UserInfoCell } from "@/components/UserInfoCell";
+import { ActionCellContent } from "@/features/user/components/cells/ActionCellContent";
+
+export function getMovementTypeColor(type: string): string {
+    switch (type) {
+        case "IN":
+            return "bg-emerald-50 text-emerald-700";
+        case "OUT":
+            return "bg-rose-50 text-rose-700";
+        case "ADJUSTMENT":
+            return "bg-amber-50 text-amber-700";
+        default:
+            return "bg-gray-100 text-gray-500";
+    }
+}
 
 export const columns: ColumnDef<IStockMovement>[] = [
     {
@@ -43,7 +57,7 @@ export const columns: ColumnDef<IStockMovement>[] = [
             <div className="flex items-center gap-3 min-w-0">
                 <MovementIcon type={row.original.type} />
                 <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">
+                    <p className="text-sm font-bold truncate">
                         {row.original.product.name || <span className="italic text-[#9C9A91]">No description</span>}
                     </p>
                     <p className="text-xs text-[#9C9A91] font-mono truncate">
@@ -57,10 +71,21 @@ export const columns: ColumnDef<IStockMovement>[] = [
     {
         accessorKey: "type",
         header: () => <div className="text-center">Type</div>,
+        meta: {
+            cellClassName: (row: IStockMovement) => {
+                return cn(
+                    "p-0 text-center text-xs font-semibold tracking-wide h-[1px]",
+                    getMovementTypeColor(row.type)
+                );
+            },
+        },
         cell: ({ row }) => (
-            <div className="flex justify-center">
-                <MovementIcon type={row.original.type} />
-            </div>
+            <ActionCellContent
+                label={row.original.type}
+                approvalStatus=""
+                isLocked={false}
+                withBorder={false}
+            />
         ),
         size: 140,
     },
@@ -86,9 +111,8 @@ export const columns: ColumnDef<IStockMovement>[] = [
         accessorKey: "reference",
         header: "Reference",
         cell: ({ row }) => (
-            <span className="text-sm text-gray-500 truncate block max-w-100" title={row.original.reference ?? undefined}>
-                {row.original.reference || "—"}
-            </span>
+            <span className="text-xs text-[#9C9A91] font-mono truncate" title={row.original.reference || "-"}>{row.original.reference || "-"}</span>
+
         ),
         size: 140,
     },

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib";
-import { createPaginator, throwNotFound, throwConflict } from "@/utils";
+import { createPaginator, throwNotFound, throwConflict, generateReference, createInfiniteScroller } from "@/utils";
 import { MovementType, Prisma } from "@prisma/client";
-import { AdjustStockInput, adjustStockSchema, CreateInventoryInput, createInventorySchema, PaginatedInventoriesInput, paginatedInventoriesSchema, searchInventoryProductsSchema } from "./inv.validation";
+import { AdjustStockInput, adjustStockSchema, CreateInventoryInput, createInventorySchema, PaginatedInventoriesInput, paginatedInventoriesSchema, SearchInventoryProductsInfiniteInput, searchInventoryProductsInfiniteSchema } from "./inv.validation";
 import { inventoryIdSchema, UUIDInput } from "@/schemas";
 import { ProductStatus, StockStatus } from "@/enums";
 import { resolveStockStatus } from "./inv.utils";
@@ -90,50 +90,60 @@ export class InventoryService {
      * - Returns matching products if search is provided.
      * - Adds boolean 'isAddedInventory' flag.
      */
-    async searchInventoryProducts(searchArg?: string | null) {
-        const { search } = searchInventoryProductsSchema.parse({ search: searchArg });
+    /**
+     * Search products for inventory addition — cursor-based infinite scroll.
+     * - Returns up to `limit` products per page.
+     * - Filters out DISCONTINUED products.
+     * - Adds boolean `isAddedInventory` flag.
+     * - Pass `cursor` (last seen product id) to load the next page.
+     */
+    async searchInventoryProducts(input: SearchInventoryProductsInfiniteInput) {
+        const { search, cursor, limit } = searchInventoryProductsInfiniteSchema.parse(input);
+        const { params, buildResult } = createInfiniteScroller({ cursor, limit });
 
-        let products;
+        const where: Prisma.ProductWhereInput = {
+            status: { not: ProductStatus.DISCONTINUED },
+            ...(search && {
+                OR: [
+                    { name: { contains: search, mode: 'insensitive' as const } },
+                    { sku:  { contains: search, mode: 'insensitive' as const } },
+                ],
+            }),
+        };
 
-        if (search) {
-            products = await prisma.product.findMany({
-                where: {
-                    status: { not: ProductStatus.DISCONTINUED },
-                    OR: [
-                        { name: { contains: search, mode: 'insensitive' } },
-                        { sku: { contains: search, mode: 'insensitive' } },
-                    ]
-                },
-                take: 20
-            });
-        } else {
-            products = await prisma.product.findMany({
-                where: {
-                    status: { not: ProductStatus.DISCONTINUED }
-                },
-                take: 5,
-                orderBy: { createdAt: 'desc' }
-            });
-        }
+        const rawProducts = await prisma.product.findMany({
+            where,
+            take: params.take + 1,
+            ...(params.cursor && {
+                cursor: { id: params.cursor },
+                skip: 1,
+            }),
+            orderBy: { createdAt: 'desc' },
+        });
+
+        const { data: products, meta } = buildResult(rawProducts);
 
         if (products.length === 0) {
-            return [];
+            return { data: [], meta };
         }
 
         const productIds = products.map(p => p.id);
         const inventories = await prisma.inventory.findMany({
             where: { productId: { in: productIds } },
-            select: { productId: true }
+            select: { productId: true },
         });
 
         const inventorySet = new Set(inventories.map(inv => inv.productId));
 
-        return products.map(product => ({
-            ...product,
-            unitPrice: Number(product.unitPrice),
-            costPrice: product.costPrice ? Number(product.costPrice) : null,
-            isAddedInventory: inventorySet.has(product.id)
-        }));
+        return {
+            data: products.map(product => ({
+                ...product,
+                unitPrice: Number(product.unitPrice),
+                costPrice: product.costPrice ? Number(product.costPrice) : null,
+                isAddedInventory: inventorySet.has(product.id),
+            })),
+            meta,
+        };
     }
 
     /**
@@ -273,7 +283,6 @@ export class InventoryService {
 
         const {
             inventoryId,
-            reference,
             quantity,
             movementType,
             reorderLevel,
@@ -326,6 +335,8 @@ export class InventoryService {
                 }
             });
 
+            const finalReference = await generateReference("ADJ", tx);
+
             /** Create stock movement */
             await tx.stockMovement.create({
                 data: {
@@ -333,7 +344,7 @@ export class InventoryService {
                     userId: userId,
                     type: movementType,
                     quantity,
-                    reference,
+                    reference: finalReference,
                     notes: movementNotes,
                 },
             });
@@ -403,6 +414,8 @@ export class InventoryService {
                 },
             });
 
+            const finalReference = await generateReference("INIT", tx);
+
             /** Record the initial stock-in movement */
             await tx.stockMovement.create({
                 data: {
@@ -410,7 +423,7 @@ export class InventoryService {
                     userId,
                     type: MovementType.IN,
                     quantity: quantityOnHand,
-                    reference: "INITIAL_STOCK",
+                    reference: finalReference,
                     notes: "Initial inventory record created",
                 },
             });
