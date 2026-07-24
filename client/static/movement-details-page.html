@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stock Movement Details · StockFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-50 text-slate-900 antialiased min-h-screen">
+
+    <!-- Top App Bar -->
+    <header class="border-b border-slate-200 bg-white sticky top-0 z-10">
+        <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3 min-w-0">
+                <div
+                    class="h-8 w-8 shrink-0 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">
+                    SF</div>
+                <span class="font-semibold text-slate-900 hidden sm:inline">StockFlow</span>
+                <span class="text-slate-300 hidden sm:inline">/</span>
+                <nav class="hidden sm:flex items-center gap-1.5 text-sm text-slate-500 truncate">
+                    <a href="#" class="hover:text-slate-700">Inventory</a>
+                    <span>/</span>
+                    <a href="#" class="hover:text-slate-700">Stock Movements</a>
+                    <span>/</span>
+                    <span class="text-slate-900 font-medium">Detail</span>
+                </nav>
+            </div>
+            <div class="flex items-center gap-2">
+                <button
+                    class="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 9V3h12v6" />
+                        <rect x="6" y="13" width="12" height="8" />
+                        <path d="M6 17H4a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-2" />
+                    </svg>
+                    Print
+                </button>
+                <div
+                    class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-semibold text-slate-600">
+                    AV</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Back link -->
+        <a href="#"
+            class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 mb-5">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+            </svg>
+            Back to Stock Movements
+        </a>
+
+        <!-- Page header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div>
+                <div class="flex flex-wrap items-center gap-3 mb-1.5">
+                    <h1 class="text-2xl font-bold tracking-tight text-slate-900">Stock Movement</h1>
+                    <span
+                        class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 5v14M6 13l6 6 6-6" />
+                        </svg>
+                        Stock In
+                    </span>
+                </div>
+                <p class="text-sm text-slate-500">
+                    Recorded on <span class="font-medium text-slate-700">July 22, 2026 · 2:14 PM</span>
+                    <span class="mx-1.5 text-slate-300">·</span>
+                    ID <span class="font-mono">MOV-8F21C4</span>
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 9V3h12v6" />
+                        <rect x="6" y="13" width="12" height="8" />
+                    </svg>
+                    Print
+                </button>
+                <button
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-medium text-white hover:bg-indigo-500">
+                    View Product
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M7 17L17 7M7 7h10v10" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Content grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- ================= MAIN COLUMN ================= -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Movement Summary -->
+                <section class="bg-white rounded-xl border border-slate-200 border-l-4 border-l-emerald-500 p-6">
+                    <h2 class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-4">Movement Summary</h2>
+
+                    <div class="flex items-start gap-4 mb-6">
+                        <div
+                            class="h-12 w-12 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 3v10M8 9l4 4 4-4" />
+                                <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-3xl font-bold text-emerald-600">+150 <span
+                                    class="text-lg font-medium text-slate-400">units</span></p>
+                            <p class="text-sm text-slate-500 mt-0.5">Stock received into inventory</p>
+                        </div>
+                    </div>
+
+                    <dl class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                        <div>
+                            <dt class="text-xs text-slate-400 mb-1">Reference</dt>
+                            <dd class="text-sm font-mono font-medium text-slate-900">PO-2026-0147</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-slate-400 mb-1">Movement Type</dt>
+                            <dd class="text-sm font-medium text-slate-900">Stock In &middot; Restock</dd>
+                        </div>
+                    </dl>
+
+                    <div class="mt-4 pt-4 border-t border-slate-100">
+                        <dt class="text-xs text-slate-400 mb-1.5">Notes</dt>
+                        <dd class="text-sm text-slate-600 leading-relaxed">
+                            Received shipment from supplier and verified against the packing slip. 3 units held aside
+                            for quality inspection before being placed on the shelf.
+                        </dd>
+                    </div>
+                </section>
+
+                <!-- Inventory Value Impact -->
+                <section class="bg-white rounded-xl border border-slate-200 p-6">
+                    <h2 class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-4">Inventory Value Impact
+                    </h2>
+                    <div class="grid grid-cols-3 divide-x divide-slate-100">
+                        <div class="pr-4">
+                            <p class="text-xs text-slate-400 mb-1">Cost / Unit</p>
+                            <p class="text-lg font-semibold text-slate-900">₱1,850.00</p>
+                        </div>
+                        <div class="px-4">
+                            <p class="text-xs text-slate-400 mb-1">Quantity</p>
+                            <p class="text-lg font-semibold text-slate-900">150</p>
+                        </div>
+                        <div class="pl-4">
+                            <p class="text-xs text-slate-400 mb-1">Total Value Added</p>
+                            <p class="text-lg font-semibold text-emerald-600">+₱277,500.00</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Product -->
+                <section class="bg-white rounded-xl border border-slate-200 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xs font-semibold uppercase tracking-wide text-slate-400">Product</h2>
+                        <a href="#" class="text-xs font-medium text-indigo-600 hover:text-indigo-500">View full product
+                            &rarr;</a>
+                    </div>
+
+                    <div class="flex items-center gap-4 mb-5">
+                        <div
+                            class="h-14 w-14 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                            <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 8l-9-5-9 5 9 5 9-5z" />
+                                <path d="M3 8v8l9 5 9-5V8" />
+                                <path d="M12 13v8" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-semibold text-slate-900 truncate">Wireless Mechanical Keyboard — Aluminum
+                                Frame</p>
+                            <p class="text-sm text-slate-500 font-mono">WMK-ALU-87BLK</p>
+                        </div>
+                        <span
+                            class="ml-auto shrink-0 inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">Active</span>
+                    </div>
+
+                    <dl class="grid grid-cols-2 sm:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                        <div>
+                            <dt class="text-xs text-slate-400 mb-1">Unit Price</dt>
+                            <dd class="text-sm font-medium text-slate-900">₱3,299.00</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-slate-400 mb-1">Cost Price</dt>
+                            <dd class="text-sm font-medium text-slate-900">₱1,850.00</dd>
+                        </div>
+                    </dl>
+                </section>
+
+            </div>
+
+            <!-- ================= SIDEBAR ================= -->
+            <div class="space-y-6">
+
+                <!-- Performed By -->
+                <section class="bg-white rounded-xl border border-slate-200 p-6">
+                    <h2 class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-4">Performed By</h2>
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="h-11 w-11 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-700 shrink-0">
+                            AV</div>
+                        <div class="min-w-0">
+                            <p class="font-semibold text-slate-900 truncate">Andrea Villanueva</p>
+                            <p class="text-sm text-slate-500 truncate">andrea.villanueva@company.com</p>
+                        </div>
+                    </div>
+                    <span
+                        class="mt-3 inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Manager</span>
+                </section>
+
+                <!-- Inventory Snapshot -->
+                <section class="bg-white rounded-xl border border-slate-200 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xs font-semibold uppercase tracking-wide text-slate-400">Inventory Snapshot</h2>
+                        <span
+                            class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> In Stock
+                        </span>
+                    </div>
+
+                    <p class="text-3xl font-bold text-slate-900">312 <span
+                            class="text-sm font-medium text-slate-400">units on hand</span></p>
+                    <p class="text-xs text-slate-400 mt-0.5 mb-4">As of latest inventory sync</p>
+
+                    <!-- Gauge -->
+                    <div class="relative h-2.5 w-full rounded-full bg-slate-100 mb-2">
+                        <div class="absolute inset-y-0 left-0 rounded-full bg-emerald-500" style="width:78%"></div>
+                        <div class="absolute -top-1 h-4 w-0.5 bg-slate-400" style="left:12.5%" title="Reorder level">
+                        </div>
+                    </div>
+
+                    <dl class="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-100">
+                        <div>
+                            <dt class="text-xs text-slate-400 mb-1">Reorder Level</dt>
+                            <dd class="text-sm font-medium text-slate-900">50 units</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-slate-400 mb-1">Max Stock</dt>
+                            <dd class="text-sm font-medium text-slate-900">400 units</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <!-- Record Info -->
+                <section class="bg-white rounded-xl border border-slate-200 p-6">
+                    <h2 class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-4">Record Info</h2>
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-xs text-slate-400 mb-1">Movement ID</dt>
+                            <dd class="text-xs font-mono text-slate-600 break-all">8f21c4a0-6b2e-4c9a-91d7-3e5f0a7b2c14
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-slate-400 mb-1">Created At</dt>
+                            <dd class="text-sm font-medium text-slate-900">July 22, 2026, 2:14 PM</dd>
+                        </div>
+                    </dl>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex gap-2">
+                        <svg class="h-4 w-4 text-slate-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="11" width="14" height="9" rx="2" />
+                            <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                        </svg>
+                        <p class="text-xs text-slate-400 leading-relaxed">Stock movements are immutable once recorded.
+                            To correct an error, void this entry and record a new adjustment.</p>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
