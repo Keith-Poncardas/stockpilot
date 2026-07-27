@@ -36,6 +36,22 @@ export const stockMovementsTypeDefs = `#graphql
         id: ID!
         sku: String!
         name: String!
+        # Nullable — products may not have a cost price set
+        costPrice: Float
+        unitPrice: Float!
+        status: ProductStatus!
+        inventoryStatus: InventoryStatus
+    }
+    # Reason for stock movement (mirrors the Prisma MovementReason enum)
+    enum MovementReason {
+        SALE
+        PURCHASE
+        ADJUSTMENT
+        RETURN
+        DAMAGE
+        EXPIRED
+        TRANSFER
+        INITIAL_STOCK
     }
 
     # Core stock movement record
@@ -47,6 +63,7 @@ export const stockMovementsTypeDefs = `#graphql
         quantity: Int!
         reference: String
         notes: String
+        reason: MovementReason!
         createdAt: String!
         deletedAt: String
         product: StockMovementProduct!
@@ -112,6 +129,9 @@ export const stockMovementsTypeDefs = `#graphql
 
         # Aggregated dashboard metrics for the stock movements feature
         getStockMovementDashboardMetrics: StockMovementDashboardMetrics!
+
+        # Fetch a single stock movement record by its ID
+        getStockMovement(id: ID!): StockMovement!
     }
 
 `;

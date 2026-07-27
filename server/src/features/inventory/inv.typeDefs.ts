@@ -36,6 +36,18 @@ export const inventoryTypeDefs = `#graphql
         desc
     }
 
+    # Reason for a stock adjustment — mirrors StockMovementReason in client/src/constants/enums.ts
+    enum StockMovementReason {
+        SALE
+        PURCHASE
+        ADJUSTMENT
+        RETURN
+        DAMAGE
+        EXPIRED
+        TRANSFER
+        INITIAL_STOCK
+    }
+
     # ─── Types ────────────────────────────────────────────────────────────────
 
     # Lightweight product for inventory search popup
@@ -165,8 +177,8 @@ export const inventoryTypeDefs = `#graphql
         # Required — must match the nonnegative() constraint in adjustStockSchema
         reorderLevel: Int!
         maxStock: Int!
-        # Human-readable reason code saved to the audit log (e.g. "damaged", "expired")
-        reason: String
+        # Reason code saved to the audit log — validated against StockMovementReason enum
+        reason: StockMovementReason
         notes: String
     }
 

@@ -14,7 +14,7 @@ export function ProductViewPageSkeleton() {
                     <StockMovementLedger.Skeleton />
                 </div>
                 <div className="flex flex-col gap-6">
-                    <InventoryHealth.Skeleton />
+                    <InventoryHealth.skeleton />
                     <ProductBarcode.Skeleton />
                     <ProductRecordDetails.Skeleton />
                 </div>

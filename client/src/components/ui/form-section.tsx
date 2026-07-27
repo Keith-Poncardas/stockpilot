@@ -1,5 +1,15 @@
 import * as React from "react"
+import { Link } from "react-router-dom"
 import { cn } from "@/lib/utils"
+
+interface FormSectionLink {
+  /** Internal route — renders a React Router <Link> */
+  to?: string;
+  /** External URL — renders a plain <a> with target="_blank" */
+  href?: string;
+  /** Link label. Defaults to "View details →" */
+  linkText?: string;
+}
 
 interface FormSectionProps extends React.ComponentProps<"section"> {
   title: string;
@@ -7,6 +17,8 @@ interface FormSectionProps extends React.ComponentProps<"section"> {
   icon: React.ReactNode;
   iconWrapperClassName?: string;
   children: React.ReactNode;
+  /** Optional link rendered at the trailing end of the header row */
+  link?: FormSectionLink;
 }
 
 export function FormSection({
@@ -16,8 +28,29 @@ export function FormSection({
   iconWrapperClassName = "bg-blue-50 text-blue-600",
   children,
   className,
+  link,
   ...props
 }: FormSectionProps) {
+  const linkLabel = link?.linkText ?? "View details →";
+
+  const linkElement = link?.to ? (
+    <Link
+      to={link.to}
+      className="ml-auto shrink-0 text-xs font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+    >
+      {linkLabel}
+    </Link>
+  ) : link?.href ? (
+    <a
+      href={link.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="ml-auto shrink-0 text-xs font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+    >
+      {linkLabel}
+    </a>
+  ) : null;
+
   return (
     <section className={cn("bg-white rounded-2xl border border-[#E3E1DC]", className)} {...props}>
         <div className="flex items-center gap-3 px-5 sm:px-6 pt-5 sm:pt-6 pb-4">
@@ -32,6 +65,7 @@ export function FormSection({
                     </p>
                 )}
             </div>
+            {linkElement}
         </div>
         <div className="px-5 sm:px-6 pb-6">
             {children}

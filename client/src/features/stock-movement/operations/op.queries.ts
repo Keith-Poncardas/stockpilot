@@ -11,8 +11,8 @@ export const GET_ALL_STOCK_MOVEMENTS = gql`
                 quantity
                 reference
                 notes
+                reason
                 createdAt
-                deletedAt
                 product {
                     id
                     sku
@@ -46,6 +46,44 @@ export const GET_STOCK_MOVEMENT_DASHBOARD_METRICS = gql`
             totalStockOut
             totalStockAdjustments
             lowStockProducts
+        }
+    }
+`;
+
+export const GET_STOCK_MOVEMENT = gql`
+    query GetStockMovement($id: ID!) {
+        getStockMovement(id: $id) {
+            id
+            productId
+            userId
+            type
+            quantity
+            reference
+            notes
+            reason
+            createdAt
+            product {
+                id
+                sku
+                name
+                costPrice
+                unitPrice
+                status
+                inventoryStatus {
+                    id
+                    quantityOnHand
+                    reorderLevel
+                    maxStock
+                    lastRestockDate
+                    estimatedDaysOfStock
+                }
+            }
+            user {
+                id
+                firstName
+                lastName
+                role
+            }
         }
     }
 `;

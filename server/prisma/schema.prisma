@@ -42,6 +42,17 @@ enum MovementType {
     ADJUSTMENT
 }
 
+enum MovementReason {
+    SALE
+    PURCHASE
+    ADJUSTMENT
+    RETURN
+    DAMAGE
+    EXPIRED
+    TRANSFER
+    INITIAL_STOCK
+}
+
 enum SaleStatus {
     PENDING
     COMPLETED
@@ -189,15 +200,16 @@ model SaleItem {
 }
 
 model StockMovement {
-    id        String       @id @default(uuid()) @db.Uuid
-    productId String       @map("product_id") @db.Uuid
-    userId    String       @map("user_id") @db.Uuid
+    id        String         @id @default(uuid()) @db.Uuid
+    productId String         @map("product_id") @db.Uuid
+    userId    String         @map("user_id") @db.Uuid
     type      MovementType
     quantity  Int
-    reference String?      @db.VarChar
-    notes     String?      @db.Text
-    createdAt DateTime     @default(now()) @map("created_at") @db.Timestamp(6)
-    deletedAt DateTime?    @map("deleted_at") @db.Timestamp(6)
+    reference String?        @db.VarChar
+    notes     String?        @db.Text
+    createdAt DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
+    deletedAt DateTime?      @map("deleted_at") @db.Timestamp(6)
+    reason    MovementReason @default(INITIAL_STOCK)
 
     product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
     user    User    @relation(fields: [userId], references: [id], onDelete: Restrict)

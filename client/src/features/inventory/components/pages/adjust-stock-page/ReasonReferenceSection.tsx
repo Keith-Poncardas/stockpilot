@@ -6,22 +6,17 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { DatePicker } from "@/components/ui/date-picker";
 import type { AdjustStockFormValues } from "./types";
 import { SelectFilter } from "@/components/ui/select-filter";
+import { AVAILABLE_REASONS } from "@/constants";
 
 interface ReasonOption {
     value: NonNullable<AdjustStockFormValues["reason"]>;
     label: string;
 }
 
-const REASON_OPTIONS: ReasonOption[] = [
-    { value: "damaged", label: "Damaged / Defective" },
-    { value: "expired", label: "Expired" },
-    { value: "lost", label: "Lost / Theft" },
-    { value: "recount", label: "Stock Recount / Audit" },
-    { value: "received", label: "Received Shipment" },
-    { value: "customer_return", label: "Customer Return" },
-    { value: "supplier_return", label: "Return to Supplier" },
-    { value: "other", label: "Other" },
-];
+const REASON_OPTIONS: ReasonOption[] = AVAILABLE_REASONS.map((reason) => ({
+    value: reason.a as NonNullable<AdjustStockFormValues["reason"]>,
+    label: reason.b
+}));
 
 export interface ReasonReferenceSectionProps {
     control: Control<AdjustStockFormValues>;
@@ -40,7 +35,7 @@ export function ReasonReferenceSection({ control }: ReasonReferenceSectionProps)
                 name="reason"
                 control={control}
                 rules={{ required: "Select a reason" }}
-                defaultValue="damaged"
+                defaultValue={undefined}
                 render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                         {/* Label row: left label + inline error */}

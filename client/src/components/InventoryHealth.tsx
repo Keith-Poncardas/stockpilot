@@ -134,7 +134,7 @@ export function InventoryHealth({ data, showDetails, className }: InventoryHealt
     )
 }
 
-InventoryHealth.Skeleton = function InventoryHealthSkeleton({ showDetails = true, className }: { showDetails?: boolean; className?: string }) {
+InventoryHealth.skeleton = function InventoryHealthSkeleton({ showDetails = true, className }: { showDetails?: boolean; className?: string }) {
     return (
         <section className={cn("bg-white rounded-2xl border border-[#E3E1DC] p-5 sm:p-6", className)}>
             <div className="h-6 w-40 bg-[#F0EFEA] animate-pulse rounded-md mb-4" />

@@ -1,16 +1,8 @@
-// ─── Shared types for the Adjust Stock feature ──────────────────────────────
+import type { StockMovementReason } from "@/constants";
 
 export type AdjustmentType = "increase" | "decrease" | "set";
 
-export type AdjustmentReason =
-    | "damaged"
-    | "expired"
-    | "lost"
-    | "recount"
-    | "received"
-    | "customer_return"
-    | "supplier_return"
-    | "other";
+export type AdjustmentReason = StockMovementReason;
 
 export interface AdjustStockFormValues {
     adjustmentType: AdjustmentType;

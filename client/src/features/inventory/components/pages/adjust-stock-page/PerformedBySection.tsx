@@ -1,6 +1,6 @@
 import { User } from "lucide-react";
 import { FormSection } from "@/components/ui/form-section";
-import { UserAvatar } from "@/components/UserAvatar";
+import { UserIdentityRow } from "@/components/UserIdentityRow";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -29,13 +29,6 @@ export function PerformedBySection({
     timestampId = "performed-at-text",
     performedAt = new Date(),
 }: PerformedBySectionProps) {
-    const formattedDate = performedAt.toLocaleString(undefined, {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-    });
 
     return (
         <FormSection
@@ -44,24 +37,14 @@ export function PerformedBySection({
             iconWrapperClassName="bg-indigo-50 text-indigo-600"
         >
             {/* User identity row */}
-            <div className="mt-2 flex items-center gap-3">
-                <UserAvatar
-                    fallback={fallback ?? name}
-                    src={avatarSrc}
-                    role={avatarRole}
-                    size="lg"
-                />
-                <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-slate-900">{name}</p>
-                    {avatarRole && (
-                        <p className="truncate text-xs text-slate-500">{avatarRole.replace("_", " ")}</p>
-                    )}
-                    <p className="truncate mt-0.5 text-xs text-slate-400">{formattedDate}</p>
-                    {timestampId && (
-                        <p id={timestampId} className="sr-only" aria-live="polite" />
-                    )}
-                </div>
-            </div>
+            <UserIdentityRow
+                name={name}
+                fallback={fallback}
+                avatarSrc={avatarSrc}
+                role={avatarRole}
+                performedAt={performedAt}
+                timestampId={timestampId}
+            />
 
             {/* Audit notice
             <Alert variant="info" className="mt-4 mb-0 text-xs">

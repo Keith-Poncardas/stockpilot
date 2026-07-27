@@ -5,6 +5,7 @@ import type { IStockMovement } from "./stock-movement.types";
 import { MovementIcon } from "@/components/ui/stock-movement-ledger";
 import { UserInfoCell } from "@/components/UserInfoCell";
 import { ActionCellContent } from "@/features/user/components/cells/ActionCellContent";
+import { ActionsCell } from "./components/cells/ActionsCell";
 
 export function getMovementTypeColor(type: string): string {
     switch (type) {
@@ -14,6 +15,29 @@ export function getMovementTypeColor(type: string): string {
             return "bg-rose-50 text-rose-700";
         case "ADJUSTMENT":
             return "bg-amber-50 text-amber-700";
+        default:
+            return "bg-gray-100 text-gray-500";
+    }
+}
+
+export function getMovementReasonColor(reason: string): string {
+    switch (reason) {
+        case "SALE":
+            return "bg-blue-50 text-blue-700";
+        case "PURCHASE":
+            return "bg-emerald-50 text-emerald-700";
+        case "ADJUSTMENT":
+            return "bg-amber-50 text-amber-700";
+        case "RETURN":
+            return "bg-purple-50 text-purple-700";
+        case "DAMAGE":
+            return "bg-red-50 text-red-700";
+        case "EXPIRED":
+            return "bg-rose-50 text-rose-700";
+        case "TRANSFER":
+            return "bg-indigo-50 text-indigo-700";
+        case "INITIAL_STOCK":
+            return "bg-teal-50 text-teal-700";
         default:
             return "bg-gray-100 text-gray-500";
     }
@@ -127,6 +151,27 @@ export const columns: ColumnDef<IStockMovement>[] = [
         size: 140,
     },
     {
+        accessorKey: "reason",
+        header: () => <div className="text-center">Reason</div>,
+        meta: {
+            cellClassName: (row: IStockMovement) => {
+                return cn(
+                    "p-0 text-center text-xs font-semibold tracking-wide h-[1px]",
+                    getMovementReasonColor(row.reason)
+                );
+            },
+        },
+        cell: ({ row }) => (
+            <ActionCellContent
+                label={row.original.reason?.replace('_', ' ')}
+                approvalStatus=""
+                isLocked={false}
+                withBorder={false}
+            />
+        ),
+        size: 140,
+    },
+    {
         accessorKey: "user",
         id: "user",
         header: "Recorded By",
@@ -140,6 +185,14 @@ export const columns: ColumnDef<IStockMovement>[] = [
             <span className="text-sm text-gray-400">
                 {formatDate(row.original.createdAt)}
             </span>
+        ),
+        size: 140,
+    },
+    {
+        accessorKey: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+            <ActionsCell row={row} />
         ),
         size: 140,
     },

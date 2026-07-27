@@ -1,23 +1,21 @@
 import { ActionCell } from "@/components/ui/action-cell"
 import { PopoverClose } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
-import { Eye, SquarePen } from "lucide-react"
-import type { ProductRowInfoCellProps } from "../../product.types"
+import { Eye } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-import { ProductStatus } from "../../product.constants"
+import type { Row } from "@tanstack/react-table"
+import type { IStockMovement } from "../../stock-movement.types"
 
-export function ActionsCell({ row }: ProductRowInfoCellProps) {
+interface ActionsCellProps {
+    row: Row<IStockMovement>;
+}
+
+export function ActionsCell({ row }: ActionsCellProps) {
     const navigate = useNavigate();
 
     function handleViewClick() {
-        navigate(`/products/${row.original.id}/view`);
+        navigate(`/stock-movement/${row.original.id}/view`);
     }
-
-    function handleEditClick() {
-        navigate(`/products/${row.original.id}/edit`);
-    }
-
-    const isNotEditable = row.original.status === ProductStatus.DISCONTINUED.a;
 
     return (
         <div className="flex justify-center">
@@ -26,13 +24,7 @@ export function ActionsCell({ row }: ProductRowInfoCellProps) {
                     <PopoverClose asChild>
                         <Button onClick={handleViewClick} variant="ghost" className="w-full justify-start px-2.5 py-2 h-auto text-xs font-semibold tracking-wide text-gray-700 uppercase">
                             <Eye size={15} strokeWidth={2.2} className="text-gray-500 mr-1" />
-                            Details
-                        </Button>
-                    </PopoverClose>
-                    <PopoverClose asChild>
-                        <Button onClick={handleEditClick} variant="ghost" className="w-full justify-start px-2.5 py-2 h-auto text-xs font-semibold tracking-wide text-gray-700 uppercase" disabled={isNotEditable}>
-                            <SquarePen size={15} strokeWidth={2.2} className="text-gray-500 mr-1" />
-                            Edit
+                            SM Details
                         </Button>
                     </PopoverClose>
                 </div>

@@ -1,10 +1,11 @@
 import { prisma } from "@/lib";
-import { buildSearchQuery, createPaginator, throwConflict, throwNotFound } from "@/utils";
+import { buildSearchQuery, createPaginator, throwNotFound } from "@/utils";
 import { MovementType, Prisma } from "@prisma/client";
 import {
     PaginatedStockMovementsInput,
     paginatedStockMovementsSchema,
 } from "./stockMovements.validation";
+import { productService } from "../product/product.service";
 
 export class StockMovementsService {
 
@@ -84,6 +85,9 @@ export class StockMovementsService {
                             id: true,
                             name: true,
                             sku: true,
+                            costPrice: true,
+                            unitPrice: true,
+                            status: true,
                         },
                     },
                     user: {
@@ -114,6 +118,55 @@ export class StockMovementsService {
     }
 
     /**
+     * Get a single stock movement record by its UUID.
+     * Throws a 404 NOT_FOUND error if the record does not exist.
+     */
+    async getStockMovement(id: string) {
+
+        const movement = await prisma.stockMovement.findUnique({
+            where: { id },
+            include: {
+                product: {
+                    select: {
+                        id: true,
+                        name: true,
+                        sku: true,
+                        costPrice: true,
+                        unitPrice: true,
+                        status: true,
+                    },
+                },
+                user: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        role: true,
+                    },
+                },
+            },
+        });
+
+        if (!movement) throwNotFound('Stock movement not found');
+
+        const inventoryStatus = await productService.inventoryStatus(movement.productId);
+
+        // Serialize Prisma Decimal → number | null for GraphQL
+        return {
+            ...movement,
+            product: {
+                ...movement!.product,
+                costPrice: movement!.product.costPrice
+                    ? Number(movement!.product.costPrice)
+                    : null,
+                unitPrice: Number(movement!.product.unitPrice),
+                inventoryStatus,
+            },
+        };
+
+    }
+
+    /**
      * Get dashboard-level stock movement metrics in a single round-trip.
      *
      * Metrics returned:
@@ -124,7 +177,12 @@ export class StockMovementsService {
      */
     async getStockMovementDashboardMetrics() {
 
-        const [stockIn, stockOut, stockAdjustments, lowStockProducts] = await Promise.all([
+        const [
+            stockIn,
+            stockOut,
+            stockAdjustments,
+            lowStockProducts
+        ] = await Promise.all([
 
             prisma.stockMovement.aggregate({
                 where: { type: MovementType.IN },

@@ -1,4 +1,4 @@
-import { MovementType } from "@prisma/client";
+import { MovementReason, MovementType } from "@prisma/client";
 import z from "zod";
 import { inventoryIdSchema, orderDirectionLowerSchema, paginationSchema, searchSchema, uuidSchema } from "@/schemas";
 import { InventoryOrderBy, OrderDirectionLower, StockStatus } from "@/enums";
@@ -73,17 +73,8 @@ export const adjustStockSchema = z.object({
         .int()
         .nonnegative("Max stock must be non-negative"),
     reason: z
-        .enum([
-            "damaged",
-            "expired",
-            "lost",
-            "recount",
-            "received",
-            "customer_return",
-            "supplier_return",
-            "other",
-        ])
-        .optional(),
+        .enum(MovementReason)
+        .default(MovementReason.ADJUSTMENT),
     notes: z
         .string()
         .trim()

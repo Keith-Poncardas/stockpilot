@@ -28,6 +28,16 @@ export const stockMovementsResolver = {
             return stockMovementsService.getStockMovementDashboardMetrics();
         },
 
+        /**
+         * Get a single stock movement record by its ID
+         */
+        getStockMovement: async (
+            _: unknown,
+            { id }: { id: string },
+        ) => {
+            return stockMovementsService.getStockMovement(id);
+        },
+
     }),
 
     // Mutation: protectResolvers({

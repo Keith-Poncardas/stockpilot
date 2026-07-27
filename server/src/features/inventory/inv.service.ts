@@ -106,7 +106,7 @@ export class InventoryService {
             ...(search && {
                 OR: [
                     { name: { contains: search, mode: 'insensitive' as const } },
-                    { sku:  { contains: search, mode: 'insensitive' as const } },
+                    { sku: { contains: search, mode: 'insensitive' as const } },
                 ],
             }),
         };
@@ -291,12 +291,8 @@ export class InventoryService {
             notes
         } = adjustStockSchema.parse(input);
 
-        /** Compose audit-log notes: prepend [reason] if provided */
-        const movementNotes = reason
-            ? notes
-                ? `[${reason}] ${notes}`
-                : `[${reason}]`
-            : notes;
+        /** Notes stay as free-text; reason is stored in its own column */
+        const movementNotes = notes ?? undefined;
 
         const inventory = await prisma.$transaction(async (tx) => {
 
@@ -344,6 +340,7 @@ export class InventoryService {
                     userId: userId,
                     type: movementType,
                     quantity,
+                    reason,
                     reference: finalReference,
                     notes: movementNotes,
                 },
