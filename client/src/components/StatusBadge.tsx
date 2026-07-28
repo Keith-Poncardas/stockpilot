@@ -38,6 +38,16 @@ const BADGE_TOKENS: Record<string, BadgeToken> = {
     CASHIER:      { pill: 'bg-teal-500/15 text-teal-400 border-teal-500/20',          dot: 'bg-teal-400' },
     UNASSIGNED:   { pill: 'bg-amber-500/15 text-amber-400 border-amber-500/25',       dot: 'bg-amber-400' },
 
+    // ── Sales ──────────────────────────────────────────────────────────────────
+    COMPLETED:    { pill: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25', dot: 'bg-emerald-400' },
+    REFUNDED:     { pill: 'bg-sky-500/15 text-sky-400 border-sky-500/20',             dot: 'bg-sky-400' },
+    VOIDED:       { pill: 'bg-gray-500/15 text-gray-400 border-gray-500/20',          dot: 'bg-gray-400' },
+    CANCELLED:    { pill: 'bg-red-500/15 text-red-400 border-red-500/20',             dot: 'bg-red-400' },
+
+    // ── Entity / profile ───────────────────────────────────────────────────────
+    CUSTOMER:     { pill: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30', dot: 'bg-emerald-500' },
+    USER:         { pill: 'bg-blue-500/15 text-blue-600 border-blue-500/30',          dot: 'bg-blue-500' },
+
     // ── Fallback ───────────────────────────────────────────────────────────────
     DEFAULT:      { pill: 'bg-gray-500/15 text-gray-400 border-gray-500/20',          dot: 'bg-gray-400' },
 }
@@ -60,6 +70,7 @@ export type BadgeVariant =
     | 'SUSPENDED' | 'TERMINATED'
     | 'PENDING' | 'APPROVED' | 'REJECTED'
     | 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'CASHIER' | 'UNASSIGNED'
+    | 'CUSTOMER' | 'USER'
     | (string & {})
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -73,6 +84,8 @@ export interface StatusBadgeProps {
     size?: BadgeSize
     /** Show the coloured dot indicator. @default true */
     withDot?: boolean
+    /** Optional icon to render inside the badge instead of or alongside the dot */
+    icon?: React.ReactNode
     /** Extra classes applied to the outer pill element. */
     className?: string
 }
@@ -91,6 +104,7 @@ export function StatusBadge({
     label,
     size = 'md',
     withDot = true,
+    icon,
     className,
 }: StatusBadgeProps) {
     const key = (value ?? '').toUpperCase()
@@ -107,7 +121,8 @@ export function StatusBadge({
                 className,
             )}
         >
-            {withDot && (
+            {icon && <span className="shrink-0">{icon}</span>}
+            {withDot && !icon && (
                 <span className={cn('rounded-full shrink-0', sz.dot, token.dot)} />
             )}
             {displayLabel}

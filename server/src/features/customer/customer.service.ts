@@ -1,43 +1,230 @@
 import { prisma } from "@/lib";
-import { createPaginator, PaginationInput } from "@/utils";
+import { buildSearchQuery, createPaginator, getCurrentMonthMetrics, throwNotFound, throwConflict } from "@/utils";
+import { Prisma } from "@prisma/client";
+import { customerId } from "@/schemas";
+import {
+    GetCustomerInput,
+    getCustomerSchema,
+    PaginatedCustomersInput,
+    paginatedCustomersSchema,
+    CreateCustomerInput,
+    createCustomerSchema,
+} from "./customer.validation";
 
 export class CustomerService {
 
-    /** Get Customer by ID */
-    async getCustomer(id: string) {
+    /**
+     * Get a paginated list of customers with computed aggregates.
+     *
+     * Computed per customer (from Sales relation):
+     *   - totalOrders  = COUNT(sales)
+     *   - totalSpent   = SUM(sales.totalAmount)
+     *   - lastPurchase = MAX(sales.saleDate)
+     */
+    async getCustomers(args: PaginatedCustomersInput) {
 
-        const [customer, totalTransaction, totalSpent] = await Promise.all([
+        const { limit, page, filter } = paginatedCustomersSchema.parse(args);
+        const { params, buildMeta } = createPaginator({ limit, page });
 
-            /** Get the customer */
-            prisma.customer.findUnique({
-                where: { id }
+        const { search, dateFrom, dateTo, orderBy, orderDirection } = filter;
+
+        const where: Prisma.CustomerWhereInput = {
+
+            /** Filtering by search (name, phone, email) */
+            ...(search && buildSearchQuery(search, ['firstName', 'lastName', 'phone', 'email'])),
+
+            /** Filtering by createdAt date range */
+            ...((dateFrom || dateTo) && {
+                createdAt: {
+                    ...(dateFrom && { gte: dateFrom }),
+                    ...(dateTo  && { lte: dateTo  }),
+                },
             }),
 
-            /** Get the total transaction */
-            prisma.sale.count({
-                where: { customerId: id }
+        };
+
+        const [customers, total, salesAggregates] = await Promise.all([
+
+            prisma.customer.findMany({
+                where,
+                skip: params.skip,
+                take: params.limit,
+                orderBy: { [orderBy]: orderDirection },
             }),
 
-            /** Total spent of a customer */
+            prisma.customer.count({ where }),
+
+            /**
+             * Compute totalOrders, totalSpent, lastPurchase for all customers
+             * on the current page in a single groupBy query.
+             */
+            prisma.sale.groupBy({
+                by: ['customerId'],
+                _count: { id: true },
+                _sum:   { totalAmount: true },
+                _max:   { saleDate: true },
+            }),
+
+        ]);
+
+        /** Build a lookup map: customerId → aggregated sales data */
+        const salesMap = new Map(
+            salesAggregates.map((agg) => [
+                agg.customerId,
+                {
+                    totalOrders: agg._count.id,
+                    totalSpent:  Number(agg._sum.totalAmount ?? 0),
+                    lastPurchase: agg._max.saleDate?.toISOString() ?? null,
+                },
+            ])
+        );
+
+        const data = customers.map((customer) => {
+            const agg = salesMap.get(customer.id);
+            return {
+                ...customer,
+                totalOrders:  agg?.totalOrders  ?? 0,
+                totalSpent:   agg?.totalSpent   ?? 0,
+                lastPurchase: agg?.lastPurchase ?? null,
+            };
+        });
+
+        return {
+            data,
+            meta: buildMeta(total),
+        };
+
+    }
+
+    /**
+     * Get full customer details by ID, including:
+     *   - Personal & address info
+     *   - Purchase summary (computed from Sales)
+     *   - Recent purchases (last 5 sales)
+     */
+    async getCustomer(input: GetCustomerInput) {
+
+        const { id } = getCustomerSchema.parse(input);
+
+        const [customer, salesAgg, recentSales] = await Promise.all([
+
+            prisma.customer.findUnique({ where: { id } }),
+
+            /** Compute purchase summary */
             prisma.sale.aggregate({
                 where: { customerId: id },
-                _sum: {
-                    totalAmount: true
-                }
-            })
+                _count: { id: true },
+                _sum:   { totalAmount: true },
+                _max:   { saleDate: true },
+                _min:   { saleDate: true },
+            }),
+
+            /** All customer sales */
+            prisma.sale.findMany({
+                where: { customerId: id },
+                orderBy: { saleDate: 'desc' },
+                select: {
+                    id: true,
+                    totalAmount: true,
+                    status: true,
+                    saleDate: true,
+                    paymentMethod: true,
+                },
+            }),
+
+        ]);
+
+        if (!customer) throwNotFound('Customer not found');
+
+        const totalOrders  = salesAgg._count.id;
+        const totalSpent   = Number(salesAgg._sum.totalAmount ?? 0);
+        const lastPurchase = salesAgg._max.saleDate?.toISOString() ?? null;
+        const firstPurchase = salesAgg._min.saleDate?.toISOString() ?? null;
+        const averageOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
+
+        const salesList = recentSales.map((s) => ({
+            id: s.id,
+            totalAmount: Number(s.totalAmount),
+            status: s.status,
+            saleDate: s.saleDate.toISOString(),
+            paymentMethod: s.paymentMethod ?? null,
+        }));
+
+        return {
+            ...customer,
+            totalOrders,
+            totalSpent,
+            averageOrderValue,
+            firstPurchase,
+            lastPurchase,
+            purchaseSummary: {
+                totalOrders,
+                totalSpent,
+                averageOrderValue,
+                firstPurchase,
+                lastPurchase,
+            },
+            recentSales: salesList.slice(0, 5),
+            sales: salesList,
+        };
+
+    }
+
+    /**
+     * Dashboard metric cards:
+     *   1. totalCustomers   – COUNT all customers
+     *   2. newCustomers     – COUNT customers created this month
+     *   3. totalRevenue     – SUM of all sales.totalAmount
+     *   4. returningCustomers – COUNT customers with more than 1 sale
+     */
+    async getCustomerMetrics() {
+
+        const { startOfMonth } = getCurrentMonthMetrics();
+
+        const [
+            totalCustomers,
+            newCustomers,
+            revenueAgg,
+            returningCustomers,
+        ] = await Promise.all([
+
+            prisma.customer.count(),
+
+            prisma.customer.count({
+                where: { createdAt: { gte: startOfMonth } },
+            }),
+
+            prisma.sale.aggregate({
+                _sum: { totalAmount: true },
+            }),
+
+            /**
+             * Count customers that appear in > 1 sale.
+             * Prisma groupBy + having emulates: COUNT(sales) > 1
+             */
+            prisma.sale.groupBy({
+                by: ['customerId'],
+                having: {
+                    customerId: {
+                        _count: { gt: 1 },
+                    },
+                },
+                _count: { customerId: true },
+            }).then((rows) => rows.length),
 
         ]);
 
         return {
-            customer,
-            totalTransaction,
-            totalSpent: totalSpent._sum.totalAmount
-        }
+            totalCustomers,
+            newCustomers,
+            totalRevenue: Number(revenueAgg._sum.totalAmount ?? 0),
+            returningCustomers,
+        };
 
     }
 
-    /** Get paginated purchase history for a customer, including sale items */
-    async customerPurchaseHistory(customerId: string, pagination?: PaginationInput) {
+    /** Get paginated purchase history for a customer (legacy / internal) */
+    async customerPurchaseHistory(customerId: string, pagination?: { page?: number; limit?: number }) {
 
         const { params, buildMeta } = createPaginator(pagination);
 
@@ -47,23 +234,52 @@ export class CustomerService {
                 where: { customerId },
                 include: {
                     saleItems: {
-                        include: {
-                            product: true
-                        }
-                    }
+                        include: { product: true },
+                    },
                 },
                 orderBy: { createdAt: 'desc' },
                 skip: params.skip,
                 take: params.limit,
             }),
 
-            prisma.sale.count({ where: { customerId } })
+            prisma.sale.count({ where: { customerId } }),
 
         ]);
 
         return {
             data: sales,
-            meta: buildMeta(total)
+            meta: buildMeta(total),
+        };
+
+    }
+
+    /**
+     * Create a new customer.
+     * Guards against duplicate phone and email.
+     */
+    async createCustomer(input: CreateCustomerInput) {
+
+        const data = createCustomerSchema.parse(input);
+
+        /** Guard: phone uniqueness */
+        if (data.phone) {
+            const existing = await prisma.customer.findUnique({ where: { phone: data.phone } });
+            if (existing) throwConflict('A customer with this phone number already exists.');
+        }
+
+        /** Guard: email uniqueness */
+        if (data.email) {
+            const existing = await prisma.customer.findUnique({ where: { email: data.email } });
+            if (existing) throwConflict('A customer with this email address already exists.');
+        }
+
+        const customer = await prisma.customer.create({ data });
+
+        return {
+            ...customer,
+            totalOrders: 0,
+            totalSpent: 0,
+            lastPurchase: null,
         };
 
     }

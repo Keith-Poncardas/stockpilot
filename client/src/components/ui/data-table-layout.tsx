@@ -4,6 +4,7 @@ import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ServerCrash } from 'lucide-react'
 import type { Table } from '@tanstack/react-table'
+import { cn } from '@/lib/utils'
 
 interface DataTableLayoutProps<TData> {
     table: Table<TData>
@@ -12,6 +13,7 @@ interface DataTableLayoutProps<TData> {
     isEmpty?: boolean
     emptyState?: React.ReactNode
     errorState?: React.ReactNode
+    className?: string
 }
 
 export function DataTableLayout<TData>({
@@ -20,10 +22,11 @@ export function DataTableLayout<TData>({
     error,
     isEmpty,
     emptyState = <EmptyState />,
-    errorState = <EmptyState title='Something went wrong' description="Failed to load data" icon={ServerCrash} />
+    errorState = <EmptyState title='Something went wrong' description="Failed to load data" icon={ServerCrash} />,
+    className,
 }: DataTableLayoutProps<TData>) {
     return (
-        <div className='bg-white rounded-2xl border border-[#E3E1DC] overflow-hidden'>
+        <div className={cn('bg-white rounded-2xl border border-[#E3E1DC] overflow-hidden', className)}>
             {!error && !isEmpty && <DataTable table={table} isLoading={isLoading} />}
 
             {isEmpty && emptyState}

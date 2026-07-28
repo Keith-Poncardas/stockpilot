@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Details – Maria Clara Santos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-50 min-h-screen font-sans antialiased text-slate-900">
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-2 text-sm text-slate-500 mb-6">
+            <a href="#" class="inline-flex items-center gap-1 hover:text-slate-700 transition-colors">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+                Customers
+            </a>
+            <span class="text-slate-300">/</span>
+            <span class="text-slate-700 font-medium">Maria Clara Santos</span>
+        </div>
+
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 mb-8">
+            <div class="flex items-center gap-4">
+                <div
+                    class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-lg font-semibold text-indigo-700">
+                    MS
+                </div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Maria Clara Santos</h1>
+                    <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-slate-500">
+                        <span class="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-500">ID:
+                            c9f1a3e2</span>
+                        <span class="inline-flex items-center gap-1">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M6.75 3v2.25M17.25 3v2.25M3.75 8.25h16.5M4.5 6h15a.75.75 0 01.75.75v12a.75.75 0 01-.75.75h-15a.75.75 0 01-.75-.75v-12A.75.75 0 014.5 6z" />
+                            </svg>
+                            Customer since Jan 15, 2024
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                        <path d="M15 6.75L17.25 9" />
+                    </svg>
+                    Edit Customer
+                </button>
+                <button
+                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Record Sale
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex items-center gap-2 text-slate-500">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M21 12a2.25 2.25 0 00-2.25-2.25H15a1.5 1.5 0 000 3h.75M21 12v3.75A2.25 2.25 0 0118.75 18H5.25A2.25 2.25 0 013 15.75V8.25A2.25 2.25 0 015.25 6h13.5A2.25 2.25 0 0121 8.25V12z" />
+                    </svg>
+                    <span class="text-sm font-medium">Total Spent</span>
+                </div>
+                <p class="mt-2 text-2xl font-bold text-slate-900">₱6,175.00</p>
+                <p class="mt-1 text-xs text-slate-400">4 completed orders</p>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex items-center gap-2 text-slate-500">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M6 6.75V5.25a3 3 0 013-3h.75a3 3 0 013 3v1.5M4.5 6.75h12l-.75 12.75a1.5 1.5 0 01-1.497 1.5H6.747a1.5 1.5 0 01-1.497-1.5L4.5 6.75z" />
+                    </svg>
+                    <span class="text-sm font-medium">Total Orders</span>
+                </div>
+                <p class="mt-2 text-2xl font-bold text-slate-900">6</p>
+                <p class="mt-1 text-xs text-slate-400">Since Jan 2024</p>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex items-center gap-2 text-slate-500">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 3v18h18M8 17V9m4 8V5m4 12v-6" />
+                    </svg>
+                    <span class="text-sm font-medium">Avg. Order Value</span>
+                </div>
+                <p class="mt-2 text-2xl font-bold text-slate-900">₱1,543.75</p>
+                <p class="mt-1 text-xs text-slate-400">Per completed order</p>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex items-center gap-2 text-slate-500">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 3" />
+                    </svg>
+                    <span class="text-sm font-medium">Last Purchase</span>
+                </div>
+                <p class="mt-2 text-2xl font-bold text-slate-900">Jul 22, 2026</p>
+                <p class="mt-1 text-xs text-slate-400">6 days ago</p>
+            </div>
+        </div>
+
+        <!-- Main grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Left column -->
+            <div class="lg:col-span-1 space-y-6">
+
+                <!-- Contact -->
+                <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <h2 class="text-sm font-semibold text-slate-900 mb-4">Contact Information</h2>
+                    <dl class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="mt-0.5 w-5 h-5 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 002.25-2.25v-1.372a1.5 1.5 0 00-1.164-1.463l-3.63-.907a1.5 1.5 0 00-1.5.44l-1.007 1.007a11.25 11.25 0 01-6.198-6.198l1.007-1.007a1.5 1.5 0 00.44-1.5l-.908-3.63A1.5 1.5 0 007.622 3H6.25a2.25 2.25 0 00-2.25 2.25v1.5z" />
+                            </svg>
+                            <div>
+                                <dt class="text-xs text-slate-400">Phone</dt>
+                                <dd class="text-sm font-medium text-slate-700">+63 917 123 4567</dd>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <svg class="mt-0.5 w-5 h-5 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                            </svg>
+                            <div class="min-w-0">
+                                <dt class="text-xs text-slate-400">Email</dt>
+                                <dd class="text-sm font-medium text-slate-700 truncate">mariaclara.santos@gmail.com</dd>
+                            </div>
+                        </div>
+                    </dl>
+                </div>
+
+                <!-- Address -->
+                <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <h2 class="text-sm font-semibold text-slate-900 mb-4">Address</h2>
+                    <div class="flex items-start gap-3">
+                        <svg class="mt-0.5 w-5 h-5 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                        </svg>
+                        <address class="not-italic text-sm text-slate-700 leading-relaxed">
+                            123 Rizal Street<br>
+                            Brgy. San Isidro<br>
+                            Quezon City, Metro Manila 1100<br>
+                            Philippines
+                        </address>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right column -->
+            <div class="lg:col-span-2">
+                <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 pb-4">
+                        <h2 class="text-sm font-semibold text-slate-900">Order History</h2>
+                        <div id="filter-tabs" class="flex flex-wrap gap-2">
+                            <button data-filter="all"
+                                class="filter-btn rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-white transition-colors">All</button>
+                            <button data-filter="COMPLETED"
+                                class="filter-btn rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors">Completed</button>
+                            <button data-filter="PENDING"
+                                class="filter-btn rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors">Pending</button>
+                            <button data-filter="REFUNDED"
+                                class="filter-btn rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors">Refunded</button>
+                            <button data-filter="VOIDED"
+                                class="filter-btn rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors">Voided</button>
+                        </div>
+                    </div>
+
+                    <!-- Desktop table -->
+                    <div class="hidden md:block overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                                        Order</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                                        Date</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                                        Items</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                                        Payment</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                                        Status</th>
+                                    <th
+                                        class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">
+                                        Total</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+
+                                <tr data-status="COMPLETED" class="hover:bg-slate-50 transition-colors">
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-700">#SL-2041
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">Jul 22, 2026</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">3 items</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">GCash</td>
+                                    <td class="whitespace-nowrap px-6 py-4"><span
+                                            class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20"><span
+                                                class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Completed</span>
+                                    </td>
+                                    <td
+                                        class="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-slate-900">
+                                        ₱2,450.00</td>
+                                </tr>
+
+                                <tr data-status="COMPLETED" class="hover:bg-slate-50 transition-colors">
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-700">#SL-1987
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">Jun 30, 2026</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">1 item</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">Cash</td>
+                                    <td class="whitespace-nowrap px-6 py-4"><span
+                                            class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20"><span
+                                                class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Completed</span>
+                                    </td>
+                                    <td
+                                        class="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-slate-900">
+                                        ₱850.00</td>
+                                </tr>
+
+                                <tr data-status="REFUNDED" class="hover:bg-slate-50 transition-colors">
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-700">#SL-1902
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">Jun 4, 2026</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">5 items</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">Card</td>
+                                    <td class="whitespace-nowrap px-6 py-4"><span
+                                            class="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20"><span
+                                                class="h-1.5 w-1.5 rounded-full bg-sky-500"></span>Refunded</span></td>
+                                    <td
+                                        class="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-slate-900">
+                                        ₱4,120.00</td>
+                                </tr>
+
+                                <tr data-status="COMPLETED" class="hover:bg-slate-50 transition-colors">
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-700">#SL-1844
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">May 18, 2026</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">2 items</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">GCash</td>
+                                    <td class="whitespace-nowrap px-6 py-4"><span
+                                            class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20"><span
+                                                class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Completed</span>
+                                    </td>
+                                    <td
+                                        class="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-slate-900">
+                                        ₱1,275.00</td>
+                                </tr>
+
+                                <tr data-status="VOIDED" class="hover:bg-slate-50 transition-colors">
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-700">#SL-1780
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">Apr 27, 2026</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">4 items</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">Cash</td>
+                                    <td class="whitespace-nowrap px-6 py-4"><span
+                                            class="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-600/10"><span
+                                                class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>Voided</span></td>
+                                    <td
+                                        class="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-slate-900">
+                                        ₱3,300.00</td>
+                                </tr>
+
+                                <tr data-status="COMPLETED" class="hover:bg-slate-50 transition-colors">
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-700">#SL-1699
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">Mar 10, 2026</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">2 items</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">GCash</td>
+                                    <td class="whitespace-nowrap px-6 py-4"><span
+                                            class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20"><span
+                                                class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Completed</span>
+                                    </td>
+                                    <td
+                                        class="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-slate-900">
+                                        ₱1,600.00</td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Mobile cards -->
+                    <div class="md:hidden divide-y divide-slate-100">
+
+                        <div data-status="COMPLETED" class="p-4 flex flex-col gap-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-slate-700">#SL-2041</span>
+                                <span class="text-sm font-semibold text-slate-900">₱2,450.00</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span>Jul 22, 2026 · 3 items · GCash</span>
+                                <span
+                                    class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20"><span
+                                        class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Completed</span>
+                            </div>
+                        </div>
+
+                        <div data-status="COMPLETED" class="p-4 flex flex-col gap-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-slate-700">#SL-1987</span>
+                                <span class="text-sm font-semibold text-slate-900">₱850.00</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span>Jun 30, 2026 · 1 item · Cash</span>
+                                <span
+                                    class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20"><span
+                                        class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Completed</span>
+                            </div>
+                        </div>
+
+                        <div data-status="REFUNDED" class="p-4 flex flex-col gap-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-slate-700">#SL-1902</span>
+                                <span class="text-sm font-semibold text-slate-900">₱4,120.00</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span>Jun 4, 2026 · 5 items · Card</span>
+                                <span
+                                    class="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-2 py-0.5 font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20"><span
+                                        class="h-1.5 w-1.5 rounded-full bg-sky-500"></span>Refunded</span>
+                            </div>
+                        </div>
+
+                        <div data-status="COMPLETED" class="p-4 flex flex-col gap-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-slate-700">#SL-1844</span>
+                                <span class="text-sm font-semibold text-slate-900">₱1,275.00</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span>May 18, 2026 · 2 items · GCash</span>
+                                <span
+                                    class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20"><span
+                                        class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Completed</span>
+                            </div>
+                        </div>
+
+                        <div data-status="VOIDED" class="p-4 flex flex-col gap-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-slate-700">#SL-1780</span>
+                                <span class="text-sm font-semibold text-slate-900">₱3,300.00</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span>Apr 27, 2026 · 4 items · Cash</span>
+                                <span
+                                    class="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2 py-0.5 font-medium text-rose-700 ring-1 ring-inset ring-rose-600/10"><span
+                                        class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>Voided</span>
+                            </div>
+                        </div>
+
+                        <div data-status="COMPLETED" class="p-4 flex flex-col gap-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-slate-700">#SL-1699</span>
+                                <span class="text-sm font-semibold text-slate-900">₱1,600.00</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span>Mar 10, 2026 · 2 items · GCash</span>
+                                <span
+                                    class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20"><span
+                                        class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Completed</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div id="empty-state" class="hidden p-10 text-center">
+                        <p class="text-sm text-slate-500">No orders match this filter.</p>
+                    </div>
+
+                    <div
+                        class="flex items-center justify-between border-t border-slate-200 px-6 py-4 text-sm text-slate-500">
+                        <span id="order-count">Showing 6 of 6 orders</span>
+                        <div class="flex gap-2">
+                            <button disabled
+                                class="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-400 cursor-not-allowed">Previous</button>
+                            <button disabled
+                                class="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-400 cursor-not-allowed">Next</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const rows = document.querySelectorAll('[data-status]');
+        const orderCount = document.getElementById('order-count');
+        const emptyState = document.getElementById('empty-state');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => {
+                    b.classList.remove('bg-slate-900', 'text-white');
+                    b.classList.add('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+                });
+                btn.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+                btn.classList.add('bg-slate-900', 'text-white');
+
+                const filter = btn.dataset.filter;
+                let visible = 0;
+                rows.forEach(row => {
+                    const match = filter === 'all' || row.dataset.status === filter;
+                    row.classList.toggle('hidden', !match);
+                    if (match) visible++;
+                });
+                orderCount.textContent = `Showing ${visible} of 6 orders`;
+                emptyState.classList.toggle('hidden', visible !== 0);
+            });
+        });
+    </script>
+
+</body>
+
+</html>

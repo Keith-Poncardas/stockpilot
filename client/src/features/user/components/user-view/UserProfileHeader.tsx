@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Plus, PenSquare, MoreHorizontal } from 'lucide-react'
 import UserAvatar from '@/components/UserAvatar'
+import { ProfileStamp } from '@/components/ProfileViewLayout'
 import type { IUserDetail } from '../../user.types'
 
 interface UserProfileHeaderProps {
@@ -69,7 +70,10 @@ export function UserProfileHeader({ user, isLoading }: UserProfileHeaderProps) {
 
                 {/* Name and Info */}
                 <div className="flex flex-col items-center md:items-start md:mb-4 text-center md:text-left">
-                    <h1 className="text-3xl font-bold text-gray-900">{`${user?.firstName} ${user?.lastName}`}</h1>
+                    <div className="flex items-center gap-3 flex-wrap justify-center md:justify-start">
+                        <h1 className="text-3xl font-bold text-gray-900">{`${user?.firstName || ''} ${user?.lastName || ''}`.trim()}</h1>
+                        <ProfileStamp stamp="User" />
+                    </div>
                     <p className="text-gray-500 font-medium text-[15px] mt-1">
                         {user?.email}
                     </p>

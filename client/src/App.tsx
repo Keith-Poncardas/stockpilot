@@ -1,6 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { ProtectedRoute, PublicRoute } from './routes'
-import { LoginPage, OTPPage, SignupPage, UserLayout, UserPage, UserViewPage, PendingApprovalPage, ForgotPasswordPage, ChangePasswordPage, AuthLayout, ProductLayout, ProductPage, ProductViewPage, CreateProductPage, EditProductPage, InventoryLayout, InventoryPage, AdjustStockPage, InventoryRecordPage, StockMovementLayout, StockMovementPage, StockMovementDetailsPage } from './features'
+import { LoginPage, OTPPage, SignupPage, UserLayout, UserPage, UserViewPage, PendingApprovalPage, ForgotPasswordPage, ChangePasswordPage, AuthLayout, ProductLayout, ProductPage, ProductViewPage, CreateProductPage, EditProductPage, InventoryLayout, InventoryPage, AdjustStockPage, InventoryRecordPage, StockMovementLayout, StockMovementPage, StockMovementDetailsPage, CustomerLayout, CustomerPage, CustomerViewPage, CreateCustomerPage } from './features'
 import MainLayout from './layout/MainLayout'
 import { EmptyState } from './components/ui/empty-state'
 
@@ -49,6 +49,12 @@ function App() {
           <Route path="/stock-movement" element={<StockMovementLayout />}>
             <Route index element={<StockMovementPage />} />
             <Route path=":stockMovementId/view" element={<StockMovementDetailsPage />} />
+          </Route>
+
+          <Route path="/customers" element={<CustomerLayout />}>
+            <Route index element={<CustomerPage />} />
+            <Route path="new" element={<CreateCustomerPage />} />
+            <Route path=":customerId/view" element={<CustomerViewPage />} />
           </Route>
 
           <Route path="*" element={
