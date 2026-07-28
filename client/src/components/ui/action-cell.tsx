@@ -35,7 +35,7 @@ export function ActionCell({
             <PopoverContent
                 side={side}
                 align={align}
-                className={cn("w-40 p-1.5", contentClassName)}
+                className={cn("w-auto p-1.5", contentClassName)}
             >
                 {children}
             </PopoverContent>

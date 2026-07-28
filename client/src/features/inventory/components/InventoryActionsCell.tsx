@@ -28,7 +28,7 @@ export function InventoryActionsCell({ row }: InventoryRowProps) {
                             className="w-full justify-start px-2.5 py-2 h-auto text-xs font-semibold tracking-wide text-gray-700 uppercase"
                         >
                             <SlidersHorizontal size={15} strokeWidth={2.2} className="text-gray-500 mr-1" />
-                            Adjust
+                            Adjust Stock
                         </Button>
                     </PopoverClose>
                     <PopoverClose asChild>
@@ -38,7 +38,7 @@ export function InventoryActionsCell({ row }: InventoryRowProps) {
                             className="w-full justify-start px-2.5 py-2 h-auto text-xs font-semibold tracking-wide text-gray-700 uppercase"
                         >
                             <Eye size={15} strokeWidth={2.2} className="text-gray-500 mr-1" />
-                            Details
+                            Product Details
                         </Button>
                     </PopoverClose>
                 </div>
