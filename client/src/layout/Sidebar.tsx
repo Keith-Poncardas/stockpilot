@@ -8,6 +8,7 @@ import {
     Warehouse,
     ArrowUpDown,
     Users,
+    MapPin,
 } from 'lucide-react'
 import AppLogo from '@/components/AppLogo'
 import { UserProfileDetails } from '@/components/UserProfileDetails'
@@ -47,6 +48,7 @@ const NAV_SECTIONS: NavSectionConfig[] = [
         items: [
             // { label: 'Sales', icon: <ShoppingCart size={16} />, badge: '12', route: "/sales" },
             { label: 'Customers', icon: <Users size={16} />, route: "/customers" },
+            // { label: 'Sales Heatmap', icon: <MapPin size={16} />, route: "/sales-heatmap" },
         ],
     },
     {

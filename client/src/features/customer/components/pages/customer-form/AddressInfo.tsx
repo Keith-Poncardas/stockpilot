@@ -5,7 +5,8 @@ import { FormField } from '@/components/ui/form-field';
 import { FormSection } from '@/components/ui/form-section';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { SelectFilter } from '@/components/ui/select-filter';
-import { provinces, citiesMunicipalities as cities } from 'ph-locations';
+import { psgc } from 'ph-locations';
+const { provinces, citiesMunicipalities: cities } = psgc;
 
 interface AddressInfoProps {
     control: Control<any>;
