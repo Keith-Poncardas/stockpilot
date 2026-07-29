@@ -94,11 +94,30 @@ export const saleTypeDefs = `#graphql
         dateTo: String
     }
 
+    input CreateSaleItemInput {
+        productId: ID!
+        quantity: Int!
+        unitPrice: Float!
+    }
+
+    input CreateSaleInput {
+        customerId: ID
+        paymentMethod: String!
+        status: SaleStatus
+        items: [CreateSaleItemInput!]!
+    }
+
     # ─── Queries ────────────────────────────────────────────────────────────────
 
     type Query {
         getSales(args: PaginatedSalesInput!): PaginatedSales!
         getSalesMetrics(filter: GetSalesMetricsFilter): SaleMetrics!
+    }
+
+    # ─── Mutations ──────────────────────────────────────────────────────────────
+
+    type Mutation {
+        createSale(input: CreateSaleInput!): SaleListItem!
     }
 
 `;

@@ -8,7 +8,7 @@ import { ProductSearchSection } from "../components/pages/inventory-record-page"
 import { ProductPreview } from "@/components/ProductPreview";
 import { useFetchedProductPreview } from "@/hooks/useProductPreview";
 import { FormSection } from "@/components/ui/form-section";
-import { InventoryQuantityFields } from "@/components/InventoryQuantityFields";
+import { QuantityInputFields } from "@/components";
 import { Package, Plus } from "lucide-react";
 import { InventoryHealth } from "@/components/InventoryHealth";
 import { inventoryRecordSchema, type InventoryRecordFormValues, type InventoryRecordFormInput } from "../validation";
@@ -132,7 +132,7 @@ export function InventoryRecordPage() {
                             icon={<Package className="w-4.5 h-4.5" strokeWidth={2} />}
                             iconWrapperClassName="bg-blue-50 text-blue-600"
                         >
-                            <InventoryQuantityFields control={control} />
+                            <QuantityInputFields control={control} />
                         </FormSection>
 
                     </div>

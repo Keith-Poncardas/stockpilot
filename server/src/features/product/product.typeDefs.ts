@@ -11,6 +11,9 @@ export const productTypeDefs = `#graphql
         status: ProductStatus!
         createdAt: String!
         updatedAt: String!
+        quantityOnHand: Int!
+        reorderLevel: Int!
+        inventory: InventoryStatus
     }
 
     # Product Info Type
@@ -133,6 +136,7 @@ export const productTypeDefs = `#graphql
     input GetProductsInput {
         search: String
         status: ProductStatus
+        stockStatus: String
         minPrice: Float
         maxPrice: Float
         dateFrom: String

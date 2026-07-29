@@ -76,6 +76,12 @@ export const createCustomerSchema = z.object({
     country:      z.string().trim().max(100).default("Philippines"),
 });
 
+export const searchCustomersInfiniteSchema = z.object({
+    search: z.string().trim().optional().default(""),
+    cursor: z.string().trim().optional().nullable(),
+    limit:  z.number().int().min(1).max(50).default(20),
+});
+
 /**
  * TYPE ALIASES
  */
@@ -83,3 +89,4 @@ export type FilterCustomersInput    = z.infer<typeof filterCustomersSchema>;
 export type PaginatedCustomersInput = z.infer<typeof paginatedCustomersSchema>;
 export type GetCustomerInput        = z.infer<typeof getCustomerSchema>;
 export type CreateCustomerInput     = z.infer<typeof createCustomerSchema>;
+export type SearchCustomersInfiniteInput = z.infer<typeof searchCustomersInfiniteSchema>;

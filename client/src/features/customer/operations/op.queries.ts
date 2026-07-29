@@ -47,6 +47,7 @@ export const GET_CUSTOMER = gql`
       country
       totalOrders
       totalSpent
+      customerType
       averageOrderValue
       firstPurchase
       lastPurchase

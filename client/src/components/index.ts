@@ -10,7 +10,7 @@ export * from './Badge';
 export * from './FilterPopover';
 export * from './IconInput';
 export * from './InventoryHealth';
-export * from './InventoryQuantityFields';
+export * from './QuantityInputFields';
 export * from './ProductPreview';
 export * from './UserIdentityRow';
 export * from './UserInfoCell';

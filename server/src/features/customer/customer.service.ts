@@ -1,5 +1,5 @@
 import { prisma } from "@/lib";
-import { buildSearchQuery, createPaginator, getCurrentMonthMetrics, throwNotFound, throwConflict } from "@/utils";
+import { buildSearchQuery, createInfiniteScroller, createPaginator, getCurrentMonthMetrics, throwNotFound, throwConflict } from "@/utils";
 import { Prisma } from "@prisma/client";
 import { customerId } from "@/schemas";
 import {
@@ -9,6 +9,8 @@ import {
     paginatedCustomersSchema,
     CreateCustomerInput,
     createCustomerSchema,
+    SearchCustomersInfiniteInput,
+    searchCustomersInfiniteSchema,
 } from "./customer.validation";
 
 export class CustomerService {
@@ -150,6 +152,8 @@ export class CustomerService {
             paymentMethod: s.paymentMethod ?? null,
         }));
 
+        const customerType = totalSpent > 5000 ? "VIP" : "Regular";
+
         return {
             ...customer,
             totalOrders,
@@ -157,6 +161,7 @@ export class CustomerService {
             averageOrderValue,
             firstPurchase,
             lastPurchase,
+            customerType,
             purchaseSummary: {
                 totalOrders,
                 totalSpent,
@@ -282,6 +287,69 @@ export class CustomerService {
             lastPurchase: null,
         };
 
+    }
+
+    /**
+     * Search customers for POS addition — cursor-based infinite scroll.
+     */
+    async searchCustomers(input: SearchCustomersInfiniteInput) {
+        const { search, cursor, limit } = searchCustomersInfiniteSchema.parse(input);
+        const { params, buildResult } = createInfiniteScroller({ cursor, limit });
+
+        const where: Prisma.CustomerWhereInput = {
+            ...(search && {
+                OR: [
+                    { firstName: { contains: search, mode: 'insensitive' as const } },
+                    { lastName: { contains: search, mode: 'insensitive' as const } },
+                    { phone: { contains: search, mode: 'insensitive' as const } },
+                    { email: { contains: search, mode: 'insensitive' as const } },
+                ],
+            }),
+        };
+
+        const rawCustomers = await prisma.customer.findMany({
+            where,
+            take: params.take + 1,
+            ...(params.cursor && {
+                cursor: { id: params.cursor },
+                skip: 1,
+            }),
+            orderBy: { createdAt: 'desc' },
+        });
+
+        const { data: customers, meta } = buildResult(rawCustomers);
+
+        if (customers.length === 0) {
+            return { data: [], meta };
+        }
+
+        const customerIds = customers.map(c => c.id);
+
+        const salesAggregates = await prisma.sale.groupBy({
+            by: ['customerId'],
+            where: { customerId: { in: customerIds } },
+            _sum: { totalAmount: true },
+        });
+
+        const salesMap = new Map(
+            salesAggregates.map(agg => [agg.customerId, Number(agg._sum.totalAmount ?? 0)])
+        );
+
+        return {
+            data: customers.map(customer => {
+                const totalSpent = salesMap.get(customer.id) ?? 0;
+                const customerType = totalSpent > 5000 ? "VIP" : "Regular";
+                return {
+                    id: customer.id,
+                    firstName: customer.firstName,
+                    lastName: customer.lastName,
+                    phone: customer.phone,
+                    email: customer.email,
+                    customerType,
+                };
+            }),
+            meta,
+        };
     }
 
 }

@@ -55,3 +55,51 @@ export const GET_SALE_METRICS = gql`
     }
   }
 `;
+
+/**
+ * Products list for POS product catalog grid.
+ */
+export const GET_POS_PRODUCTS = gql`
+  query GetPosProducts($args: PaginatedProductsInput!) {
+    getProducts(args: $args) {
+      data {
+        id
+        sku
+        name
+        unitPrice
+        quantityOnHand
+        reorderLevel
+        status
+      }
+      meta {
+        page
+        limit
+        totalItems
+        totalPages
+        hasNextPage
+      }
+    }
+  }
+`;
+
+/**
+ * Customers search for POS customer modal with cursor pagination and VIP info.
+ */
+export const SEARCH_CUSTOMERS = gql`
+  query SearchCustomers($search: String, $cursor: String, $limit: Int) {
+    searchCustomers(search: $search, cursor: $cursor, limit: $limit) {
+      data {
+        id
+        firstName
+        lastName
+        phone
+        email
+        customerType
+      }
+      meta {
+        nextCursor
+        hasNextPage
+      }
+    }
+  }
+`;

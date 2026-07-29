@@ -238,6 +238,7 @@ export class ProductService {
 
         const {
             status,
+            stockStatus,
             search,
             minPrice,
             maxPrice,
@@ -247,10 +248,26 @@ export class ProductService {
             orderDirection
         } = filter;
 
+        let stockStatusWhere: Prisma.ProductWhereInput = {};
+        if (stockStatus === "IN_STOCK") {
+            stockStatusWhere = { inventory: { quantityOnHand: { gt: 10 } } };
+        } else if (stockStatus === "LOW_STOCK") {
+            stockStatusWhere = { inventory: { quantityOnHand: { gt: 0, lte: 10 } } };
+        } else if (stockStatus === "OUT_OF_STOCK") {
+            stockStatusWhere = {
+                OR: [
+                    { inventory: null },
+                    { inventory: { quantityOnHand: { lte: 0 } } },
+                ]
+            };
+        }
+
         const where: Prisma.ProductWhereInput = {
 
             /** Filtering by status */
             ...(status && { status }),
+
+            ...stockStatusWhere,
 
             /** Filtering by search */
             ...(search && buildSearchQuery(search, ['sku', 'name', 'description'])),
@@ -290,7 +307,11 @@ export class ProductService {
         ]);
 
         return {
-            data: products,
+            data: products.map(p => ({
+                ...p,
+                quantityOnHand: p.inventory?.quantityOnHand ?? 0,
+                reorderLevel: p.inventory?.reorderLevel ?? 0,
+            })),
             meta: buildMeta(total),
         };
 

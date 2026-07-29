@@ -1,12 +1,14 @@
 import { prisma } from "@/lib";
-import { buildSearchQuery, createPaginator } from "@/utils";
-import { Prisma, SaleStatus } from "@prisma/client";
+import { buildSearchQuery, createPaginator, throwNotFound, throwConflict } from "@/utils";
+import { Prisma, SaleStatus, MovementType, MovementReason } from "@prisma/client";
 import {
     FilterSalesInput,
     GetSalesMetricsFilter,
     PaginatedSalesInput,
     getSalesMetricsSchema,
     paginatedSalesSchema,
+    CreateSaleInput,
+    createSaleSchema,
 } from "./sale.validation";
 
 export class SaleService {
@@ -197,6 +199,121 @@ export class SaleService {
             refundedOrVoidedCount,
         };
 
+    }
+
+    /**
+     * Create a new sale from POS.
+     * - Validates products exist, are active, and have sufficient stock (if COMPLETED).
+     * - In a transaction:
+     *   - Creates Sale record + nested SaleItem records
+     *   - If COMPLETED:
+     *     - Decrements inventory quantityOnHand for each item
+     *     - Creates StockMovement (type: OUT, reason: SALE) for each item
+     */
+    async createSale(input: CreateSaleInput, userId: string) {
+        const { customerId, paymentMethod, status, items } = createSaleSchema.parse(input);
+
+        if (customerId) {
+            const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+            if (!customer) throwNotFound("Customer not found");
+        }
+
+        for (const item of items) {
+            const product = await prisma.product.findUnique({
+                where: { id: item.productId },
+                include: { inventory: true },
+            });
+
+            if (!product) {
+                throwNotFound(`Product ${item.productId} not found`);
+            }
+            if (product.status === "DISCONTINUED" || product.status === "ARCHIVED") {
+                throwConflict(`Product "${product.name}" is discontinued or archived`);
+            }
+
+            if (status === SaleStatus.COMPLETED) {
+                const available = product.inventory?.quantityOnHand ?? 0;
+                if (item.quantity > available) {
+                    throwConflict(
+                        `Insufficient stock for "${product.name}". Available: ${available}, Requested: ${item.quantity}`
+                    );
+                }
+            }
+        }
+
+        const totalAmount = items.reduce(
+            (sum, item) => sum + item.quantity * item.unitPrice,
+            0
+        );
+
+        const createdSale = await prisma.$transaction(async (tx) => {
+            const sale = await tx.sale.create({
+                data: {
+                    customerId: customerId ?? null,
+                    userId,
+                    paymentMethod,
+                    status,
+                    totalAmount,
+                    saleItems: {
+                        create: items.map((item) => ({
+                            productId: item.productId,
+                            quantity: item.quantity,
+                            unitPrice: item.unitPrice,
+                        })),
+                    },
+                },
+                include: {
+                    customer: {
+                        select: { firstName: true, lastName: true },
+                    },
+                    user: {
+                        select: { firstName: true, lastName: true },
+                    },
+                    _count: {
+                        select: { saleItems: true },
+                    },
+                },
+            });
+
+            if (status === SaleStatus.COMPLETED) {
+                const ref = `SALE-${sale.id.slice(0, 8).toUpperCase()}`;
+                for (const item of items) {
+                    await tx.inventory.updateMany({
+                        where: { productId: item.productId },
+                        data: {
+                            quantityOnHand: {
+                                decrement: item.quantity,
+                            },
+                        },
+                    });
+
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: item.productId,
+                            userId,
+                            type: MovementType.OUT,
+                            quantity: item.quantity,
+                            reason: MovementReason.SALE,
+                            reference: ref,
+                            notes: `Sold in POS sale #${sale.id.slice(0, 8).toUpperCase()}`,
+                        },
+                    });
+                }
+            }
+
+            return sale;
+        });
+
+        return {
+            id: createdSale.id,
+            saleDate: createdSale.saleDate.toISOString(),
+            totalAmount: Number(createdSale.totalAmount),
+            paymentMethod: createdSale.paymentMethod,
+            status: createdSale.status,
+            customer: createdSale.customer,
+            user: createdSale.user,
+            itemCount: createdSale._count.saleItems,
+        };
     }
 
 }

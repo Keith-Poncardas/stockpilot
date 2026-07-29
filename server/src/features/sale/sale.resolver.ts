@@ -29,4 +29,19 @@ export const saleResolver = {
 
     }),
 
+    Mutation: protectResolvers({
+
+        /**
+         * Create a new sale from POS.
+         */
+        createSale: async (
+            _: unknown,
+            { input }: { input: any },
+            context: any
+        ) => {
+            return saleService.createSale(input, context.user!.id);
+        },
+
+    }),
+
 };

@@ -3,10 +3,22 @@ import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { NumberStepper } from '@/components/ui/number-stepper';
 import type { StepperSize } from '@/components/ui/number-stepper';
 
-export interface InventoryQuantityFieldsProps<T extends FieldValues> {
+export interface QuantityFieldConfig<T extends FieldValues> {
+    name: Path<T>;
+    label: string;
+    description?: string;
+    min?: number;
+    max?: number;
+}
+
+export interface QuantityInputFieldsProps<T extends FieldValues> {
     control: Control<T>;
     /**
-     * Override the default field names if they differ in your form schema
+     * Optional custom fields configuration. If provided, renders these specific stepper fields.
+     */
+    fields?: QuantityFieldConfig<T>[];
+    /**
+     * Override default field names for standard inventory/stock setup
      */
     names?: {
         quantityOnHand?: Path<T>;
@@ -18,38 +30,54 @@ export interface InventoryQuantityFieldsProps<T extends FieldValues> {
      * but might be "Current quantity" or "Quantity on hand" in other contexts.
      */
     quantityLabel?: string;
+    /**
+     * Whether to show reorderLevel and maxStock fields when using defaults (defaults to true)
+     */
+    showInventoryBounds?: boolean;
     /** Visual size of all stepper inputs (default: "md") */
     size?: StepperSize;
+    className?: string;
 }
 
-export function InventoryQuantityFields<T extends FieldValues>({
+export function QuantityInputFields<T extends FieldValues>({
     control,
+    fields: customFields,
     names,
     quantityLabel = "Starting quantity",
+    showInventoryBounds = true,
     size = "md",
-}: InventoryQuantityFieldsProps<T>) {
+    className = "flex flex-col md:flex-row gap-5",
+}: QuantityInputFieldsProps<T>) {
     const qtyName = names?.quantityOnHand || ("quantityOnHand" as Path<T>);
     const reorderName = names?.reorderLevel || ("reorderLevel" as Path<T>);
     const maxName = names?.maxStock || ("maxStock" as Path<T>);
 
-    const fields: { name: Path<T>; label: string; description?: string }[] = [
-        { name: qtyName, label: quantityLabel },
-        {
-            name: reorderName,
-            label: "Reorder level",
-            description: "You'll be alerted when stock drops below this",
-        },
-        {
-            name: maxName,
-            label: "Maximum stock",
-            description: "Maximum capacity for this product",
-        },
+    const defaultFields: QuantityFieldConfig<T>[] = [
+        { name: qtyName, label: quantityLabel, min: 0 },
+        ...(showInventoryBounds
+            ? [
+                {
+                    name: reorderName,
+                    label: "Reorder level",
+                    description: "You'll be alerted when stock drops below this",
+                    min: 0,
+                },
+                {
+                    name: maxName,
+                    label: "Maximum stock",
+                    description: "Maximum capacity for this product",
+                    min: 0,
+                },
+            ]
+            : []),
     ];
 
+    const fieldsToRender = customFields ?? defaultFields;
+
     return (
-        <div className="flex flex-col md:flex-row gap-5">
-            {fields.map(({ name, label, description }) => (
-                <div key={String(name)} className="flex-1">
+        <div className={className}>
+            {fieldsToRender.map(({ name, label, description, min = 0, max }) => (
+                <div key={String(name)} className="flex-1 min-w-0">
                     <Controller
                         name={name}
                         control={control}
@@ -66,12 +94,13 @@ export function InventoryQuantityFields<T extends FieldValues>({
                                     id={String(name)}
                                     name={field.name}
                                     value={field.value}
-                                    onChange={(val) => field.onChange(val === "" ? 0 : val)}
+                                    onChange={(val) => field.onChange(val === "" ? min : val)}
                                     onBlur={field.onBlur}
                                     inputRef={field.ref}
                                     invalid={fieldState.invalid}
                                     size={size}
-                                    min={0}
+                                    min={min}
+                                    max={max}
                                     className="mt-1"
                                 />
 
@@ -92,3 +121,8 @@ export function InventoryQuantityFields<T extends FieldValues>({
         </div>
     );
 }
+
+/**
+ * Backwards compatibility alias
+ */
+export const InventoryQuantityFields = QuantityInputFields;

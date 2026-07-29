@@ -73,7 +73,7 @@ export const columns: ColumnDef<ICustomer>[] = [
         header: "Location",
         accessorFn: (row) => formatLocation(row.city, row.province),
         cell: ({ row }) => (
-            <span className="text-sm text-gray-600 truncate block max-w-40">
+            <span className="text-sm text-gray-600">
                 {formatLocation(row.original.city, row.original.province)}
             </span>
         ),
@@ -81,10 +81,10 @@ export const columns: ColumnDef<ICustomer>[] = [
     },
     {
         accessorKey: "totalOrders",
-        header: () => <div className="text-right">Total Orders</div>,
+        header: () => <div className="text-left">Total Orders</div>,
         cell: ({ row }) => (
             <div
-                className="text-right text-sm font-medium text-gray-800"
+                className="text-left text-sm font-medium text-gray-800"
                 style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}
             >
                 {row.original.totalOrders.toLocaleString()}
@@ -94,10 +94,10 @@ export const columns: ColumnDef<ICustomer>[] = [
     },
     {
         accessorKey: "totalSpent",
-        header: () => <div className="text-right">Total Spent</div>,
+        header: () => <div className="text-left">Total Spent</div>,
         cell: ({ row }) => (
             <div
-                className="text-right text-sm font-medium text-gray-800"
+                className="text-left text-sm font-medium text-gray-800"
                 style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}
             >
                 {formatCurrency(row.original.totalSpent)}

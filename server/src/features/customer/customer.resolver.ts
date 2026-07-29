@@ -33,6 +33,16 @@ export const customerResolver = {
             return customerService.getCustomerMetrics();
         },
 
+        /**
+         * Search customers for POS addition — cursor-based infinite scroll
+         */
+        searchCustomers: async (
+            _: unknown,
+            input: any
+        ) => {
+            return customerService.searchCustomers(input);
+        },
+
     }),
 
     Mutation: protectResolvers({

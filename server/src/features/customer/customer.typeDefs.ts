@@ -61,6 +61,7 @@ export const customerTypeDefs = `#graphql
         averageOrderValue: Float!
         firstPurchase: String
         lastPurchase: String
+        customerType: String!
 
         purchaseSummary: CustomerPurchaseSummary!
         recentSales: [CustomerRecentSale!]!
@@ -121,12 +122,35 @@ export const customerTypeDefs = `#graphql
         country: String
     }
 
+    # Customer item for POS customer search popup
+    type CustomerSearchRecord {
+        id: ID!
+        firstName: String
+        lastName: String
+        phone: String
+        email: String
+        customerType: String!
+    }
+
+    # Infinite-scroll result wrapping CustomerSearchRecord items
+    type InfiniteCustomerSearchResult {
+        data: [CustomerSearchRecord!]!
+        meta: InfiniteScrollMeta!
+    }
+
+    input SearchCustomersInfiniteInput {
+        search: String
+        cursor: String
+        limit: Int
+    }
+
     # ─── Queries ───────────────────────────────────────────────────────────────
 
     type Query {
         getCustomers(args: PaginatedCustomersInput!): PaginatedCustomers!
         getCustomer(id: ID!): CustomerDetails!
         getCustomerMetrics: CustomerMetrics!
+        searchCustomers(search: String, cursor: String, limit: Int): InfiniteCustomerSearchResult!
     }
 
     # ─── Mutations ─────────────────────────────────────────────────────────────

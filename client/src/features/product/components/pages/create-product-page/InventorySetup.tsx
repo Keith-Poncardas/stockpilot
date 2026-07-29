@@ -1,6 +1,6 @@
 import { Package } from 'lucide-react';
 import type { Control } from 'react-hook-form';
-import { InventoryQuantityFields } from '@/components/InventoryQuantityFields';
+import { QuantityInputFields } from '@/components';
 import { FormSection } from '@/components/ui/form-section';
 
 interface InventorySetupProps {
@@ -15,7 +15,7 @@ export function InventorySetup({ control }: InventorySetupProps) {
             icon={<Package className="w-4.5 h-4.5" strokeWidth={2} />}
             iconWrapperClassName="bg-blue-50 text-blue-600"
         >
-            <InventoryQuantityFields control={control} />
+            <QuantityInputFields control={control} />
         </FormSection>
     )
 }

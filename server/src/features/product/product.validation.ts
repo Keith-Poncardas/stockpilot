@@ -57,6 +57,7 @@ const baseProductSchemaObject = z.object({
 export const filterProductsSchema = dateRangeSchema.extend({
     search: searchSchema,
     status: productStatusSchema.optional(),
+    stockStatus: z.string().optional(),
     minPrice: minMaxSchema.optional(),
     maxPrice: minMaxSchema.optional(),
     orderBy: productOrderBySchema.default(ProductOrderBy.CREATED_AT),

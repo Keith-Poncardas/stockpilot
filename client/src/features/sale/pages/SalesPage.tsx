@@ -8,6 +8,7 @@ import {
     Filter,
     SlidersHorizontal,
     ServerCrash,
+    Plus,
 } from 'lucide-react';
 import { columns } from '../sale.columns';
 import { GET_SALES, GET_SALE_METRICS } from '../operations';
@@ -21,12 +22,14 @@ import { MetricCard } from '@/components/MetricCard';
 import { FilterPopover } from '@/components/FilterPopover';
 import { EmptyState } from '@/components/ui/empty-state';
 import SectionHeader from '@/components/SectionHeader';
+import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
 import {
     saleStatusOptions,
     saleOrderByOptions,
     saleOrderDirectionOptions,
 } from '../sale.constants';
+import { useNavigate } from 'react-router-dom';
 
 export function SalesPage() {
 
@@ -35,12 +38,12 @@ export function SalesPage() {
     const debouncedSearch = useDebounce(globalFilter, 500);
 
     // ── 2. Filter states ───────────────────────────────────────────────────────
-    const [statusFilter,         setStatusFilter]         = React.useState('');
-    const [paymentMethodFilter,  setPaymentMethodFilter]  = React.useState('');
-    const [orderByFilter,        setOrderByFilter]        = React.useState('');
+    const [statusFilter, setStatusFilter] = React.useState('');
+    const [paymentMethodFilter, setPaymentMethodFilter] = React.useState('');
+    const [orderByFilter, setOrderByFilter] = React.useState('');
     const [orderDirectionFilter, setOrderDirectionFilter] = React.useState('');
-    const [dateFrom,             setDateFrom]             = React.useState('');
-    const [dateTo,               setDateTo]               = React.useState('');
+    const [dateFrom, setDateFrom] = React.useState('');
+    const [dateTo, setDateTo] = React.useState('');
 
     const dateError =
         dateFrom && dateTo && new Date(dateFrom) > new Date(dateTo)
@@ -71,16 +74,16 @@ export function SalesPage() {
     const { loading, error, refetch, data } = useQuery(GET_SALES, {
         variables: {
             args: {
-                page:  queryParams.page,
+                page: queryParams.page,
                 limit: queryParams.limit,
                 filter: {
-                    search:         debouncedSearch       || undefined,
-                    status:         statusFilter          || undefined,
-                    paymentMethod:  paymentMethodFilter   || undefined,
-                    dateFrom:       dateError ? undefined : (dateFrom || undefined),
-                    dateTo:         dateError ? undefined : (dateTo   || undefined),
-                    orderBy:        orderByFilter         || (queryParams.orderBy        || 'saleDate'),
-                    orderDirection: orderDirectionFilter  || (queryParams.orderDirection || 'desc'),
+                    search: debouncedSearch || undefined,
+                    status: statusFilter || undefined,
+                    paymentMethod: paymentMethodFilter || undefined,
+                    dateFrom: dateError ? undefined : (dateFrom || undefined),
+                    dateTo: dateError ? undefined : (dateTo || undefined),
+                    orderBy: orderByFilter || (queryParams.orderBy || 'saleDate'),
+                    orderDirection: orderDirectionFilter || (queryParams.orderDirection || 'desc'),
                 },
             },
         },
@@ -93,7 +96,7 @@ export function SalesPage() {
         variables: {
             filter: {
                 dateFrom: dateError ? undefined : (dateFrom || undefined),
-                dateTo:   dateError ? undefined : (dateTo   || undefined),
+                dateTo: dateError ? undefined : (dateTo || undefined),
             },
         },
         fetchPolicy: 'cache-and-network',
@@ -115,12 +118,12 @@ export function SalesPage() {
     const metrics = metricsData?.getSalesMetrics;
 
     const hasActiveFilters = !!(
-        globalFilter       ||
-        statusFilter       ||
-        paymentMethodFilter||
-        dateFrom           ||
-        dateTo             ||
-        orderByFilter      ||
+        globalFilter ||
+        statusFilter ||
+        paymentMethodFilter ||
+        dateFrom ||
+        dateTo ||
+        orderByFilter ||
         orderDirectionFilter
     );
 
@@ -140,6 +143,12 @@ export function SalesPage() {
         setGlobalFilter('');
     }
 
+    const navigate = useNavigate();
+
+    function handleNewSale() {
+        navigate("/sales/pos");
+    }
+
     // ── Render ────────────────────────────────────────────────────────────────
     return (
         <>
@@ -147,6 +156,12 @@ export function SalesPage() {
                 title="Sales"
                 subtitle="Track transactions, monitor revenue, and review sales performance"
                 icon={ShoppingCart}
+                actions={
+                    <Button size='lg' onClick={handleNewSale}>
+                        <Plus />
+                        New Sale
+                    </Button>
+                }
             />
 
             {/* ── KPI Cards ──────────────────────────────────────────────────── */}

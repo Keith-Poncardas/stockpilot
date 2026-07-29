@@ -58,8 +58,26 @@ export const paginatedSalesSchema = paginationSchema.extend({
  */
 export const getSalesMetricsSchema = dateRangeSchema;
 
+/**
+ * CREATE SALE SCHEMA
+ */
+export const createSaleItemSchema = z.object({
+    productId: z.string().uuid("Invalid product ID"),
+    quantity:  z.number().int().positive("Quantity must be greater than zero"),
+    unitPrice: z.number().nonnegative("Unit price must be non-negative"),
+});
+
+export const createSaleSchema = z.object({
+    customerId:    z.string().uuid().optional().nullable(),
+    paymentMethod: z.string().trim().min(1, "Payment method is required").max(50),
+    status:        z.nativeEnum(SaleStatus).optional().default(SaleStatus.COMPLETED),
+    items:         z.array(createSaleItemSchema).min(1, "At least one item is required in the cart"),
+});
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type FilterSalesInput        = z.infer<typeof filterSalesSchema>;
 export type PaginatedSalesInput     = z.infer<typeof paginatedSalesSchema>;
 export type GetSalesMetricsFilter   = z.infer<typeof getSalesMetricsSchema>;
+export type CreateSaleItemInput     = z.infer<typeof createSaleItemSchema>;
+export type CreateSaleInput         = z.infer<typeof createSaleSchema>;
