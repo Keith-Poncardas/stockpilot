@@ -1,5 +1,5 @@
 import { mergeTypeDefs } from "@graphql-tools/merge";
-import { authTypeDefs, inventoryTypeDefs, productTypeDefs, stockMovementsTypeDefs, userTypeDefs, customerTypeDefs } from "@/features";
+import { authTypeDefs, inventoryTypeDefs, productTypeDefs, stockMovementsTypeDefs, userTypeDefs, customerTypeDefs, saleTypeDefs } from "@/features";
 
 /**
  * Config TypeDefs
@@ -11,4 +11,5 @@ export const typeDefs = mergeTypeDefs([
     inventoryTypeDefs,
     stockMovementsTypeDefs,
     customerTypeDefs,
+    saleTypeDefs,
 ]);

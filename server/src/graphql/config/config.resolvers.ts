@@ -1,4 +1,4 @@
-import { authResolver, inventoryResolver, productResolver, stockMovementsResolver, userResolver, customerResolver } from "@/features";
+import { authResolver, inventoryResolver, productResolver, stockMovementsResolver, userResolver, customerResolver, saleResolver } from "@/features";
 import { mergeResolvers } from "@graphql-tools/merge";
 
 /**
@@ -11,4 +11,5 @@ export const resolvers = mergeResolvers([
     inventoryResolver,
     stockMovementsResolver,
     customerResolver,
+    saleResolver,
 ]);

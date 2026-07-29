@@ -3,4 +3,5 @@ export * from "./user";
 export * from "./product";
 export * from "./inventory";
 export * from "./stockMovements";
-export * from "./customer";
+export * from "./customer";
+export * from "./sale";
