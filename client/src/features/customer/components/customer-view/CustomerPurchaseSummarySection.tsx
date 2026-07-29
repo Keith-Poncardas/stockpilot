@@ -46,3 +46,24 @@ export function CustomerPurchaseSummarySection({ customer }: CustomerPurchaseSum
         </FormSection>
     );
 }
+
+export function CustomerPurchaseSummarySectionSkeleton() {
+    return (
+        <FormSection
+            title="Purchase Summary"
+            description="Aggregated lifetime transaction metrics."
+            icon={<ShoppingBag className="w-4.5 h-4.5" strokeWidth={2} />}
+            iconWrapperClassName="bg-violet-50 text-violet-600"
+        >
+            <div className="flex flex-col">
+                <SummaryRow label="Total Orders" value={<div className="h-4 w-16 bg-[#F0EFEA] animate-pulse rounded-md" />} />
+                <SummaryRow label="Total Revenue / Total Spent" value={<div className="h-4 w-28 bg-[#F0EFEA] animate-pulse rounded-md" />} />
+                <SummaryRow label="Average Order Value" value={<div className="h-4 w-24 bg-[#F0EFEA] animate-pulse rounded-md" />} />
+                <SummaryRow label="First Purchase" value={<div className="h-4 w-28 bg-[#F0EFEA] animate-pulse rounded-md" />} />
+                <SummaryRow label="Last Purchase" value={<div className="h-4 w-28 bg-[#F0EFEA] animate-pulse rounded-md" />} />
+            </div>
+        </FormSection>
+    );
+}
+
+CustomerPurchaseSummarySection.skeleton = CustomerPurchaseSummarySectionSkeleton;

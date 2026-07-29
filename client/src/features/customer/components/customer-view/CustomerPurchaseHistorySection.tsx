@@ -159,9 +159,26 @@ export function CustomerPurchaseHistorySection({
                             icon={ShoppingBag}
                         />
                     }
-                    className="border-0 rounded-none shadow-none"
                 />
             </div>
         </FormSection>
     );
 }
+
+export function CustomerPurchaseHistorySectionSkeleton() {
+    return (
+        <FormSection
+            title="Purchase History"
+            description="Complete transaction history for this customer."
+            icon={<Receipt className="w-4.5 h-4.5" strokeWidth={2} />}
+            iconWrapperClassName="bg-emerald-50 text-emerald-600"
+        >
+            <div className="pt-2">
+                <div className="h-64 w-full bg-[#F0EFEA] animate-pulse rounded-lg" />
+            </div>
+        </FormSection>
+    );
+}
+
+CustomerPurchaseHistorySection.skeleton = CustomerPurchaseHistorySectionSkeleton;
+

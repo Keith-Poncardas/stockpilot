@@ -38,3 +38,20 @@ export function MetricCard({
         </div>
     );
 }
+
+export function MetricCardSkeleton({ className = '' }: { className?: string } = {}) {
+    return (
+        <div className={cn(
+            "bg-white rounded-2xl border border-[#E3E1DC] p-5 flex items-center justify-between",
+            className
+        )}>
+            <div className="flex flex-col gap-2">
+                <div className="h-3 w-24 bg-[#F0EFEA] animate-pulse rounded-md" />
+                <div className="h-8 w-16 bg-[#F0EFEA] animate-pulse rounded-md" />
+            </div>
+            <div className="w-12 h-12 rounded-[14px] bg-[#F0EFEA] animate-pulse shrink-0" />
+        </div>
+    );
+}
+
+MetricCard.Skeleton = MetricCardSkeleton;

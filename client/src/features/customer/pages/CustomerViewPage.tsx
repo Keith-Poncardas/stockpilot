@@ -24,6 +24,7 @@ import {
     CustomerAddressSection,
     CustomerPurchaseSummarySection,
     CustomerPurchaseHistorySection,
+    CustomerViewPageSkeleton,
 } from '../components';
 
 export function CustomerViewPage() {
@@ -35,24 +36,7 @@ export function CustomerViewPage() {
     });
 
     if (loading) {
-        return (
-            <ProfileViewLayout isLoading={true} backLabel="Back to Customers" backUrl="/customers">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    {[...Array(4)].map((_, i) => (
-                        <div key={i} className="bg-white rounded-2xl border border-[#E3E1DC] h-24 animate-pulse" />
-                    ))}
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-pulse">
-                    <div className="lg:col-span-1 flex flex-col gap-6">
-                        <div className="bg-white rounded-2xl border border-[#E3E1DC] h-64" />
-                        <div className="bg-white rounded-2xl border border-[#E3E1DC] h-64" />
-                    </div>
-                    <div className="lg:col-span-2">
-                        <div className="bg-white rounded-2xl border border-[#E3E1DC] h-96" />
-                    </div>
-                </div>
-            </ProfileViewLayout>
-        );
+        return <CustomerViewPageSkeleton />
     }
 
     if (error || !data?.getCustomer) {

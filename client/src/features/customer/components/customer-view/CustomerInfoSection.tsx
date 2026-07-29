@@ -78,3 +78,27 @@ export function CustomerInfoSection({ customer }: CustomerInfoSectionProps) {
         </FormSection>
     );
 }
+
+export function CustomerInfoSectionSkeleton() {
+    return (
+        <FormSection
+            title="Customer Information"
+            description="Basic personal and contact details of the customer."
+            icon={<User className="w-4.5 h-4.5" strokeWidth={2} />}
+            iconWrapperClassName="bg-blue-50 text-blue-600"
+        >
+            <div className="flex flex-col">
+                <InfoRow label="Customer Name" value={<div className="h-4 w-32 bg-[#F0EFEA] animate-pulse rounded-md" />} />
+                <InfoRow label="Phone Number" value={<div className="h-4 w-24 bg-[#F0EFEA] animate-pulse rounded-md" />} />
+                <InfoRow label="Email Address" value={<div className="h-4 w-48 bg-[#F0EFEA] animate-pulse rounded-md" />} />
+                <InfoRow label="Customer Since" value={<div className="h-4 w-32 bg-[#F0EFEA] animate-pulse rounded-md" />} />
+                <InfoRow label="Total Orders" value={<div className="h-4 w-24 bg-[#F0EFEA] animate-pulse rounded-md" />} />
+                <InfoRow label="Total Spent" value={<div className="h-4 w-32 bg-[#F0EFEA] animate-pulse rounded-md" />} />
+                <InfoRow label="Last Purchase" value={<div className="h-4 w-32 bg-[#F0EFEA] animate-pulse rounded-md" />} />
+            </div>
+        </FormSection>
+    );
+}
+
+CustomerInfoSection.skeleton = CustomerInfoSectionSkeleton;
+CustomerInfoSection.Skeleton = CustomerInfoSectionSkeleton;
