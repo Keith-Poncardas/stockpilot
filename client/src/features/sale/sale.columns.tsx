@@ -1,11 +1,9 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { formatDate, formatCurrency } from "@/lib/utils";
-import { StatusBadge } from "@/components/StatusBadge";
-import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { cn, formatDate, formatCurrency } from "@/lib/utils";
 import type { ISale } from "./sale.types";
-import { SaleIdCell } from "./components";
-import { formatCashierName, formatCustomerDisplayName } from "./sale.utils";
+import { ActionsCell, SaleIdCell, StatusCell } from "./components";
+import { formatCashierName, formatCustomerDisplayName, getSaleStatusColor } from "./sale.utils";
+import { UserInfoCell } from "@/components";
 
 export const columns: ColumnDef<ISale>[] = [
     {
@@ -47,11 +45,7 @@ export const columns: ColumnDef<ISale>[] = [
         header: "Cashier",
         accessorFn: (row) =>
             formatCashierName(row.user.firstName, row.user.lastName),
-        cell: ({ row }) => (
-            <span className="text-sm text-gray-600 truncate block max-w-36">
-                {formatCashierName(row.original.user.firstName, row.original.user.lastName)}
-            </span>
-        ),
+        cell: ({ row }) => <UserInfoCell user={row.original.user} />,
         size: 140,
     },
     {
@@ -79,10 +73,10 @@ export const columns: ColumnDef<ISale>[] = [
     },
     {
         accessorKey: "totalAmount",
-        header: () => <div className="text-right">Total</div>,
+        header: () => <div className="text-left">Total</div>,
         cell: ({ row }) => (
             <div
-                className="text-right text-sm font-semibold text-gray-900"
+                className="text-left text-sm font-semibold text-gray-900"
                 style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}
             >
                 {formatCurrency(row.original.totalAmount)}
@@ -93,30 +87,19 @@ export const columns: ColumnDef<ISale>[] = [
     {
         accessorKey: "status",
         header: () => <div className="text-center">Status</div>,
-        cell: ({ row }) => (
-            <div className="flex justify-center">
-                <StatusBadge value={row.original.status} size="sm" />
-            </div>
-        ),
-        size: 120,
+        meta: {
+            cellClassName: (row: ISale) => cn(
+                "p-0 text-center text-xs font-semibold tracking-wide h-[1px]",
+                getSaleStatusColor(row.status)
+            ),
+        },
+        cell: ({ row }) => <StatusCell row={row} />,
+        size: 130,
     },
     {
         id: "actions",
         header: () => <div className="text-center">Actions</div>,
-        cell: () => (
-            <div className="flex justify-center">
-                {/* Placeholder — View Sale detail page not yet implemented */}
-                <Button
-                    variant="outline"
-                    size="sm"
-                    disabled
-                    className="h-7 px-2 text-xs gap-1 text-gray-400 border-gray-200"
-                >
-                    <Eye className="w-3 h-3" />
-                    View
-                </Button>
-            </div>
-        ),
+        cell: ({ row }) => <ActionsCell row={row} />,
         size: 80,
     },
 ];

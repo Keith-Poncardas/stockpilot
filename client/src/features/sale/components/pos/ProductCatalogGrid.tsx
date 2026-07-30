@@ -3,13 +3,12 @@ import { useQuery } from "@apollo/client";
 import { GET_POS_PRODUCTS } from "../../operations/op.queries";
 import { FormSection } from "@/components/ui/form-section";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { SimplePagination } from "@/components/ui/simple-pagination";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Search, X, Plus, Package } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { Search, X, Package } from "lucide-react";
+import { ProductCard } from "./ProductCard";
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 7;
 
 interface PosProduct {
   id: string;
@@ -19,6 +18,20 @@ interface PosProduct {
   quantityOnHand: number;
   reorderLevel: number;
   status: string;
+}
+
+interface InventoryRow {
+  id: string;
+  productId: string;
+  quantityOnHand?: number;
+  reorderLevel?: number;
+  product?: {
+    id: string;
+    sku: string;
+    name: string;
+    unitPrice: number;
+    status: string;
+  };
 }
 
 interface ProductCatalogGridProps {
@@ -45,20 +58,31 @@ export const ProductCatalogGrid: React.FC<ProductCatalogGridProps> = ({
 
   const { data, loading, error } = useQuery(GET_POS_PRODUCTS, {
     variables: {
-      args: {
+      input: {
         page: currentPage,
         limit: PAGE_SIZE,
         filter: {
-          search: debouncedSearch,
-          status: "ACTIVE",
+          search: debouncedSearch || undefined,
         },
       },
     },
     fetchPolicy: "cache-and-network",
   });
 
-  const products: PosProduct[] = data?.getProducts?.data ?? [];
-  const meta = data?.getProducts?.meta;
+  const rawInventories: InventoryRow[] = data?.getInventories?.data ?? [];
+  const products: PosProduct[] = rawInventories
+    .filter((inv) => inv?.product && inv.product.status === "ACTIVE")
+    .map((inv) => ({
+      id: inv.productId || inv.product?.id || inv.id,
+      sku: inv.product?.sku ?? "",
+      name: inv.product?.name ?? "",
+      unitPrice: Number(inv.product?.unitPrice ?? 0),
+      quantityOnHand: inv.quantityOnHand ?? 0,
+      reorderLevel: inv.reorderLevel ?? 0,
+      status: inv.product?.status ?? "",
+    }));
+
+  const meta = data?.getInventories?.meta;
   const totalPages: number = meta?.totalPages ?? 1;
   const totalItems: number = meta?.totalItems ?? 0;
 
@@ -106,6 +130,15 @@ export const ProductCatalogGrid: React.FC<ProductCatalogGridProps> = ({
           )}
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <ProductCard.skeleton key={idx} />
+            ))}
+          </div>
+        )}
+
         {/* Error State */}
         {error && (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center">
@@ -128,99 +161,15 @@ export const ProductCatalogGrid: React.FC<ProductCatalogGridProps> = ({
         )}
 
         {/* Product Grid */}
-        {products.length > 0 && (
+        {!loading && products.length > 0 && (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {products.map((product) => {
-              const initials = product.name
-                .split(" ")
-                .slice(0, 2)
-                .map((word) => word[0])
-                .join("")
-                .toUpperCase();
-
-              const qty = product.quantityOnHand ?? 0;
-              const reorder = product.reorderLevel ?? 0;
-              const isOutOfStock = qty <= 0;
-              const isLowStock = !isOutOfStock && (qty <= reorder || qty <= 10);
-
-              return (
-                <div
-                  key={product.id}
-                  className={`flex flex-col rounded-xl border p-3.5 transition ${isOutOfStock
-                    ? "opacity-60 bg-slate-50/50 border-slate-200"
-                    : "hover:border-indigo-300 hover:shadow-sm bg-white border-slate-200"
-                    }`}
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-sm font-semibold text-slate-500">
-                    {initials}
-                  </div>
-
-                  <p
-                    className="mt-2.5 line-clamp-2 text-sm font-medium text-slate-900"
-                    title={product.name}
-                  >
-                    {product.name}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    SKU: {product.sku}
-                  </p>
-
-                  <div className="mt-2.5 flex items-center gap-1.5 text-xs">
-                    {isOutOfStock ? (
-                      <>
-                        <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                        <span className="font-medium text-red-600">Out of stock</span>
-                      </>
-                    ) : isLowStock ? (
-                      <>
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                        <span className="font-medium text-amber-600">
-                          {qty} left · Low stock
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                        <span className="font-medium text-emerald-600">
-                          {qty} in stock
-                        </span>
-                      </>
-                    )}
-                  </div>
-
-                  <div className="mt-3.5 flex items-center justify-between border-t border-slate-100 pt-2.5">
-                    <span className="text-sm font-semibold text-slate-900">
-                      {formatCurrency(product.unitPrice)}
-                    </span>
-
-                    <Button
-                      type="button"
-                      size="xs"
-                      variant={isOutOfStock ? "outline" : "default"}
-                      disabled={isOutOfStock}
-                      onClick={() =>
-                        onAddToCart({
-                          id: product.id,
-                          sku: product.sku,
-                          name: product.name,
-                          unitPrice: product.unitPrice,
-                          quantityOnHand: qty,
-                        })
-                      }
-                    >
-                      {isOutOfStock ? (
-                        "Unavailable"
-                      ) : (
-                        <>
-                          <Plus className="h-3.5 w-3.5" />
-                          Add
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={onAddToCart}
+              />
+            ))}
           </div>
         )}
 

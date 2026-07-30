@@ -1,4 +1,5 @@
 import type { Row } from "@tanstack/react-table";
+import type { UserRole } from "../user";
 
 // ─── Sale list row (index table) ──────────────────────────────────────────────
 
@@ -8,8 +9,10 @@ export interface ISaleCustomerName {
 }
 
 export interface ISaleCashierName {
+    id: string;
     firstName: string;
     lastName: string;
+    role: UserRole;
 }
 
 /**
@@ -41,3 +44,39 @@ export interface ISaleMetrics {
 export interface SaleRowProps {
     row: Row<ISale>;
 }
+
+// ─── Sale detail (view page) ────────────────────────────────────────────────
+
+export interface ISaleDetailItem {
+    id: string;
+    productId: string;
+    sku: string;
+    name: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+}
+
+export interface ISaleDetail {
+    id: string;
+    saleDate: string;
+    totalAmount: number;
+    paymentMethod?: string;
+    status: string;
+    customer?: {
+        id: string;
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        phone?: string;
+    } | null;
+    user: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        role: UserRole;
+        email: string;
+    };
+    items: ISaleDetailItem[];
+}
+

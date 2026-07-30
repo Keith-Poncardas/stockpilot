@@ -12,3 +12,13 @@ export const CREATE_SALE = gql`
     }
   }
 `;
+
+export const CHANGE_SALE_STATUS = gql`
+  mutation ChangeSaleStatus($input: ChangeSaleStatusInput!) {
+    changeSaleStatus(input: $input) {
+      id
+      status
+    }
+  }
+`;
+

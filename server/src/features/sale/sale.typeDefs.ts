@@ -10,8 +10,10 @@ export const saleTypeDefs = `#graphql
 
     # Embedded cashier name for sale list view
     type SaleCashierName {
+        id: ID!
         firstName: String!
         lastName: String!
+        role: UserRole!
     }
 
     # Count of sale items (for "Items" column)
@@ -107,17 +109,63 @@ export const saleTypeDefs = `#graphql
         items: [CreateSaleItemInput!]!
     }
 
+    input ChangeSaleStatusInput {
+        saleId: ID!
+        status: SaleStatus!
+    }
+
+    type SaleDetailItem {
+        id: ID!
+        productId: ID!
+        sku: String!
+        name: String!
+        quantity: Int!
+        unitPrice: Float!
+        totalPrice: Float!
+    }
+
+    type SaleDetailCustomer {
+        id: ID!
+        firstName: String
+        lastName: String
+        email: String
+        phone: String
+    }
+
+    type SaleDetailUser {
+        id: ID!
+        firstName: String!
+        lastName: String!
+        role: UserRole!
+        email: String!
+    }
+
+    type SaleDetail {
+        id: ID!
+        saleDate: String!
+        totalAmount: Float!
+        paymentMethod: String
+        status: SaleStatus!
+        customer: SaleDetailCustomer
+        user: SaleDetailUser!
+        items: [SaleDetailItem!]!
+    }
+
     # ─── Queries ────────────────────────────────────────────────────────────────
 
     type Query {
         getSales(args: PaginatedSalesInput!): PaginatedSales!
         getSalesMetrics(filter: GetSalesMetricsFilter): SaleMetrics!
+        getSale(saleId: ID!): SaleDetail!
     }
 
     # ─── Mutations ──────────────────────────────────────────────────────────────
 
     type Mutation {
         createSale(input: CreateSaleInput!): SaleListItem!
+        changeSaleStatus(input: ChangeSaleStatusInput!): SaleListItem!
     }
 
 `;
+
+

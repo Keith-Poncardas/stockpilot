@@ -1,15 +1,20 @@
 import { ActionCell } from "@/components/ui/action-cell";
 import { PopoverClose } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
-import type { CustomerRowProps } from "../../customer.types";
+import { Eye, Receipt } from "lucide-react";
+import type { SaleRowProps } from "../../sale.types";
 import { useNavigate } from "react-router-dom";
 
-export function ActionsCell({ row }: CustomerRowProps) {
+export function ActionsCell({ row }: SaleRowProps) {
     const navigate = useNavigate();
 
     function handleViewClick() {
-        navigate(`/customers/${row.original.id}/view`);
+        navigate(`/sales/${row.original.id}/view`);
+    }
+
+    function handleDownloadReceiptClick() {
+        // Placeholder for receipt download
+        console.log("Download receipt for sale:", row.original.id);
     }
 
     return (
@@ -23,7 +28,17 @@ export function ActionsCell({ row }: CustomerRowProps) {
                             className="w-full justify-start px-2.5 py-2 h-auto text-xs font-semibold tracking-wide text-gray-700 uppercase"
                         >
                             <Eye size={15} strokeWidth={2.2} className="text-gray-500 mr-1" />
-                            Customer Details
+                            View Sale
+                        </Button>
+                    </PopoverClose>
+                    <PopoverClose asChild>
+                        <Button
+                            onClick={handleDownloadReceiptClick}
+                            variant="ghost"
+                            className="w-full justify-start px-2.5 py-2 h-auto text-xs font-semibold tracking-wide text-gray-700 uppercase"
+                        >
+                            <Receipt size={15} strokeWidth={2.2} className="text-gray-500 mr-1" />
+                            Download Receipt
                         </Button>
                     </PopoverClose>
                 </div>

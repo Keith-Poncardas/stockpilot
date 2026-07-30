@@ -74,6 +74,11 @@ export const createSaleSchema = z.object({
     items:         z.array(createSaleItemSchema).min(1, "At least one item is required in the cart"),
 });
 
+export const changeSaleStatusSchema = z.object({
+    saleId: z.string().uuid("Invalid sale ID"),
+    status: z.nativeEnum(SaleStatus),
+});
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type FilterSalesInput        = z.infer<typeof filterSalesSchema>;
@@ -81,3 +86,5 @@ export type PaginatedSalesInput     = z.infer<typeof paginatedSalesSchema>;
 export type GetSalesMetricsFilter   = z.infer<typeof getSalesMetricsSchema>;
 export type CreateSaleItemInput     = z.infer<typeof createSaleItemSchema>;
 export type CreateSaleInput         = z.infer<typeof createSaleSchema>;
+export type ChangeSaleStatusInput   = z.infer<typeof changeSaleStatusSchema>;
+

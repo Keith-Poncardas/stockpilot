@@ -20,8 +20,10 @@ export const GET_SALES = gql`
         }
 
         user {
+          id
           firstName
           lastName
+          role
         }
 
         itemCount
@@ -60,16 +62,21 @@ export const GET_SALE_METRICS = gql`
  * Products list for POS product catalog grid.
  */
 export const GET_POS_PRODUCTS = gql`
-  query GetPosProducts($args: PaginatedProductsInput!) {
-    getProducts(args: $args) {
+  query GetPosProducts($input: GetInventoriesInput) {
+    getInventories(input: $input) {
       data {
         id
-        sku
-        name
-        unitPrice
+        productId
         quantityOnHand
         reorderLevel
-        status
+        stockStatus
+        product {
+          id
+          sku
+          name
+          unitPrice
+          status
+        }
       }
       meta {
         page
@@ -103,3 +110,42 @@ export const SEARCH_CUSTOMERS = gql`
     }
   }
 `;
+
+/**
+ * Full sale detail query for the Sale View Page.
+ */
+export const GET_SALE = gql`
+  query GetSale($saleId: ID!) {
+    getSale(saleId: $saleId) {
+      id
+      saleDate
+      totalAmount
+      paymentMethod
+      status
+      customer {
+        id
+        firstName
+        lastName
+        email
+        phone
+      }
+      user {
+        id
+        firstName
+        lastName
+        role
+        email
+      }
+      items {
+        id
+        productId
+        sku
+        name
+        quantity
+        unitPrice
+        totalPrice
+      }
+    }
+  }
+`;
+

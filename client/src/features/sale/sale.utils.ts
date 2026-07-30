@@ -34,3 +34,17 @@ export function formatCustomerDisplayName(
     const name = [firstName, lastName].filter(Boolean).join(' ');
     return name || 'Walk-in';
 }
+
+/**
+ * Returns color classes for Sale status badge/cell.
+ */
+export function getSaleStatusColor(status: string) {
+    switch (status) {
+        case 'COMPLETED': return 'bg-emerald-50 text-emerald-700';
+        case 'PENDING': return 'bg-amber-50 text-amber-600';
+        case 'REFUNDED': return 'bg-purple-50 text-purple-700';
+        case 'VOIDED': return 'bg-rose-50 text-rose-600';
+        default: return 'bg-gray-100 text-gray-500';
+    }
+}
+

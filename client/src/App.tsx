@@ -1,6 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { ProtectedRoute, PublicRoute } from './routes'
-import { LoginPage, OTPPage, SignupPage, UserLayout, UserPage, UserViewPage, PendingApprovalPage, ForgotPasswordPage, ChangePasswordPage, AuthLayout, ProductLayout, ProductPage, ProductViewPage, CreateProductPage, EditProductPage, InventoryLayout, InventoryPage, AdjustStockPage, InventoryRecordPage, StockMovementLayout, StockMovementPage, StockMovementDetailsPage, CustomerLayout, CustomerPage, CustomerViewPage, CreateCustomerPage, SaleLayout, SalesPage, NewSalePage } from './features'
+import { LoginPage, OTPPage, SignupPage, UserLayout, UserPage, UserViewPage, PendingApprovalPage, ForgotPasswordPage, ChangePasswordPage, AuthLayout, ProductLayout, ProductPage, ProductViewPage, CreateProductPage, EditProductPage, InventoryLayout, InventoryPage, AdjustStockPage, InventoryRecordPage, StockMovementLayout, StockMovementPage, StockMovementDetailsPage, CustomerLayout, CustomerPage, CustomerViewPage, CreateCustomerPage, SaleLayout, SalesPage, NewSalePage, SaleViewPage } from './features'
 import MainLayout from './layout/MainLayout'
 import { EmptyState } from './components/ui/empty-state'
 
@@ -60,6 +60,7 @@ function App() {
           <Route path="/sales" element={<SaleLayout />}>
             <Route index element={<SalesPage />} />
             <Route path="pos" element={<NewSalePage />} />
+            <Route path=":saleId/view" element={<SaleViewPage />} />
           </Route>
 
           <Route path="*" element={

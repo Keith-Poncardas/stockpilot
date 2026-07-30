@@ -1,5 +1,6 @@
 import { prisma } from "@/lib";
-import { buildSearchQuery, createPaginator, throwNotFound, throwConflict } from "@/utils";
+import { z } from "zod";
+import { buildSearchQuery, createPaginator, throwNotFound, throwConflict, generateReference } from "@/utils";
 import { Prisma, SaleStatus, MovementType, MovementReason } from "@prisma/client";
 import {
     FilterSalesInput,
@@ -9,6 +10,8 @@ import {
     paginatedSalesSchema,
     CreateSaleInput,
     createSaleSchema,
+    ChangeSaleStatusInput,
+    changeSaleStatusSchema,
 } from "./sale.validation";
 
 export class SaleService {
@@ -93,8 +96,10 @@ export class SaleService {
 
                     user: {
                         select: {
+                            id: true,
                             firstName: true,
                             lastName: true,
+                            role: true
                         },
                     },
 
@@ -117,10 +122,7 @@ export class SaleService {
             customer: sale.customer
                 ? { firstName: sale.customer.firstName, lastName: sale.customer.lastName }
                 : null,
-            user: {
-                firstName: sale.user.firstName,
-                lastName: sale.user.lastName,
-            },
+            user: sale.user,
             itemCount: sale._count.saleItems,
         }));
 
@@ -211,7 +213,12 @@ export class SaleService {
      *     - Creates StockMovement (type: OUT, reason: SALE) for each item
      */
     async createSale(input: CreateSaleInput, userId: string) {
-        const { customerId, paymentMethod, status, items } = createSaleSchema.parse(input);
+        const {
+            customerId,
+            paymentMethod,
+            status,
+            items
+        } = createSaleSchema.parse(input);
 
         if (customerId) {
             const customer = await prisma.customer.findUnique({ where: { id: customerId } });
@@ -267,7 +274,12 @@ export class SaleService {
                         select: { firstName: true, lastName: true },
                     },
                     user: {
-                        select: { firstName: true, lastName: true },
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            role: true,
+                        },
                     },
                     _count: {
                         select: { saleItems: true },
@@ -276,7 +288,9 @@ export class SaleService {
             });
 
             if (status === SaleStatus.COMPLETED) {
-                const ref = `SALE-${sale.id.slice(0, 8).toUpperCase()}`;
+
+                const ref = await generateReference("SALE", tx);
+
                 for (const item of items) {
                     await tx.inventory.updateMany({
                         where: { productId: item.productId },
@@ -295,7 +309,7 @@ export class SaleService {
                             quantity: item.quantity,
                             reason: MovementReason.SALE,
                             reference: ref,
-                            notes: `Sold in POS sale #${sale.id.slice(0, 8).toUpperCase()}`,
+                            notes: `Sold in POS sale #${ref}`,
                         },
                     });
                 }
@@ -313,6 +327,238 @@ export class SaleService {
             customer: createdSale.customer,
             user: createdSale.user,
             itemCount: createdSale._count.saleItems,
+        };
+    }
+
+    /**
+     * Get details of a specific sale by ID.
+     */
+    async getSale(saleId: string) {
+        const id = z.string().uuid("Invalid sale ID").parse(saleId);
+        const sale = await prisma.sale.findUnique({
+            where: { id },
+            include: {
+                customer: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phone: true,
+                    },
+                },
+                user: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        role: true,
+                        email: true,
+                    },
+                },
+                saleItems: {
+                    include: {
+                        product: {
+                            select: {
+                                sku: true,
+                                name: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!sale) throwNotFound("Sale not found");
+
+        return {
+            id: sale.id,
+            saleDate: sale.saleDate.toISOString(),
+            totalAmount: Number(sale.totalAmount),
+            paymentMethod: sale.paymentMethod ?? null,
+            status: sale.status,
+            customer: sale.customer
+                ? {
+                      id: sale.customer.id,
+                      firstName: sale.customer.firstName,
+                      lastName: sale.customer.lastName,
+                      email: sale.customer.email,
+                      phone: sale.customer.phone,
+                  }
+                : null,
+            user: {
+                id: sale.user.id,
+                firstName: sale.user.firstName,
+                lastName: sale.user.lastName,
+                role: sale.user.role,
+                email: sale.user.email,
+            },
+            items: sale.saleItems.map((item) => ({
+                id: item.id,
+                productId: item.productId,
+                sku: item.product?.sku ?? "N/A",
+                name: item.product?.name ?? "Deleted Product",
+                quantity: item.quantity,
+                unitPrice: Number(item.unitPrice),
+                totalPrice: item.quantity * Number(item.unitPrice),
+            })),
+        };
+    }
+
+    /**
+     * Change the status of a sale.
+     * - Validates against changing VOIDED or REFUNDED sales.
+     * - Manages inventory adjustments if changing to/from COMPLETED status.
+     */
+    async changeStatus(input: ChangeSaleStatusInput, userId: string) {
+        const { saleId, status } = changeSaleStatusSchema.parse(input);
+
+        const sale = await prisma.sale.findUnique({
+            where: { id: saleId },
+            include: {
+                saleItems: true,
+                customer: {
+                    select: { firstName: true, lastName: true },
+                },
+                user: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        role: true,
+                    },
+                },
+                _count: {
+                    select: { saleItems: true },
+                },
+            },
+        });
+
+        if (!sale) throwNotFound("Sale not found");
+
+        if (sale.status === SaleStatus.VOIDED || sale.status === SaleStatus.REFUNDED) {
+            throwConflict(`Cannot change status of a ${sale.status.toLowerCase()} sale.`);
+        }
+
+        if (sale.status === status) {
+            return {
+                id: sale.id,
+                saleDate: sale.saleDate.toISOString(),
+                totalAmount: Number(sale.totalAmount),
+                paymentMethod: sale.paymentMethod ?? null,
+                status: sale.status,
+                customer: sale.customer
+                    ? { firstName: sale.customer.firstName, lastName: sale.customer.lastName }
+                    : null,
+                user: sale.user,
+                itemCount: sale._count.saleItems,
+            };
+        }
+
+        const updatedSale = await prisma.$transaction(async (tx) => {
+            const updated = await tx.sale.update({
+                where: { id: saleId },
+                data: { status },
+                include: {
+                    customer: {
+                        select: { firstName: true, lastName: true },
+                    },
+                    user: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            role: true,
+                        },
+                    },
+                    _count: {
+                        select: { saleItems: true },
+                    },
+                },
+            });
+
+            // If transitioning TO COMPLETED -> decrement stock & create OUT stock movement
+            if (sale.status !== SaleStatus.COMPLETED && status === SaleStatus.COMPLETED) {
+                const ref = await generateReference("SALE", tx);
+
+                for (const item of sale.saleItems) {
+                    const product = await tx.product.findUnique({
+                        where: { id: item.productId },
+                        include: { inventory: true },
+                    });
+
+                    const available = product?.inventory?.quantityOnHand ?? 0;
+                    if (item.quantity > available) {
+                        throwConflict(
+                            `Insufficient stock for product. Available: ${available}, Requested: ${item.quantity}`
+                        );
+                    }
+
+                    await tx.inventory.updateMany({
+                        where: { productId: item.productId },
+                        data: {
+                            quantityOnHand: {
+                                decrement: item.quantity,
+                            },
+                        },
+                    });
+
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: item.productId,
+                            userId,
+                            type: MovementType.OUT,
+                            quantity: item.quantity,
+                            reason: MovementReason.SALE,
+                            reference: ref,
+                            notes: `Sold in POS sale #${ref} (Status updated to COMPLETED)`,
+                        },
+                    });
+                }
+            }
+
+            // If transitioning FROM COMPLETED to REFUNDED or VOIDED -> restock & create IN stock movement
+            if (sale.status === SaleStatus.COMPLETED && (status === SaleStatus.REFUNDED || status === SaleStatus.VOIDED)) {
+                const ref = await generateReference("SALE", tx);
+
+                for (const item of sale.saleItems) {
+                    await tx.inventory.updateMany({
+                        where: { productId: item.productId },
+                        data: {
+                            quantityOnHand: {
+                                increment: item.quantity,
+                            },
+                        },
+                    });
+
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: item.productId,
+                            userId,
+                            type: MovementType.IN,
+                            quantity: item.quantity,
+                            reason: status === SaleStatus.REFUNDED ? MovementReason.RETURN : MovementReason.ADJUSTMENT,
+                            reference: ref,
+                            notes: `Restocked from ${status.toLowerCase()} sale #${ref}`,
+                        },
+                    });
+                }
+            }
+
+            return updated;
+        });
+
+        return {
+            id: updatedSale.id,
+            saleDate: updatedSale.saleDate.toISOString(),
+            totalAmount: Number(updatedSale.totalAmount),
+            paymentMethod: updatedSale.paymentMethod ?? null,
+            status: updatedSale.status,
+            customer: updatedSale.customer
+                ? { firstName: updatedSale.customer.firstName, lastName: updatedSale.customer.lastName }
+                : null,
+            user: updatedSale.user,
+            itemCount: updatedSale._count.saleItems,
         };
     }
 

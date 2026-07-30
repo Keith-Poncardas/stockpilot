@@ -8,8 +8,9 @@ import { StatusBadge } from "@/components/StatusBadge";
 interface HeaderProps {
     title: string;
     subtitle?: string;
-    status?: IProduct['status'];
+    status?: string;
     /** Renders a back-chevron button. Default: true */
+
     showBackButton?: boolean;
     /** Makes the header sticky at the top of the viewport. Default: false */
     sticky?: boolean;

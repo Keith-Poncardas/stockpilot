@@ -106,7 +106,7 @@ export function CustomerPurchaseHistorySection({
                             variant="ghost"
                             size="sm"
                             className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium text-xs h-8 px-2.5"
-                            onClick={() => navigate(`/sales/${row.original.id}`)}
+                            onClick={() => navigate(`/sales/${row.original.id}/view`)}
                         >
                             View Sale
                         </Button>

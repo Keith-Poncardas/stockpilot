@@ -1,5 +1,6 @@
-import React from 'react';
+
 import { FormSection } from '@/components/ui/form-section';
+import { InfoRow } from '@/components/ui/info-row';
 import { User } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import { formatCustomerName } from '../../customer.utils';
@@ -7,15 +8,6 @@ import type { ICustomerDetails } from '../../customer.types';
 
 interface CustomerInfoSectionProps {
     customer: ICustomerDetails;
-}
-
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
-    return (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 border-b border-[#F0EEE9] last:border-0 gap-1 sm:gap-4">
-            <span className="text-xs font-medium text-slate-500">{label}</span>
-            <span className="text-sm font-semibold text-slate-900 sm:text-right">{value}</span>
-        </div>
-    );
 }
 
 export function CustomerInfoSection({ customer }: CustomerInfoSectionProps) {

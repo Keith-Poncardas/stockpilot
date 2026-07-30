@@ -1,13 +1,30 @@
 // ─── Status ───────────────────────────────────────────────────────────────────
 
 export const SaleStatus = {
-    PENDING:   'PENDING',
-    COMPLETED: 'COMPLETED',
-    REFUNDED:  'REFUNDED',
-    VOIDED:    'VOIDED',
+    PENDING: {
+        a: 'PENDING',
+        b: 'MARK AS PENDING',
+    },
+    COMPLETED: {
+        a: 'COMPLETED',
+        b: 'MARK AS COMPLETED',
+    },
+    REFUNDED: {
+        a: 'REFUNDED',
+        b: 'REFUND SALE',
+    },
+    VOIDED: {
+        a: 'VOIDED',
+        b: 'VOID SALE',
+    },
 } as const;
 
-export type SaleStatus = (typeof SaleStatus)[keyof typeof SaleStatus];
+export const AVAILABLE_STATUSES = Object.values(SaleStatus) as Array<
+    (typeof SaleStatus)[keyof typeof SaleStatus]
+>;
+
+export type SaleStatus = (typeof SaleStatus)[keyof typeof SaleStatus]["a"];
+
 
 // ─── Order by ─────────────────────────────────────────────────────────────────
 
