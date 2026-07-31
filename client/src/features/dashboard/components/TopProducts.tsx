@@ -1,6 +1,7 @@
 
 import { FormSection } from "@/components/ui/form-section";
-import { Trophy } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Package, Trophy } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 
 export interface TopProductItem {
@@ -106,6 +107,15 @@ export function TopProducts({
         >
             {loading ? (
                 <TopProductsSkeleton />
+            ) : displayProducts.length === 0 ? (
+                <div className="mt-2 flex-1 flex flex-col">
+                    <EmptyState
+                        icon={Package}
+                        title="No top products"
+                        description="Your top selling products will appear here once sales are recorded."
+                        className="flex-1 h-full"
+                    />
+                </div>
             ) : (
                 <div className="space-y-4 pt-1">
                     {displayProducts.map((product) => (

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FormSection } from "@/components/ui/form-section";
+import { EmptyState } from "@/components/ui/empty-state";
 import { SelectFilter, type SelectFilterOption } from "@/components/ui/select-filter";
 import { MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -150,6 +151,15 @@ export function TopLocations({
         >
             {loading ? (
                 <TopLocationsSkeleton />
+            ) : sortedLocations.length === 0 ? (
+                <div className="mt-2 flex-1 flex flex-col">
+                    <EmptyState
+                        icon={MapPin}
+                        title="No location data"
+                        description="Sales performance by location will appear here once transactions are recorded."
+                        className="flex-1 h-full"
+                    />
+                </div>
             ) : (
                 <div className="space-y-4">
                     {sortedLocations.map((location) => (

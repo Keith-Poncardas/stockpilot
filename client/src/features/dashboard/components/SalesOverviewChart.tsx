@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { BarChart, type BarChartDataPoint } from "@/components/ui/bar-chart";
 import { FormSection } from "@/components/ui/form-section";
+import { EmptyState } from "@/components/ui/empty-state";
 import { SelectFilter, type SelectFilterOption } from "@/components/ui/select-filter";
 import { BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -142,16 +143,27 @@ export function SalesOverviewChart({
             }
             className={cn("h-full", className)}
         >
-            <div className="pt-2">
-                <BarChart
-                    data={displayData}
-                    height={220}
-                    unit={unit}
-                    loading={loading}
-                    color="#E3E1DC"
-                    highlightColor="#F59E0B"
-                />
-            </div>
+            {!loading && displayData.length === 0 ? (
+                <div className="mt-2 flex-1 flex flex-col min-h-55">
+                    <EmptyState
+                        icon={BarChart3}
+                        title="No sales data"
+                        description="Sales chart will appear here once transactions are recorded."
+                        className="flex-1 h-full"
+                    />
+                </div>
+            ) : (
+                <div className="pt-2">
+                    <BarChart
+                        data={displayData}
+                        height={220}
+                        unit={unit}
+                        loading={loading}
+                        color="#E3E1DC"
+                        highlightColor="#F59E0B"
+                    />
+                </div>
+            )}
         </FormSection>
     );
 }
