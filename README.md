@@ -35,6 +35,25 @@ graph TD
 
 ---
 
+## 🔮 StockPilot Future Core Features (Highlights)
+
+StockPilot is actively evolving to support omnichannel retail, automated operations, and AI-driven insights. Below are the highlighted upcoming features and enhancements on the product roadmap:
+
+### 🌟 Core Roadmap Highlights
+- **Multi-Channel Sales**: Seamless sales and inventory synchronization across major e-commerce platforms (**TikTok Shop**, **Lazada**, **Shopee**, etc.).
+- **Natural Language AI Assistant**: Conversational AI assistant for querying sales metrics, inventory insights, and executing quick operational commands.
+- **Payroll**: Integrated employee payroll calculation, attendance tracking, and commission management.
+- **Sales Heatmap 🔥 *(Hot Feature)***: Visual analytics heatmap showing peak sales hours, high-performing regions, and high-velocity product categories.
+- **Product Expiration Tracker / Alert *(CRON JOB)***: Scheduled automated background tasks to monitor batch expiration dates and notify managers before stock spoils.
+- **Realtime *(Websocketing)***: Bidirectional real-time stock updates, live POS notifications, and instant order state broadcasting.
+- **Audit Trail**: End-to-end comprehensive activity logging and compliance tracking for system mutations, user actions, and security events.
+
+### ✨ Optional Enhancements
+- **Dark Mode *(Optional Feature)***: Full sleek dark theme switching for low-light environments and enhanced visual comfort.
+- **Customer Loyalty Points *(Optional Feature)***: Rewards and loyalty program tracking customer purchases, membership tiers, and point redemptions at checkout.
+
+---
+
 ## 🛠 Tech Stack
 
 ### Frontend (`/client`)
