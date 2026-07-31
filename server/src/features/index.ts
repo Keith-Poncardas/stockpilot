@@ -4,4 +4,5 @@ export * from "./product";
 export * from "./inventory";
 export * from "./stockMovements";
 export * from "./customer";
-export * from "./sale";
+export * from "./sale";
+export * from "./dashboard";

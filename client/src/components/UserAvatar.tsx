@@ -7,7 +7,7 @@ interface UserAvatarProps {
     /** URL of the user's profile image (optional) */
     src?: string
     /** Avatar size — maps to shadcn Avatar size prop */
-    size?: 'sm' | 'default' | 'lg' | 'xl' | '2xl'
+    size?: 'sm' | 'default' | 'md' | 'lg' | 'xl' | '2xl' | 'header'
     /** User role to determine the avatar color */
     role?: string
     /** Extra classes forwarded to the Avatar root */

@@ -8,14 +8,14 @@ function Avatar({
   size = "default",
   ...props
 }: React.ComponentProps<typeof AvatarPrimitive.Root> & {
-  size?: "default" | "sm" | "lg" | "xl" | "2xl"
+  size?: "default" | "sm" | "md" | "lg" | "xl" | "2xl" | "header"
 }) {
   return (
     <AvatarPrimitive.Root
       data-slot="avatar"
       data-size={size}
       className={cn(
-        "group/avatar relative flex size-8 shrink-0 rounded-full select-none after:absolute after:inset-0 after:rounded-full after:border after:border-border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 data-[size=xl]:size-14 data-[size=2xl]:size-32 md:data-[size=2xl]:size-40 dark:after:mix-blend-lighten",
+        "group/avatar relative flex size-8 shrink-0 rounded-full select-none after:absolute after:inset-0 after:rounded-full after:border after:border-border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 data-[size=md]:size-12 data-[size=header]:size-16 data-[size=xl]:size-14 data-[size=2xl]:size-32 md:data-[size=2xl]:size-40 dark:after:mix-blend-lighten",
         className
       )}
       {...props}
@@ -47,7 +47,7 @@ function AvatarFallback({
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
       className={cn(
-        "flex size-full items-center justify-center rounded-full bg-muted text-sm text-muted-foreground group-data-[size=sm]/avatar:text-xs group-data-[size=xl]/avatar:text-xl group-data-[size=2xl]/avatar:text-4xl md:group-data-[size=2xl]/avatar:text-5xl",
+        "flex size-full items-center justify-center rounded-full bg-muted text-sm text-muted-foreground group-data-[size=sm]/avatar:text-xs group-data-[size=md]/avatar:text-lg group-data-[size=header]/avatar:text-2xl group-data-[size=xl]/avatar:text-xl group-data-[size=2xl]/avatar:text-4xl md:group-data-[size=2xl]/avatar:text-5xl",
         className
       )}
       {...props}

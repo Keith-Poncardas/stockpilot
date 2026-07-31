@@ -1,15 +1,28 @@
-import { SearchX, ArrowLeft, type LucideIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { useNavigate } from "react-router-dom"
-import { Button } from "./button"
+import React from "react";
+import { SearchX, ArrowLeft, type LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { Button } from "./button";
 
-interface EmptyStateProps {
-  title?: string
-  description?: string
-  icon?: LucideIcon
-  className?: string
-  showBackButton?: boolean
-  action?: React.ReactNode
+export interface EmptyStateProps {
+  /** Main heading text */
+  title?: string;
+  /** Helper descriptive text */
+  description?: string;
+  /** Lucide icon component to display */
+  icon?: LucideIcon;
+  /** Additional wrapper class names */
+  className?: string;
+  /** Custom class names for the circular icon wrapper */
+  iconWrapperClassName?: string;
+  /** Custom class names for the icon itself */
+  iconClassName?: string;
+  /** Whether to show dashed border (default: true) */
+  bordered?: boolean;
+  /** Whether to display a back button */
+  showBackButton?: boolean;
+  /** Custom action slot (e.g. button or link) */
+  action?: React.ReactNode;
 }
 
 export function EmptyState({
@@ -17,37 +30,53 @@ export function EmptyState({
   description = "There is no data to display at the moment.",
   icon: Icon = SearchX,
   className,
+  iconWrapperClassName,
+  iconClassName,
+  bordered = true,
   showBackButton = false,
   action,
 }: EmptyStateProps) {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center justify-center">
-      <div className={cn("flex flex-col items-center justify-center p-8 h-64 text-center text-gray-500", className)}>
-        <div className="mb-4 rounded-full bg-amber-50 p-3 ">
-          <Icon className="h-8 w-8 text-amber-400" strokeWidth={1.5} />
-        </div>
-        <span className="mb-1 text-base text-gray-900 dark:text-zinc-100 font-bold">
+    <div
+      className={cn(
+        "flex w-full flex-1 h-full flex-col items-center justify-center px-4 py-12 text-center min-h-55",
+        bordered && "rounded-xl border border-dashed border-slate-200 dark:border-slate-800",
+        className
+      )}
+    >
+      <div
+        className={cn(
+          "flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500",
+          iconWrapperClassName
+        )}
+      >
+        <Icon className={cn("h-6 w-6", iconClassName)} />
+      </div>
+      {title && (
+        <p className="mt-3 text-sm font-medium text-slate-700 dark:text-slate-300">
           {title}
-        </span>
-        <p className="text-sm mb-4 ">
+        </p>
+      )}
+      {description && (
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-sm">
           {description}
         </p>
+      )}
 
-        {action && <div className="mt-2">{action}</div>}
+      {action && <div className="mt-4">{action}</div>}
 
-        {showBackButton && !action && (
-          <Button
-            variant="soft"
-            onClick={() => navigate(-1)}
-            className="mt-2"
-          >
-            <ArrowLeft size={16} />
-            Go Back
-          </Button>
-        )}
-      </div>
-    </div >
-  )
+      {showBackButton && !action && (
+        <Button
+          variant="soft"
+          onClick={() => navigate(-1)}
+          className="mt-4"
+        >
+          <ArrowLeft size={16} />
+          Go Back
+        </Button>
+      )}
+    </div>
+  );
 }

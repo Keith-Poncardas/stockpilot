@@ -1,6 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { ProtectedRoute, PublicRoute } from './routes'
-import { LoginPage, OTPPage, SignupPage, UserLayout, UserPage, UserViewPage, PendingApprovalPage, ForgotPasswordPage, ChangePasswordPage, AuthLayout, ProductLayout, ProductPage, ProductViewPage, CreateProductPage, EditProductPage, InventoryLayout, InventoryPage, AdjustStockPage, InventoryRecordPage, StockMovementLayout, StockMovementPage, StockMovementDetailsPage, CustomerLayout, CustomerPage, CustomerViewPage, CreateCustomerPage, SaleLayout, SalesPage, NewSalePage, SaleViewPage } from './features'
+import { LoginPage, OTPPage, SignupPage, UserLayout, UserPage, UserViewPage, PendingApprovalPage, ForgotPasswordPage, ChangePasswordPage, AuthLayout, ProductLayout, ProductPage, ProductViewPage, CreateProductPage, EditProductPage, InventoryLayout, InventoryPage, AdjustStockPage, InventoryRecordPage, StockMovementLayout, StockMovementPage, StockMovementDetailsPage, CustomerLayout, CustomerPage, CustomerViewPage, CreateCustomerPage, SaleLayout, SalesPage, NewSalePage, SaleViewPage, Dashboard } from './features'
 import MainLayout from './layout/MainLayout'
 import { EmptyState } from './components/ui/empty-state'
 
@@ -26,7 +26,7 @@ function App() {
 
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<h1>Home Page</h1>} />
+          <Route path="/" element={<Dashboard />} />
 
           <Route path="/users" element={<UserLayout />}>
             <Route index element={<UserPage />} />

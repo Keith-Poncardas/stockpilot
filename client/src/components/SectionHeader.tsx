@@ -1,6 +1,7 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 import { type LucideIcon } from 'lucide-react'
+import { UserAvatar } from './UserAvatar'
 
 export interface SectionHeaderProps {
     /** The main title heading of the page or section. */
@@ -13,6 +14,12 @@ export interface SectionHeaderProps {
     filters?: React.ReactNode
     /** Optional icon to display beside the title */
     icon?: LucideIcon
+    /** Optional user avatar props to display instead of icon */
+    userAvatar?: {
+        fallback?: string | { firstName?: string; lastName?: string } | null
+        src?: string
+        role?: string
+    }
     /** Optional additional class names for the container. */
     className?: string
 }
@@ -27,6 +34,7 @@ export function SectionHeader({
     actions,
     filters,
     icon: Icon,
+    userAvatar,
     className,
 }: SectionHeaderProps) {
     return (
@@ -37,11 +45,20 @@ export function SectionHeader({
             )}
         >
             <div className="flex items-center gap-4 min-w-0">
-                {Icon && (
+                {userAvatar ? (
+                    <div className="hidden sm:flex shrink-0 items-center justify-center">
+                        <UserAvatar
+                            size="header"
+                            fallback={userAvatar.fallback}
+                            src={userAvatar.src}
+                            role={userAvatar.role}
+                        />
+                    </div>
+                ) : Icon ? (
                     <div className="hidden sm:flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-500 border border-amber-100/50 dark:border-amber-900/30 shadow-sm">
                         <Icon className="h-6 w-6" strokeWidth={1.5} />
                     </div>
-                )}
+                ) : null}
                 <div>
                     {typeof title === 'string' ? (
                         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
