@@ -2,11 +2,11 @@ export const userTypeDefs = `#graphql
 
     # User role enum
     enum UserRole {
+        UNASSIGNED
         SUPER_ADMIN
         ADMIN
         MANAGER
         CASHIER
-        UNASSIGNED
     }
 
     # User status enum
@@ -15,6 +15,13 @@ export const userTypeDefs = `#graphql
         ACTIVE
         SUSPENDED
         TERMINATED
+    }
+
+      # Approval status enum
+    enum UserApprovalStatus {
+        PENDING
+        APPROVED
+        REJECTED
     }
 
     # Order direction enum
@@ -31,13 +38,6 @@ export const userTypeDefs = `#graphql
         createdAt
     }
 
-    # Approval status enum
-    enum ApprovalStatus {
-        PENDING
-        APPROVED
-        REJECTED
-    }
-
     # User type
     type User {
         id: ID!
@@ -46,24 +46,20 @@ export const userTypeDefs = `#graphql
         email: String!
         role: UserRole!
         status: UserStatus!
-        approvalStatus: ApprovalStatus!
+        approvalStatus: UserApprovalStatus!
         createdAt: String!
         updatedAt: String!
+
+        # Operation Summary
+        salesProcessedCount: Int
+        stockMovementsProcessedCount: Int
     }
 
-    # User type with computed stats (returned by getUser)
-    type UserDetail {
-        id: ID!
-        firstName: String!
-        lastName: String!
-        email: String!
-        role: UserRole!
-        status: UserStatus!
-        approvalStatus: ApprovalStatus!
-        createdAt: String!
-        updatedAt: String!
-        salesProcessed: Int!
-        stockMovementProcessed: Int!
+    # User Metrics Type
+    type UserMetrics {
+        total: Int!
+        active: Int!
+        pendingApproval: Int!
     }
 
     # Pagination metadata
@@ -84,31 +80,6 @@ export const userTypeDefs = `#graphql
         meta: Pagination!
     }
 
-    # User Metrics Type
-    type UserMetrics {
-        total: Int!
-        active: Int!
-        pendingApproval: Int!
-    }
-
-    # Response when resetting a password (includes new generated password)
-    type ResetPasswordResponse {
-        id: ID!
-        firstName: String!
-        lastName: String!
-        email: String!
-        role: UserRole!
-        status: UserStatus!
-        createdAt: String!
-        updatedAt: String!
-        password: String!
-    }
-
-    # Response when deleting a user
-    type DeleteResult {
-        action: String!
-    }
-
     # Filter input for getUsers
     input GetUsersFilterInput {
         search: String
@@ -126,21 +97,6 @@ export const userTypeDefs = `#graphql
         limit: Int
         page: Int
         filter: GetUsersFilterInput!
-    }
-
-    # Fields that can be updated on a user
-    input EditUserData {
-        firstName: String
-        lastName: String
-        email: String
-        role: UserRole
-        status: UserStatus
-    }
-
-    # Edit user input
-    input EditUserInput {
-        userId: ID!
-        data: EditUserData!
     }
 
     # Update user status input
@@ -163,19 +119,16 @@ export const userTypeDefs = `#graphql
 
     # Query type
     type Query {
-        getUser(userId: ID!): UserDetail
+        getUser(userId: ID!): User!
         getUsers(args: GetUsersInput!): PaginatedUser
         getUserMetrics: UserMetrics!
     }
 
     # Mutation type
     type Mutation {
-        modifyUser(input: EditUserInput!): User
-        resetPassword(userId: ID!): ResetPasswordResponse
         changeUserStatus(input: UpdateUserStatusInput!): User
         approveRejectUser(input: ApproveRejectUserInput!): User
         assignRole(input: AssignRoleInput!): User
-        deleteUser(userId: ID!): DeleteResult
     }
 
 `;

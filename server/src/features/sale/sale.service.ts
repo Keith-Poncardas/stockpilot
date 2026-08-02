@@ -17,6 +17,13 @@ import {
 export class SaleService {
 
     /**
+     * Get sale count
+     */
+    async saleCount(where?: Prisma.SaleWhereInput) {
+        return await prisma.sale.count({ where })
+    }
+
+    /**
      * Get a paginated list of sales.
      *
      * Returns only the fields needed by the Sales index table:
@@ -379,12 +386,12 @@ export class SaleService {
             status: sale.status,
             customer: sale.customer
                 ? {
-                      id: sale.customer.id,
-                      firstName: sale.customer.firstName,
-                      lastName: sale.customer.lastName,
-                      email: sale.customer.email,
-                      phone: sale.customer.phone,
-                  }
+                    id: sale.customer.id,
+                    firstName: sale.customer.firstName,
+                    lastName: sale.customer.lastName,
+                    email: sale.customer.email,
+                    phone: sale.customer.phone,
+                }
                 : null,
             user: {
                 id: sale.user.id,

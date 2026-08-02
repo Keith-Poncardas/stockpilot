@@ -19,18 +19,22 @@ export class AppError extends Error {
  */
 export function throwGraphQLError(
     message: string,
-    code: string = 'INTERNAL_SERVER_ERROR'
+    code: string = 'INTERNAL_SERVER_ERROR',
+    extensions?: Record<string, unknown>
 ): never {
     throw new GraphQLError(message, {
-        extensions: { code },
+        extensions: { code, ...extensions },
     });
 }
 
 /**
  * Throws a GraphQL error indicating that the requested resource was not found.
  */
-export function throwNotFound(entity: string): never {
-    throwGraphQLError(`${entity} not found`, 'NOT_FOUND');
+export function throwNotFound(
+    entity: string,
+    extensions?: Record<string, unknown>
+): never {
+    throwGraphQLError(`${entity} not found`, 'NOT_FOUND', extensions);
 }
 
 /**
@@ -50,13 +54,19 @@ export function throwForbidden(message: string = 'Not authorized'): never {
 /**
  * Throws a GraphQL error indicating that the request contains invalid input.
  */
-export function throwBadInput(message: string): never {
-    throwGraphQLError(message, 'BAD_USER_INPUT');
+export function throwBadInput(
+    message: string,
+    extensions?: Record<string, unknown>
+): never {
+    throwGraphQLError(message, 'BAD_USER_INPUT', extensions);
 }
 
 /**
  * Throws a GraphQL error indicating that the request contains invalid input.
  */
-export function throwConflict(message: string): never {
-    throwGraphQLError(message, 'CONFLICT');
+export function throwConflict(
+    message: string,
+    extensions?: Record<string, unknown>
+): never {
+    throwGraphQLError(message, 'CONFLICT', extensions);
 }

@@ -1,6 +1,5 @@
-import { GraphQLContext, SafeUser } from "@/types";
-import { requireValidUserAccess, throwUnauthorized } from "@/utils";
-import { User } from "@prisma/client";
+import { GraphQLContext } from "@/types";
+import { requireValidUserAccess } from "@/utils";
 
 export function protectResolvers<T extends Record<string, any>>(
     resolvers: T

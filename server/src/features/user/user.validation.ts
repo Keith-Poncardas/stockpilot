@@ -1,7 +1,7 @@
 import { excludeEnumValue } from "@/utils";
 import { UserApprovalStatus, UserRole, UserStatus } from "@prisma/client";
 import z from "zod";
-import { dateRangeRefine, dateRangeRefineMessage, dateRangeSchema, emailSchema, firstNameSchema, lastNameSchema, orderDirectionLowerSchema, paginationSchema, searchSchema, userIdSchema } from "@/schemas";
+import { dateRangeRefine, dateRangeRefineMessage, dateRangeSchema, emailSchema, firstNameSchema, lastNameSchema, orderDirectionLowerSchema, paginationSchema, searchSchema, uuidSchema } from "@/schemas";
 import { OrderDirectionLower, UserOrderBy } from "@/enums";
 
 /** ROLE SCHEMA (SUPER ADMIN EXCLUDED) */
@@ -73,7 +73,7 @@ const adminUserUpdateSchema = baseUserSchema.extend({
 
 /** EDIT USER SCHEMA */
 export const editUserSchema = z.object({
-    userId: userIdSchema,
+    userId: uuidSchema,
     data: adminUserUpdateSchema
 }).refine(
     ({ data }) =>
@@ -86,25 +86,25 @@ export const editUserSchema = z.object({
 
 /** CHANGE USER APPROVAL STATUS SCHEMA */
 export const changeUserApprovalStatusSchema = z.object({
-    userId: userIdSchema,
+    userId: uuidSchema,
     approvalStatus: assignableUserApprovalStatusSchema
 });
 
 /** UPDATE USER STATUS SCHEMA */
 export const updateUserStatusSchema = z.object({
-    userId: userIdSchema,
+    userId: uuidSchema,
     status: userStatusSchema
 });
 
 /** ASSIGN ROLE SCHEMA */
 export const assignRoleSchema = z.object({
-    userId: userIdSchema,
+    userId: uuidSchema,
     role: assignableUserRoleSchema
 });
 
 
 /** INFERED TYPES */
-export type UserIdInput = z.infer<typeof userIdSchema>;
+export type UserIdInput = z.infer<typeof uuidSchema>;
 export type PaginatedUsersInput = z.infer<typeof paginatedUsersSchema>;
 export type EditUserInput = z.infer<typeof editUserSchema>;
 export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;

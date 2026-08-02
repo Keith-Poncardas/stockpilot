@@ -1,9 +1,21 @@
 import { prisma } from "@/lib";
-import { buildSearchQuery, createPaginator, generateReadablePassword, smartDelete, throwConflict, throwNotFound } from "@/utils";
-import { Prisma, UserApprovalStatus, UserRole, UserStatus } from "@prisma/client";
-import { AssignRoleInput, assignRoleSchema, ChangeUserApprovalStatusInput, changeUserApprovalStatusSchema, EditUserInput, editUserSchema, PaginatedUsersInput, paginatedUsersSchema, UpdateUserStatusInput, updateUserStatusSchema, UserIdInput } from "./user.validation";
-import * as argon2 from "argon2";
-import { userIdSchema } from "@/schemas";
+import {
+    buildSearchQuery,
+    createPaginator,
+} from "@/utils";
+import {
+    type Prisma,
+    UserApprovalStatus,
+    UserStatus
+} from "@prisma/client";
+import {
+    AssignRoleInput,
+    ChangeUserApprovalStatusInput,
+    PaginatedUsersInput,
+    UpdateUserStatusInput
+} from "./user.validation";
+import { UUIDInput } from "@/schemas";
+import { ensureApprovedUser, ensureNotSelfAction, ensureNotSuperAdmin, ensureNotTerminated, ensurePendingApprovalStatus, ensureRoleChanged, getUserTransition } from "./user.utils";
 
 export class UserService {
 
@@ -25,64 +37,11 @@ export class UserService {
     /**
      * Get user by ID
      */
-    async getUser(userId: UserIdInput) {
-
-        const id = userIdSchema.parse(userId);
-
-        const [user, salesCount, stockEntriesCount] = await Promise.all([
-            prisma.user.findUnique({
-                where: { id },
-                select: this.select
-            }),
-            prisma.sale.count({
-                where: { userId: id },
-            }),
-            prisma.stockMovement.count({
-                where: { userId: id },
-            }),
-
-        ]);
-
-        if (!user) throwNotFound("User not found");
-
-        return {
-            ...user,
-            salesProcessed: salesCount,
-            stockMovementProcessed: stockEntriesCount,
-        };
-
-    }
-
-    /**
-     * Modify user information
-     */
-    async modifyUser(input: EditUserInput) {
-
-        const { userId, data } = editUserSchema.parse(input);
-
-        const userToUpdate = await prisma.user.findUnique({
+    async getUser(userId: UUIDInput) {
+        return await prisma.user.findUniqueOrThrow({
             where: { id: userId },
-        });
-
-        if (!userToUpdate) throwNotFound('User not found');
-
-        const existingUser = await prisma.user.findUnique({
-            where: { email: data.email },
-        });
-
-        if (existingUser && existingUser.id !== userId) {
-            throwConflict('User with that email already exists');
-        }
-
-        /** Update user */
-        const updatedUser = await prisma.user.update({
-            where: { id: userId },
-            data,
-            select: this.select,
-        });
-
-        return updatedUser;
-
+            select: this.select
+        })
     }
 
     /**
@@ -90,7 +49,7 @@ export class UserService {
      */
     async getUsers(args: PaginatedUsersInput) {
 
-        const { limit, page, filter } = paginatedUsersSchema.parse(args);
+        const { limit, page, filter } = args;
 
         const { params, buildMeta } = createPaginator({ limit, page });
 
@@ -163,121 +122,62 @@ export class UserService {
         return { total, active, pendingApproval };
     }
 
-
-    /**
-     * Reset user password
-     */
-    async resetPassword(userId: UserIdInput) {
-
-        const id = userIdSchema.parse(userId);
-
-        const user = await prisma.user.findUnique({
-            where: { id }
-        });
-
-        if (!user) throwNotFound("User not found");
-
-        if (user.status === UserStatus.TERMINATED) {
-            throwConflict('Cannot reset password for a terminated user');
-        };
-
-        const genPass = generateReadablePassword();
-
-        const hashedPassword = await argon2.hash(genPass);
-
-        const updatedUser = await prisma.user.update({
-            where: { id },
-            data: { passwordHash: hashedPassword },
-            select: this.select,
-        });
-
-        return {
-            ...updatedUser,
-            password: genPass,
-        };
-
-    }
-
     /**
      * Change user status
      */
-    async changeUserStatus(ctxUserId: string, input: UpdateUserStatusInput) {
+    async changeUserStatus(ctxUserId: UUIDInput, input: UpdateUserStatusInput) {
 
-        const { userId, status } = updateUserStatusSchema.parse(input);
+        const { userId, status } = input;
 
-        if (ctxUserId === userId) {
-            throwConflict("You cannot change your own status");
-        }
+        ensureNotSelfAction(ctxUserId, userId);
 
-        const user = await prisma.user.findUnique({
+        const user = await prisma.user.findUniqueOrThrow({
             where: { id: userId },
             select: this.select
         });
 
-        if (!user) throwNotFound("User not found");
+        ensureNotSelfAction(ctxUserId, userId);
+        ensureNotSuperAdmin(user.role);
+        ensureApprovedUser(user.approvalStatus);
 
-        if (user.approvalStatus !== UserApprovalStatus.APPROVED) {
-            throwConflict(`Cannot change status of an unapproved user`);
-        }
+        const { status: nextStatus, role } = getUserTransition({
+            currentRole: user.role,
+            status,
+        });
 
-        if (user.status === status) {
-            throwConflict(`User is already ${status}`);
-        };
-
-        if (user.role === UserRole.SUPER_ADMIN) {
-            throwConflict(`Cannot change status of ${UserRole.SUPER_ADMIN} user`);
-        }
-
-        const updatedUser = await prisma.user.update({
+        return await prisma.user.update({
             where: { id: userId },
             data: {
-                status,
-                role: status === UserStatus.TERMINATED ? UserRole.UNASSIGNED : undefined
+                status: nextStatus,
+                role,
             },
             select: this.select,
         });
-
-        return updatedUser;
-
     }
 
     /**
      * Assign user role
      */
-    async assignRole(ctxUserId: string, input: AssignRoleInput) {
+    async assignRole(ctxUserId: UUIDInput, input: AssignRoleInput) {
 
-        const { userId, role } = assignRoleSchema.parse(input);
+        const { userId, role } = input;
 
-        if (ctxUserId === userId) {
-            throwConflict("You cannot change your own role");
-        }
+        ensureNotSelfAction(ctxUserId, userId);
 
-        const user = await prisma.user.findUnique({
+        const user = await prisma.user.findUniqueOrThrow({
             where: { id: userId },
             select: this.select
         });
 
-        if (!user) throwNotFound("User not found");
+        ensureApprovedUser(user.approvalStatus);
+        ensureRoleChanged(user.role, role);
+        ensureNotSuperAdmin(user.role);
 
-        if (user.approvalStatus !== UserApprovalStatus.APPROVED) {
-            throwConflict(`Cannot assign role to an unapproved user`);
-        }
-
-        if (user.role === role) {
-            throwConflict(`User already has the role ${role}`);
-        };
-
-        if (user.role === UserRole.SUPER_ADMIN) {
-            throwConflict(`Cannot change role of ${UserRole.SUPER_ADMIN} user`);
-        }
-
-        const updatedUser = await prisma.user.update({
+        return await prisma.user.update({
             where: { id: userId },
             data: { role },
             select: this.select,
         });
-
-        return updatedUser;
 
     }
 
@@ -286,91 +186,29 @@ export class UserService {
      */
     async approveRejectUser(input: ChangeUserApprovalStatusInput) {
 
-        const { userId, approvalStatus } = changeUserApprovalStatusSchema.parse(input);
+        const { userId, approvalStatus } = input;
 
-        const user = await prisma.user.findUnique({
+        const user = await prisma.user.findUniqueOrThrow({
             where: { id: userId },
             select: this.select
         });
 
-        if (!user) throwNotFound("User not found");
+        ensurePendingApprovalStatus(user.approvalStatus);
+        ensureNotTerminated(user.status);
 
-        if (
-            user.approvalStatus === UserApprovalStatus.APPROVED ||
-            user.approvalStatus === UserApprovalStatus.REJECTED
-        ) {
-            throwConflict(`Cannot change the approval status of an ${user.approvalStatus} user`);
-        };
+        const { status, role } = getUserTransition({
+            currentRole: user.role,
+            approvalStatus,
+        });
 
-        if (user.status === UserStatus.TERMINATED) {
-            throwConflict(
-                'Cannot change the approval status of a terminated user'
-            );
-        };
-
-        const updatedUser = await prisma.user.update({
+        return await prisma.user.update({
             where: { id: userId },
             data: {
-                approvalStatus: approvalStatus,
-                status: approvalStatus === UserApprovalStatus.APPROVED ? UserStatus.ACTIVE : UserStatus.TERMINATED,
-                role: approvalStatus === UserApprovalStatus.REJECTED ? UserRole.UNASSIGNED : undefined
+                approvalStatus,
+                status,
+                role,
             },
             select: this.select,
-        });
-
-        return updatedUser;
-
-    }
-
-    /**
-     * Permanently hard-deletes a user account.
-     *
-     * This is only safe when the user has NO business history (no sales processed,
-     * no stock movements recorded) — i.e. an employee who was created by mistake
-     * or never acted on the system (backout scenario).
-     *
-     * If the user has any history, a CONFLICT error is thrown. The caller should
-     * instead use `changeUserStatus` to set the status to TERMINATED.
-     */
-    async deleteUser(userId: UserIdInput) {
-
-        const id = userIdSchema.parse(userId);
-
-        const user = await prisma.user.findUnique({
-            where: { id },
-            select: this.select,
-        });
-
-        if (!user) throwNotFound('User not found');
-
-        if (user.role === UserRole.SUPER_ADMIN) {
-            throwConflict(`Cannot delete ${UserRole.SUPER_ADMIN} user`);
-        }
-
-        return smartDelete({
-            id,
-            historyChecks: [
-                {
-                    label: 'sales',
-                    count: (id) => prisma.sale.count({ where: { userId: id } }),
-                },
-                {
-                    label: 'stockMovements',
-                    count: (id) => prisma.stockMovement.count({ where: { userId: id } }),
-                },
-            ],
-            softDelete: {
-                execute: (id) =>
-                    prisma.user.update({
-                        where: { id },
-                        data: { status: UserStatus.TERMINATED },
-                    }).then(() => void 0),
-            },
-            hardDelete: {
-                execute: async (tx, id) => {
-                    await tx.user.delete({ where: { id } });
-                },
-            },
         });
 
     }

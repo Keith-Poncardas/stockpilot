@@ -9,6 +9,12 @@ import { productService } from "../product/product.service";
 
 export class StockMovementsService {
 
+    /**
+     * Get stock movement count
+     */
+    async stockMovementCount(where?: Prisma.StockMovementWhereInput) {
+        return await prisma.stockMovement.count({ where })
+    }
 
     /**
      * Get a paginated list of stock movements with optional filters:

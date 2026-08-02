@@ -1,26 +1,44 @@
-import { UUIDInput } from "@/schemas";
+import { UUIDInput, uuidSchema } from "@/schemas";
 import { userService } from "./user.service";
-import { AssignRoleInput, ChangeUserApprovalStatusInput, EditUserInput, PaginatedUsersInput, UpdateUserStatusInput, UserIdInput } from "./user.validation";
-import { protectResolvers } from "@/graphql/helpers";
+import {
+    AssignRoleInput,
+    assignRoleSchema,
+    ChangeUserApprovalStatusInput,
+    changeUserApprovalStatusSchema,
+    PaginatedUsersInput,
+    paginatedUsersSchema,
+    UpdateUserStatusInput,
+    updateUserStatusSchema,
+} from "./user.validation";
+import { protectResolvers, resolver, validate } from "@/graphql/helpers";
 import { GraphQLContext } from "@/types";
+import { User } from "@prisma/client";
+import { stockMovementsService } from "../stockMovements";
+import { saleService } from "../sale";
 
 export const userResolver = {
 
-    Query: protectResolvers({
+    Query: protectResolvers(resolver({
 
         /**
          * Get user by id
          */
-        getUser: async (_: unknown, { userId }: { userId: UUIDInput }) => {
+        getUser: validate(
+            uuidSchema,
+            (args) => args.userId
+        )(async (_: unknown, { userId }: { userId: UUIDInput }) => {
             return userService.getUser(userId);
-        },
+        }),
 
         /**
          * Get all users (pagination, filter)
          */
-        getUsers: async (_: unknown, { args }: { args: PaginatedUsersInput }) => {
+        getUsers: validate(
+            paginatedUsersSchema,
+            (args) => args.args
+        )(async (_: unknown, { args }: { args: PaginatedUsersInput }) => {
             return userService.getUsers(args);
-        },
+        }),
 
         /**
          * Get user metrics (Total, Active, Pending Approval)
@@ -29,63 +47,62 @@ export const userResolver = {
             return userService.getUserMetrics();
         },
 
+    })),
+
+    User: resolver({
+
+        /**
+         * Get sales processed count for a user
+         */
+        salesProcessedCount: async (user: User) => {
+            return stockMovementsService.stockMovementCount({
+                userId: user.id
+            });
+        },
+
+        /**
+         * Get sales processed count for a user
+         */
+        stockMovementsProcessedCount: async (user: User) => {
+            return saleService.saleCount({ userId: user.id });
+        },
+
     }),
 
-    Mutation: protectResolvers({
-
-        /**
-         * Reset user password
-         */
-        resetPassword: async (_: unknown, { userId }: { userId: UUIDInput }) => {
-            return userService.resetPassword(userId);
-        },
-
-        /**
-         * Modify user (role, approve, etc)
-         */
-        modifyUser: async (_: unknown, { input }: { input: EditUserInput }) => {
-            return userService.modifyUser(input);
-        },
+    Mutation: protectResolvers(resolver({
 
         /**
          * Change user status
          */
-        changeUserStatus: async (
+        changeUserStatus: validate(updateUserStatusSchema)(async (
             _: unknown,
             { input }: { input: UpdateUserStatusInput },
             ctx: GraphQLContext
         ) => {
             return userService.changeUserStatus(ctx.user!.id, input);
-        },
+        }),
 
         /**
          * Approve or reject user
          */
-        approveRejectUser: async (
+        approveRejectUser: validate(changeUserApprovalStatusSchema)(async (
             _: unknown,
             { input }: { input: ChangeUserApprovalStatusInput }
         ) => {
             return userService.approveRejectUser(input);
-        },
+        }),
 
         /**
          * Assign user role
          */
-        assignRole: async (
+        assignRole: validate(assignRoleSchema)(async (
             _: unknown,
             { input }: { input: AssignRoleInput },
             ctx: GraphQLContext
         ) => {
             return userService.assignRole(ctx.user!.id, input);
-        },
+        })
 
-        /**
-         * Delete user
-         */
-        deleteUser: async (_: unknown, { userId }: { userId: UserIdInput }) => {
-            return userService.deleteUser(userId);
-        }
+    }))
 
-    })
-
-}
+};
