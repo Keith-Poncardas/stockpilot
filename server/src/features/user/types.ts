@@ -1,5 +1,10 @@
 import { UserApprovalStatus, UserRole, UserStatus } from "@prisma/client";
-import { assignRoleSchema, changeUserApprovalStatusSchema, paginatedUsersSchema, updateUserStatusSchema } from "./user.validation";
+import {
+    assignRoleSchema,
+    changeUserApprovalStatusSchema,
+    paginatedUsersSchema,
+    updateUserStatusSchema
+} from "./user.validation";
 import z from "zod";
 
 /**
