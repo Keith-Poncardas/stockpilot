@@ -16,9 +16,8 @@ const orderBySchema = z.enum(StockMovementOrderBy);
 /** Sort direction — lowercase to match Prisma's expected values */
 const orderDirectionLowerSchema = z.enum(OrderDirectionLower);
 
-export const stockMoveId = uuidSchema();
 export const stockMovementIdSchema = z.object({
-    id: stockMoveId,
+    id: uuidSchema,
 });
 
 export const getMovementDetailsSchema = stockMovementIdSchema;
@@ -45,10 +44,10 @@ export const filterStockMovementsSchema = dateRangeSchema.extend({
     movementType: movementTypeSchema.optional(),
 
     /** Filter by a specific product */
-    productId: uuidSchema("Invalid product ID").optional(),
+    productId: uuidSchema,
 
     /** Filter by the user who performed the movement */
-    userId: uuidSchema("Invalid user ID").optional(),
+    userId: uuidSchema,
 
     /** Quantity range filters */
     minQty: z.coerce.number().int().nonnegative().optional(),
@@ -83,10 +82,10 @@ export const paginatedStockMovementsSchema = paginationSchema.extend({
 export const recordMovementSchema = z.object({
 
     /** UUID of the product whose stock is being adjusted */
-    productId: uuidSchema("Invalid product ID"),
+    productId: uuidSchema,
 
     /** UUID of the user who is recording this movement */
-    userId: uuidSchema("Invalid user ID"),
+    userId: uuidSchema,
 
     /** Movement direction / kind */
     type: movementTypeSchema,

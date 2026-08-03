@@ -1,4 +1,4 @@
-import { ApprovalStatus, AVAILABLE_STATUSES, UserRole, UserStatus } from "@/features/user/user.constants";
+import { ApprovalStatus, AVAILABLE_STATUSES, UserRole, UserStatus, USER_STATUS_ACTION_LABELS } from "@/features/user/user.constants";
 import type { UserRowInfoCellProps } from "../../user.types";
 import { useOptimisticMutation } from "@/hooks/useOptimisticMutation";
 import { CHANGE_USER_STATUS, GET_USER_METRICS } from "../../operations";
@@ -15,10 +15,10 @@ export function StatusCell({ row }: UserRowInfoCellProps) {
     const isCurrentUser = user?.id === id;
     const isStatusDisabled =
         isCurrentUser ||
-        status === UserStatus.TERMINATED.a ||
+        status === UserStatus.TERMINATED ||
         role === UserRole.SUPER_ADMIN ||
-        approvalStatus === ApprovalStatus.PENDING.a ||
-        approvalStatus === ApprovalStatus.REJECTED.a;
+        approvalStatus === ApprovalStatus.PENDING ||
+        approvalStatus === ApprovalStatus.REJECTED;
 
     const handleUpdate = async (newStatus: UserStatus) => {
         await mutate({
@@ -27,7 +27,7 @@ export function StatusCell({ row }: UserRowInfoCellProps) {
             entityId: id,
             optimisticFields: {
                 status: newStatus,
-                ...(newStatus === UserStatus.TERMINATED.a && { role: UserRole.UNASSIGNED })
+                ...(newStatus === UserStatus.TERMINATED && { role: UserRole.UNASSIGNED })
             },
             buildVariables: ({ status }) => ({
                 input: { userId: id, status }
@@ -39,10 +39,10 @@ export function StatusCell({ row }: UserRowInfoCellProps) {
     const statusOptions = getOptions({
         items: AVAILABLE_STATUSES,
         currentValue: status,
-        getValue: status => status.a,
-        getLabel: status => status.b,
-        getColor: status => getStatusColor(status.a),
-        onUpdate: handleUpdate,
+        getValue: status => status,
+        getLabel: status => USER_STATUS_ACTION_LABELS[status] || status,
+        getColor: status => getStatusColor(status),
+        onUpdate: (val) => handleUpdate(val as UserStatus),
     });
 
     return (

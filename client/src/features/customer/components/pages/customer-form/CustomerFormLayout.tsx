@@ -1,4 +1,4 @@
-import { useFormState, type UseFormHandleSubmit, type Control, type UseFormSetValue } from "react-hook-form";
+import { useFormState } from "react-hook-form";
 import { Button, ButtonLoading } from "@/components/ui/button";
 import { MobileActionBar } from "@/components/ui/mobile-action-bar";
 import { Header } from "@/features/product/components/Header";
@@ -13,9 +13,9 @@ export interface CustomerFormLayoutProps {
     error?: string | null;
     onCancel: () => void;
     onSubmit: (data: any) => void;
-    handleSubmit: UseFormHandleSubmit<any>;
-    control: Control<any>;
-    setValue?: UseFormSetValue<any>;
+    handleSubmit: any;
+    control: any;
+    setValue?: any;
     submitText?: string;
     loadingText?: string;
     isEditMode?: boolean;

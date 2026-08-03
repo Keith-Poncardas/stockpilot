@@ -1,4 +1,4 @@
-import { ApprovalStatus, AVAILABLE_APPROVAL_STATUSES, UserStatus } from "@/features/user/user.constants";
+import { ApprovalStatus, AVAILABLE_APPROVAL_STATUSES, UserStatus, APPROVAL_STATUS_ACTION_LABELS } from "@/features/user/user.constants";
 import type { UserRowInfoCellProps } from "../../user.types";
 import { useOptimisticMutation } from "@/hooks/useOptimisticMutation";
 import { APPROVE_REJECT_USER, GET_USER_METRICS } from "../../operations";
@@ -14,8 +14,8 @@ export function ApprovalStatusCell({ row }: UserRowInfoCellProps) {
     const { approvalStatus, id } = row.original;
 
     const isCurrentUser = user?.id === id;
-    const isFinalDecision = approvalStatus === ApprovalStatus.APPROVED.a || approvalStatus === ApprovalStatus.REJECTED.a;
-    const isTerminated = row.original.status === UserStatus.TERMINATED.a;
+    const isFinalDecision = approvalStatus === ApprovalStatus.APPROVED || approvalStatus === ApprovalStatus.REJECTED;
+    const isTerminated = row.original.status === UserStatus.TERMINATED;
     const isLocked = isCurrentUser || isFinalDecision || isTerminated;
 
     const handleUpdate = async (newStatus: ApprovalStatus) => {
@@ -25,7 +25,7 @@ export function ApprovalStatusCell({ row }: UserRowInfoCellProps) {
             entityId: id,
             optimisticFields: {
                 approvalStatus: newStatus,
-                status: newStatus === ApprovalStatus.APPROVED.a ? UserStatus.ACTIVE.a : UserStatus.TERMINATED.a
+                status: newStatus === ApprovalStatus.APPROVED ? UserStatus.ACTIVE : UserStatus.TERMINATED
             },
             buildVariables: ({ approvalStatus }) => ({
                 input: { userId: id, approvalStatus }
@@ -37,9 +37,9 @@ export function ApprovalStatusCell({ row }: UserRowInfoCellProps) {
     const statusOptions = getOptions({
         items: AVAILABLE_APPROVAL_STATUSES,
         currentValue: approvalStatus,
-        getValue: status => status.a,
-        getLabel: status => status.b,
-        getColor: status => getApprovalStatusColor(status.a),
+        getValue: status => status,
+        getLabel: status => APPROVAL_STATUS_ACTION_LABELS[status] || status,
+        getColor: status => getApprovalStatusColor(status),
         onUpdate: (val) => handleUpdate(val as ApprovalStatus),
     });
 

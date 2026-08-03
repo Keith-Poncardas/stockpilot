@@ -3,7 +3,7 @@ import type { IUserIdentify } from '@/features';
 import { cn } from '@/lib/utils'
 
 interface UserProfileDetailsProps {
-    user: IUserIdentify;
+    user: IUserIdentify | null;
     showEmail?: boolean;
     avatarSize?: 'default' | 'sm' | 'lg' | 'xl' | '2xl';
     nameClassName?: string;

@@ -14,7 +14,7 @@ export function PendingApprovalPage() {
     const client = useApolloClient();
 
     useEffect(() => {
-        if (user?.status === UserStatus.ACTIVE.a && user?.role !== UserRole.UNASSIGNED) {
+        if (user?.status === UserStatus.ACTIVE && user?.role !== UserRole.UNASSIGNED) {
             navigate("/", { replace: true });
         }
     }, [user, navigate]);

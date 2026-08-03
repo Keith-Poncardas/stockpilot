@@ -1,4 +1,3 @@
-import type { Control } from "react-hook-form";
 import { useState } from "react";
 import { FormSection } from "@/components/ui/form-section";
 import { FormField } from "@/components/ui/form-field";
@@ -13,7 +12,7 @@ import { ProductSearchPreview } from "./ProductSearchPreview";
 import { useInfiniteProductSearch } from "../../../hooks/useInfiniteProductSearch";
 
 interface ProductSearchSectionProps {
-    control: Control<any>;
+    control: any;
 }
 
 export function ProductSearchSection({ control }: ProductSearchSectionProps) {

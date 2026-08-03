@@ -1,6 +1,6 @@
 import { MovementReason, MovementType } from "@prisma/client";
 import z from "zod";
-import { inventoryIdSchema, orderDirectionLowerSchema, paginationSchema, searchSchema, uuidSchema } from "@/schemas";
+import { orderDirectionLowerSchema, paginationSchema, searchSchema, uuidSchema } from "@/schemas";
 import { InventoryOrderBy, OrderDirectionLower, StockStatus } from "@/enums";
 import { createMinMaxRefine, minMaxRefineMessage } from "@/utils";
 
@@ -58,7 +58,7 @@ export const paginatedInventoriesSchema = paginationSchema.extend({
 
 /** ADJUST STOCK SCHEMA */
 export const adjustStockSchema = z.object({
-    inventoryId: inventoryIdSchema,
+    inventoryId: uuidSchema,
     movementType: movementTypeSchema.default(MovementType.IN),
     quantity: z.coerce
         .number()
@@ -83,7 +83,7 @@ export const adjustStockSchema = z.object({
 });
 
 /** TYPE ALIASES */
-export type InventoryIdInput = z.infer<typeof inventoryIdSchema>;
+export type InventoryIdInput = z.infer<typeof uuidSchema>;
 export type AdjustStockInput = z.infer<typeof adjustStockSchema>;
 export type PaginatedInventoriesInput = z.infer<typeof paginatedInventoriesSchema>;
 
@@ -103,7 +103,7 @@ export type SearchInventoryProductsInfiniteInput = z.infer<typeof searchInventor
 
 /** CREATE INVENTORY SCHEMA */
 export const createInventorySchema = z.object({
-    productId: uuidSchema("Invalid product ID"),
+    productId: uuidSchema,
     quantityOnHand: z.coerce
         .number({ message: "Starting quantity is required" })
         .int("Quantity must be a whole number")

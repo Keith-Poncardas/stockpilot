@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import type { IProduct } from "@/features/product/product.types";
 import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";

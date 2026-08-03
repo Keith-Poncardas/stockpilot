@@ -1,4 +1,4 @@
-import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
+import { Controller, type FieldValues, type Path } from 'react-hook-form';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { NumberStepper } from '@/components/ui/number-stepper';
 import type { StepperSize } from '@/components/ui/number-stepper';
@@ -12,7 +12,7 @@ export interface QuantityFieldConfig<T extends FieldValues> {
 }
 
 export interface QuantityInputFieldsProps<T extends FieldValues> {
-    control: Control<T>;
+    control: any;
     /**
      * Optional custom fields configuration. If provided, renders these specific stepper fields.
      */

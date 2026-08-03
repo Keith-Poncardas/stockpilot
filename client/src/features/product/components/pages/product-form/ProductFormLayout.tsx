@@ -1,4 +1,4 @@
-import { useFormState, useWatch, type UseFormHandleSubmit, type Control } from "react-hook-form";
+import { useFormState, useWatch } from "react-hook-form";
 import { Button, ButtonLoading } from "@/components/ui/button";
 import { MobileActionBar } from "@/components/ui/mobile-action-bar";
 import { Header } from "../../Header";
@@ -13,8 +13,8 @@ export interface ProductFormLayoutProps {
     error?: string | null;
     onCancel: () => void;
     onSubmit: (data: any) => void;
-    handleSubmit: UseFormHandleSubmit<any>;
-    control: Control<any>;
+    handleSubmit: any;
+    control: any;
     submitText?: string;
     loadingText?: string;
     isEditMode?: boolean;

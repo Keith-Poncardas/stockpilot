@@ -86,7 +86,7 @@ export function OTPPage() {
             if (activeMode === "forgot-password") {
                 // Seed the change-password session before navigating.
                 // OTP keys are cleared by ChangePasswordPage on mount.
-                sessionStorage.setItem("auth_email_change-password", email);
+                sessionStorage.setItem("auth_email_change-password", email || "");
                 navigate(`/change-password?email=${email}`, {
                     replace: true,
                     state: {

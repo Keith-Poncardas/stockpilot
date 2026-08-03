@@ -27,9 +27,9 @@ export function UserAboutCard({ user, isLoading }: UserAboutCardProps) {
     const details = [
         { label: 'Role', value: <Badge status={user?.role || ''} type='ROLE' /> },
         { label: 'Status', value: <Badge status={user?.status || ''} type='STATUS' /> },
-        { label: 'Joined', value: <span className="font-medium text-gray-900">{formatDate(user?.createdAt)}</span> },
-        { label: 'Sales Processed', value: <span className="font-medium text-gray-900">{user?.salesProcessed}</span> },
-        { label: 'Stock Movements', value: <span className="font-medium text-gray-900">{user?.stockMovementProcessed}</span> },
+        { label: 'Joined', value: <span className="font-medium text-gray-900">{user?.createdAt ? formatDate(user.createdAt) : 'N/A'}</span> },
+        { label: 'Sales Processed', value: <span className="font-medium text-gray-900">{user?.salesProcessedCount ?? user?.salesProcessed ?? 0}</span> },
+        { label: 'Stock Movements', value: <span className="font-medium text-gray-900">{user?.stockMovementsProcessedCount ?? user?.stockMovementProcessed ?? 0}</span> },
     ]
 
     return (

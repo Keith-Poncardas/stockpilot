@@ -15,9 +15,9 @@ export function RoleCell({ row }: UserRowInfoCellProps) {
   const isCurrentUser = user?.id === id;
   const isRoleDisabled =
     isCurrentUser ||
-    status === UserStatus.TERMINATED.a ||
+    status === UserStatus.TERMINATED ||
     role === UserRole.SUPER_ADMIN ||
-    approvalStatus !== ApprovalStatus.APPROVED.a;
+    approvalStatus !== ApprovalStatus.APPROVED;
 
   const handleUpdate = async (newRole: UserRole) => {
     await mutate({
@@ -37,7 +37,7 @@ export function RoleCell({ row }: UserRowInfoCellProps) {
     getValue: role => role,
     getLabel: role => role.replace(/_/g, " "),
     getColor: role => getRoleColor(role),
-    onUpdate: handleUpdate,
+    onUpdate: (val) => handleUpdate(val as UserRole),
   });
 
   return (
