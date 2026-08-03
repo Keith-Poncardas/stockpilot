@@ -54,6 +54,13 @@ export const dateRangeRefine = (data: { dateFrom?: Date; dateTo?: Date }) => {
     return true;
 };
 
+/**
+ * Error message configuration for date range validation.
+ *
+ * This object should be used as the second argument to `.refine()`
+ * when validating date ranges to provide a consistent error message
+ * when `dateFrom` is after `dateTo`.
+ */
 export const dateRangeRefineMessage = {
     message: "dateFrom must be before or equal to dateTo",
     path: ["dateFrom"],

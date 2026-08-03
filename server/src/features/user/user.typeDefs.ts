@@ -85,7 +85,7 @@ export const userTypeDefs = `#graphql
         search: String
         role: UserRole
         status: UserStatus
-        approvalStatus: ApprovalStatus
+        approvalStatus: UserApprovalStatus
         dateFrom: String
         dateTo: String
         orderBy: UserOrderBy
@@ -108,7 +108,7 @@ export const userTypeDefs = `#graphql
     # Change user approval status input
     input ApproveRejectUserInput {
         userId: ID!
-        approvalStatus: ApprovalStatus!
+        approvalStatus: UserApprovalStatus!
     }
 
     # Assign role input

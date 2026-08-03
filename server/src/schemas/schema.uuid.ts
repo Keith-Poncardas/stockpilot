@@ -9,4 +9,3 @@ import z from "zod";
  *   export const productIdSchema = uuidSchema("Invalid product ID");
  */
 export const uuidSchema = z.uuid("Invalid UUID");
-export type UUIDInput = z.infer<typeof uuidSchema>;

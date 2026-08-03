@@ -21,5 +21,3 @@ export const paginationSchema = z.object({
         .positive()
         .default(1),
 });
-
-export type PaginationInput = z.infer<typeof paginationSchema>;

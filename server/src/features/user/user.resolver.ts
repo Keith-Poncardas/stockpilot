@@ -1,58 +1,82 @@
 import { UUIDInput, uuidSchema } from "@/schemas";
 import { userService } from "./user.service";
 import {
-    AssignRoleInput,
     assignRoleSchema,
-    ChangeUserApprovalStatusInput,
     changeUserApprovalStatusSchema,
-    PaginatedUsersInput,
     paginatedUsersSchema,
-    UpdateUserStatusInput,
     updateUserStatusSchema,
 } from "./user.validation";
-import { protectResolvers, resolver, validate } from "@/graphql/helpers";
+import {
+    composeResolvers,
+    protectResolvers,
+    applyErrorHandling,
+    validate
+} from "@/graphql/helpers";
 import { GraphQLContext } from "@/types";
 import { User } from "@prisma/client";
 import { stockMovementsService } from "../stockMovements";
 import { saleService } from "../sale";
+import {
+    AssignRoleInput,
+    ChangeUserApprovalStatusInput,
+    PaginatedUsersInput,
+    UpdateUserStatusInput
+} from "./types";
 
 export const userResolver = {
 
-    Query: protectResolvers(resolver({
+    Query: composeResolvers(
+        protectResolvers,
+        applyErrorHandling
+    )({
 
         /**
-         * Get user by id
+         * Retrieves a single user by their unique ID.
+         *
+         * This resolver validates the user ID before calling the
+         * service layer. If the ID is valid, it returns the
+         * requested user.
          */
-        getUser: validate(
-            uuidSchema,
-            (args) => args.userId
+        getUser: composeResolvers(
+            validate(uuidSchema)
         )(async (_: unknown, { userId }: { userId: UUIDInput }) => {
             return userService.getUser(userId);
         }),
 
         /**
-         * Get all users (pagination, filter)
+         * Retrieves a paginated list of users.
+         *
+         * This resolver validates the request arguments before
+         * calling the service layer. It returns a paginated list
+         * of users based on the provided filters, sorting, and
+         * pagination options.
          */
-        getUsers: validate(
-            paginatedUsersSchema,
-            (args) => args.args
+        getUsers: composeResolvers(
+            validate(paginatedUsersSchema)
         )(async (_: unknown, { args }: { args: PaginatedUsersInput }) => {
             return userService.getUsers(args);
         }),
 
         /**
-         * Get user metrics (Total, Active, Pending Approval)
+         * Retrieves summary statistics for users.
+         *
+         * This resolver calls the service layer to return
+         * user metrics such as the total number of users,
+         * active users, and pending approvals.
          */
         getUserMetrics: async () => {
             return userService.getUserMetrics();
         },
 
-    })),
+    }),
 
-    User: resolver({
+    User: applyErrorHandling({
 
         /**
-         * Get sales processed count for a user
+         * Retrieves the number of sales processed by a user.
+         *
+         * This field resolver calls the service layer to return
+         * the count of sales processed by the specific user.
          */
         salesProcessedCount: async (user: User) => {
             return stockMovementsService.stockMovementCount({
@@ -61,7 +85,10 @@ export const userResolver = {
         },
 
         /**
-         * Get sales processed count for a user
+         * Retrieves the number of sales processed by a user.
+         *
+         * This field resolver calls the service layer to return
+         * the count of sales processed by the specific user.
          */
         stockMovementsProcessedCount: async (user: User) => {
             return saleService.saleCount({ userId: user.id });
@@ -69,12 +96,21 @@ export const userResolver = {
 
     }),
 
-    Mutation: protectResolvers(resolver({
+    Mutation: composeResolvers(
+        protectResolvers,
+        applyErrorHandling
+    )({
 
         /**
-         * Change user status
+         * Updates the status of an existing user.
+         *
+         * This resolver validates the input arguments and then
+         * calls the service layer to update the user's status.
+         * It ensures that only valid status transitions are allowed.
          */
-        changeUserStatus: validate(updateUserStatusSchema)(async (
+        changeUserStatus: composeResolvers(
+            validate(updateUserStatusSchema)
+        )(async (
             _: unknown,
             { input }: { input: UpdateUserStatusInput },
             ctx: GraphQLContext
@@ -83,9 +119,15 @@ export const userResolver = {
         }),
 
         /**
-         * Approve or reject user
+         * Approves or rejects a user's account.
+         *
+         * This resolver validates the input arguments and then
+         * calls the service layer to update the user's approval status.
+         * Only users with PENDING approval status can be processed.
          */
-        approveRejectUser: validate(changeUserApprovalStatusSchema)(async (
+        approveRejectUser: composeResolvers(
+            validate(changeUserApprovalStatusSchema)
+        )(async (
             _: unknown,
             { input }: { input: ChangeUserApprovalStatusInput }
         ) => {
@@ -93,9 +135,15 @@ export const userResolver = {
         }),
 
         /**
-         * Assign user role
+         * Assigns a new role to a specific user.
+         *
+         * This resolver validates the input arguments and then
+         * calls the service layer to update the user's role.
+         * The caller must have SUPER_ADMIN or ADMIN role.
          */
-        assignRole: validate(assignRoleSchema)(async (
+        assignRole: composeResolvers(
+            validate(assignRoleSchema)
+        )(async (
             _: unknown,
             { input }: { input: AssignRoleInput },
             ctx: GraphQLContext
@@ -103,6 +151,6 @@ export const userResolver = {
             return userService.assignRole(ctx.user!.id, input);
         })
 
-    }))
+    })
 
 };

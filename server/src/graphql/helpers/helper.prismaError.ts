@@ -8,6 +8,21 @@ enum PrismaErrorCode {
     RECORD_NOT_FOUND = "P2025",
 }
 
+/**
+ * Converts Prisma errors into application-specific GraphQL errors.
+ *
+ * This function catches common Prisma errors and throws a
+ * user-friendly GraphQL error with the appropriate error code.
+ * If the error is already a GraphQL error, it is rethrown
+ * without modification.
+ *
+ * Any unknown errors are treated as internal server errors to
+ * avoid exposing database details to the client.
+ *
+ * @param {unknown} error - The error to convert.
+ * @throws {GraphQLError} Always throws a GraphQL error.
+ * @returns {never} This function never returns because it always throws an error.
+ */
 export function mapPrismaError(error: unknown): never {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
         switch (error.code) {
