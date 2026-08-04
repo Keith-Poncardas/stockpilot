@@ -6,54 +6,39 @@ import { createMinMaxRefine, minMaxRefineMessage } from "@/utils";
 import { paginationSchema } from "@/schemas";
 
 /**
- * ENUMS
+ * Validates the stock movement type.
+ *
+ * Accepts only the predefined stock movement types.
  */
-const movementTypeSchema = z.enum(MovementType);
-
-/** Sortable columns exposed for stock-movement list queries */
-const orderBySchema = z.enum(StockMovementOrderBy);
-
-/** Sort direction — lowercase to match Prisma's expected values */
-const orderDirectionLowerSchema = z.enum(OrderDirectionLower);
-
-export const stockMovementIdSchema = z.object({
-    id: uuidSchema,
-});
-
-export const getMovementDetailsSchema = stockMovementIdSchema;
+export const movementTypeSchema = z.enum(MovementType);
 
 /**
- * FILTER STOCK MOVEMENTS SCHEMA
+ * Validates the field used to sort stock movements.
  *
- * Supported filters:
- *  - search          → product name or SKU (case-insensitive contains)
- *  - movementType    → IN | OUT | ADJUSTMENT
- *  - productId       → exact product UUID
- *  - userId          → exact user UUID (who performed the movement)
- *  - minQty / maxQty → quantity range (inclusive)
- *  - dateFrom / dateTo → createdAt date range (inclusive)
- *  - orderBy         → createdAt | quantity
- *  - orderDirection  → asc | desc
+ * Accepts only the supported stock movement sort fields.
+ */
+export const orderBySchema = z.enum(StockMovementOrderBy);
+
+/**
+ * Validates the sort direction for stock movement queries.
+ *
+ * Accepts only lowercase sort direction values.
+ */
+export const orderDirectionLowerSchema = z.enum(OrderDirectionLower);
+
+/**
+ * Validates filters for retrieving stock movements.
+ *
+ * Supports searching, filtering by movement type, product,
+ * user, quantity range, date range, and sorting options.
  */
 export const filterStockMovementsSchema = dateRangeSchema.extend({
-
-    /** Full-text search against the linked product name or SKU */
     search: searchSchema,
-
-    /** Filter by movement type */
     movementType: movementTypeSchema.optional(),
-
-    /** Filter by a specific product */
     productId: uuidSchema,
-
-    /** Filter by the user who performed the movement */
     userId: uuidSchema,
-
-    /** Quantity range filters */
     minQty: z.coerce.number().int().nonnegative().optional(),
     maxQty: z.coerce.number().int().nonnegative().optional(),
-
-    /** Sorting */
     orderBy: orderBySchema.default(StockMovementOrderBy.CREATED_AT),
     orderDirection: orderDirectionLowerSchema.default(OrderDirectionLower.DESC),
 
@@ -63,78 +48,41 @@ export const filterStockMovementsSchema = dateRangeSchema.extend({
 ).refine(dateRangeRefine, dateRangeRefineMessage);
 
 /**
- * PAGINATED STOCK MOVEMENTS SCHEMA
+ * Validates input for paginated retrieval of stock movements.
  *
- * Wraps pagination + filter into a single validated input object,
- * mirroring the paginatedProductsSchema pattern.
+ * Combines pagination parameters with stock movement filters.
  */
 export const paginatedStockMovementsSchema = paginationSchema.extend({
     filter: filterStockMovementsSchema,
 });
 
 /**
- * RECORD MOVEMENT SCHEMA
+ * Validates input for creating a new stock movement.
  *
- * Validates the input for creating a new stock movement.
  * Fields mirror the StockMovement model plus an optional
  * reorderLevel that is applied to the linked Inventory record.
  */
 export const recordMovementSchema = z.object({
-
-    /** UUID of the product whose stock is being adjusted */
     productId: uuidSchema,
-
-    /** UUID of the user who is recording this movement */
     userId: uuidSchema,
-
-    /** Movement direction / kind */
     type: movementTypeSchema,
-
-    /**
-     * Quantity involved in the movement.
-     * - IN / OUT → positive integer representing units moved
-     * - ADJUSTMENT → non-negative integer representing the new absolute quantity
-     */
     quantity: z.coerce
         .number()
         .int("Quantity must be a whole number")
         .nonnegative("Quantity must be 0 or greater"),
-
-    /**
-     * Optional external reference (e.g. purchase-order number, invoice ID).
-     * Max length matches the VarChar column (255).
-     */
     reference: z
         .string()
         .trim()
         .max(255, "Reference must not exceed 255 characters")
         .optional(),
-
-    /** Optional free-text note about the movement */
     notes: z
         .string()
         .trim()
         .max(1000, "Notes must not exceed 1 000 characters")
         .optional(),
-
-    /**
-     * Optional new reorder threshold to persist on the linked Inventory record.
-     * When omitted the existing reorderLevel is left unchanged.
-     */
     reorderLevel: z
         .number()
         .int("Reorder level must be a whole number")
         .nonnegative("Reorder level must be 0 or greater")
         .optional(),
-
 });
-
-/**
- * INFERENCE
- */
-export type StockMovementIdInput = z.infer<typeof stockMovementIdSchema>;
-export type GetMovementDetailsInput = StockMovementIdInput;
-export type FilterStockMovementsInput = z.infer<typeof filterStockMovementsSchema>;
-export type PaginatedStockMovementsInput = z.infer<typeof paginatedStockMovementsSchema>;
-export type RecordMovementInput = z.infer<typeof recordMovementSchema>;
-export type MovementTypeFilter = z.infer<typeof movementTypeSchema>;

@@ -73,12 +73,12 @@ export const userResolver = {
     User: applyErrorHandling({
 
         /**
-         * Retrieves the number of sales processed by a user.
+         * Retrieves the number of stock movements processed by a user.
          *
          * This field resolver calls the service layer to return
-         * the count of sales processed by the specific user.
+         * the count of stock movements processed by the specific user.
          */
-        salesProcessedCount: async (user: User) => {
+        stockMovementsCount: async (user: User) => {
             return stockMovementsService.stockMovementCount({
                 userId: user.id
             });
@@ -90,7 +90,7 @@ export const userResolver = {
          * This field resolver calls the service layer to return
          * the count of sales processed by the specific user.
          */
-        stockMovementsProcessedCount: async (user: User) => {
+        salesCount: async (user: User) => {
             return saleService.saleCount({ userId: user.id });
         },
 

@@ -2,13 +2,19 @@ import { prisma } from "@/lib";
 import { createPaginator, throwNotFound, throwConflict, generateReference, createInfiniteScroller } from "@/utils";
 import { MovementType, Prisma } from "@prisma/client";
 import { AdjustStockInput, adjustStockSchema, CreateInventoryInput, createInventorySchema, PaginatedInventoriesInput, paginatedInventoriesSchema, SearchInventoryProductsInfiniteInput, searchInventoryProductsInfiniteSchema } from "./inv.validation";
-import { inventoryIdSchema, UUIDInput } from "@/schemas";
+import { UUIDInput } from "@/schemas";
 import { ProductStatus, StockStatus } from "@/enums";
 import { resolveStockStatus } from "./inv.utils";
 
 
 export class InventoryService {
 
+    /**
+     * Get inventory count by stock status
+     */
+    async countInventory(where?: Prisma.InventoryWhereInput) {
+        return await prisma.inventory.count({ where });
+    }
 
     /**
      * Returns counts of inventory items grouped by stock status:
@@ -55,10 +61,8 @@ export class InventoryService {
      */
     async getInventory(inventoryId: UUIDInput) {
 
-        const id = inventoryIdSchema.parse(inventoryId);
-
         const inventory = await prisma.inventory.findUnique({
-            where: { id },
+            where: { id: inventoryId },
             include: {
                 product: true,
                 author: {

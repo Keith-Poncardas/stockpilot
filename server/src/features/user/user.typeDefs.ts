@@ -62,18 +62,6 @@ export const userTypeDefs = `#graphql
         pendingApproval: Int!
     }
 
-    # Pagination metadata
-    type Pagination {
-        page: Int!
-        limit: Int!
-        firstItem: Int!
-        lastItem: Int!
-        totalItems: Int!
-        totalPages: Int!
-        hasPreviousPage: Boolean!
-        hasNextPage: Boolean!
-    }
-
     # Paginated user response
     type PaginatedUser {
         data: [User!]!

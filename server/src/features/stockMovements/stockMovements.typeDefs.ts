@@ -1,5 +1,17 @@
 export const stockMovementsTypeDefs = `#graphql
 
+    # Type for stock movement reason enum (mirrors MovementReason enum in Prisma)
+    enum MovementReason {
+        SALE
+        PURCHASE
+        ADJUSTMENT
+        RETURN
+        DAMAGE
+        EXPIRED
+        TRANSFER
+        INITIAL_STOCK
+    }
+
     # Movement type — mirrors the Prisma MovementType enum
     enum MovementType {
         IN
@@ -19,41 +31,6 @@ export const stockMovementsTypeDefs = `#graphql
         desc
     }
 
-    # Pagination metadata (shared shape across features)
-    type Pagination {
-        page: Int!
-        limit: Int!
-        firstItem: Int!
-        lastItem: Int!
-        totalItems: Int!
-        totalPages: Int!
-        hasPreviousPage: Boolean!
-        hasNextPage: Boolean!
-    }
-
-    # Lightweight product summary embedded inside a StockMovement record
-    type StockMovementProduct {
-        id: ID!
-        sku: String!
-        name: String!
-        # Nullable — products may not have a cost price set
-        costPrice: Float
-        unitPrice: Float!
-        status: ProductStatus!
-        inventoryStatus: InventoryStatus
-    }
-    # Reason for stock movement (mirrors the Prisma MovementReason enum)
-    enum MovementReason {
-        SALE
-        PURCHASE
-        ADJUSTMENT
-        RETURN
-        DAMAGE
-        EXPIRED
-        TRANSFER
-        INITIAL_STOCK
-    }
-
     # Core stock movement record
     type StockMovement {
         id: ID!
@@ -63,11 +40,8 @@ export const stockMovementsTypeDefs = `#graphql
         quantity: Int!
         reference: String
         notes: String
-        reason: MovementReason!
         createdAt: String!
-        deletedAt: String
-        product: StockMovementProduct!
-        user: User!
+        reason: MovementReason!
     }
 
     # Paginated stock movements list response
@@ -78,59 +52,37 @@ export const stockMovementsTypeDefs = `#graphql
 
     # Dashboard-level aggregated metrics for stock movements
     type StockMovementDashboardMetrics {
-        # Total quantity from all IN movements
         totalStockIn: Int!
-        # Total quantity from all OUT movements
         totalStockOut: Int!
-        # Total quantity from all ADJUSTMENT movements
         totalStockAdjustments: Int!
-        # Number of inventory records where quantityOnHand <= reorderLevel
         lowStockProducts: Int!
     }
 
     # Filter + sort options for the stock movements list
     input FilterStockMovementsInput {
-        # Full-text search against linked product name or SKU
         search: String
-
-        # Filter by movement type
         movementType: MovementType
-
-        # Filter by a specific product
         productId: ID
-
-        # Filter by the user who performed the movement
         userId: ID
-
-        # Quantity range filters
         minQty: Int
         maxQty: Int
-
-        # Date range filters (ISO 8601 strings)
         dateFrom: String
         dateTo: String
-
-        # Sorting (defaults: createdAt desc)
         orderBy: StockMovementOrderBy
         orderDirection: OrderDirectionLower
     }
 
-    # Paginated stock movements input — wraps pagination + filter into a single arg
+    # Input for paginated stock movements
     input PaginatedStockMovementsInput {
         page: Int!
         limit: Int!
         filter: FilterStockMovementsInput!
     }
 
+    # Queries for stock movements
     type Query {
-
-        # Paginated + filtered stock movements list
         getAllStockMovements(args: PaginatedStockMovementsInput!): PaginatedStockMovements!
-
-        # Aggregated dashboard metrics for the stock movements feature
         getStockMovementDashboardMetrics: StockMovementDashboardMetrics!
-
-        # Fetch a single stock movement record by its ID
         getStockMovement(id: ID!): StockMovement!
     }
 
