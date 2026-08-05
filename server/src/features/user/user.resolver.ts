@@ -40,7 +40,7 @@ export const userResolver = {
         getUser: composeResolvers(
             validate(uuidSchema)
         )(async (_: unknown, { userId }: { userId: UUIDInput }) => {
-            return userService.getUser(userId);
+            return userService.getUser({ id: userId });
         }),
 
         /**

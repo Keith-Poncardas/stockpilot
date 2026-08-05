@@ -1,69 +1,70 @@
-import { GraphQLContext } from "@/types";
-import { throwUnauthorized } from "@/utils";
+import {
+    applyErrorHandling,
+    composeResolvers,
+    protectResolvers,
+    validate
+} from "@/graphql/helpers";
+import { UUIDInput, uuidSchema } from "@/schemas";
 import { productService } from "./product.service";
-import { ChangeProductStatusInput, CreateProductInput, EditProductInput, PaginatedProductsInput } from "./product.validation";
-import { protectResolvers } from "@/graphql/helpers";
-import { UUIDInput } from "@/schemas";
-import { prisma } from "@/lib";
+import {
+    addProductSchema,
+    changeProductStatusSchema,
+    editProductSchema,
+    paginatedProductsSchema
+} from "./product.validation";
+import {
+    AddProductInput,
+    ChangeProductStatusInput,
+    EditProductInput,
+    PaginatedProductsInput
+} from "./types";
+import { GraphQLContext } from "@/types";
+import { Product } from "@prisma/client";
+import { stockMovementsService } from "../stockMovements";
 
 export const productResolver = {
-    Product: {
-        quantityOnHand: async (parent: any) => {
-            if (parent.quantityOnHand !== undefined) return parent.quantityOnHand;
-            const inv = await prisma.inventory.findFirst({ where: { productId: parent.id } });
-            return inv?.quantityOnHand ?? 0;
-        },
-        reorderLevel: async (parent: any) => {
-            if (parent.reorderLevel !== undefined) return parent.reorderLevel;
-            const inv = await prisma.inventory.findFirst({ where: { productId: parent.id } });
-            return inv?.reorderLevel ?? 0;
-        },
-        inventory: async (parent: any) => {
-            if (parent.inventory !== undefined) return parent.inventory;
-            const inv = await prisma.inventory.findFirst({ where: { productId: parent.id } });
-            if (!inv) return null;
-            return {
-                id: inv.id,
-                quantityOnHand: inv.quantityOnHand,
-                reorderLevel: inv.reorderLevel,
-                maxStock: inv.maxStock ?? 0,
-                lastRestockDate: inv.updatedAt.toISOString(),
-                estimatedDaysOfStock: 30,
-            };
-        },
-    },
 
-    Query: protectResolvers({
+    Query: composeResolvers(
+        protectResolvers,
+        applyErrorHandling
+    )({
 
         /**
-         * Get product by id
+         * Retrieves a single product by its unique identifier.
+         *
+         * Validates the provided product ID before delegating the request
+         * to the product service. Throws an error if the product cannot
+         * be found.
          */
-        getProduct: async (
-            _: unknown,
-            { productId }: { productId: UUIDInput }
-        ) => {
-            return productService.getProduct(productId);
-        },
+        getProduct: composeResolvers(
+            validate(uuidSchema)
+        )(async (_: unknown, { productId }: { productId: UUIDInput }) => {
+            return productService.getProduct({ id: productId });
+        }),
 
         /**
-         * Get all products (pagination, filter)
+         * Retrieves a paginated list of products.
+         *
+         * Supports pagination, filtering, searching, and sorting based
+         * on the validated query arguments.
          */
-        getProducts: async (
-            _: unknown,
-            { args }: { args: PaginatedProductsInput }
-        ) => {
+        getProducts: composeResolvers(
+            validate(paginatedProductsSchema)
+        )(async (_: unknown, { args }: { args: PaginatedProductsInput }) => {
             return productService.getProducts(args);
-        },
+        }),
 
         /**
-         * Get total products count
+         * Retrieves the total number of products
+         * currently stored in the system.
          */
         getTotalProductsCount: async () => {
-            return productService.getTotalProductsCount();
+            return productService.getProductCount();
         },
 
         /**
-         * Get product metrics (Total, Active, Draft)
+         * Retrieves aggregated product metrics,
+         * including the total, active, and draft product counts.
          */
         getProductMetrics: async () => {
             return productService.getProductMetrics();
@@ -71,40 +72,61 @@ export const productResolver = {
 
     }),
 
-    Mutation: protectResolvers({
+    Product: applyErrorHandling({
 
         /**
-         * Create a new product
+         * Retrieves the stock movement associated with the product.
          */
-        createProduct: async (
-            _: unknown,
-            { input }: { input: CreateProductInput },
-            context: GraphQLContext
-        ) => {
-            return productService.createProduct(input, context.user!.id);
+        async stockMovement(parent: Product) {
+            return stockMovementsService.getStockMovement({ id: parent.id });
         },
 
-        /**
-         * Edit a product
-         */
-        editProduct: async (
-            _: unknown,
-            { input }: { input: EditProductInput },
-            context: GraphQLContext
-        ) => {
-            return productService.editProduct(input, context.user!.id);
-        },
+    }),
+
+    Mutation: composeResolvers(
+        protectResolvers,
+        applyErrorHandling
+    )({
 
         /**
-         * Change a product's status
+         * Creates a new product.
+         *
+         * Validates both the product and inventory inputs before
+         * creating the product and its initial stock-in record.
          */
-        changeProductStatus: async (
+        createProduct: composeResolvers(
+            validate(addProductSchema)
+        )(async (
             _: unknown,
-            { input }: { input: ChangeProductStatusInput },
+            { input }: { input: AddProductInput },
+            ctx: GraphQLContext
         ) => {
+            return productService.createProduct(ctx.user?.id!, input);
+        }),
+
+        /**
+         * Updates an existing product.
+         *
+         * Validates both the product and inventory inputs before
+         * updating the product and its stock-in record.
+         */
+        editProduct: composeResolvers(
+            validate(editProductSchema)
+        )(async (_: unknown, { input }: { input: EditProductInput }) => {
+            return productService.editProduct(input);
+        }),
+
+        /**
+         * Changes the status of a product.
+         *
+         * Validates the status transition before updating the product.
+         */
+        changeProductStatus: composeResolvers(
+            validate(changeProductStatusSchema)
+        )(async (_: unknown, { input }: { input: ChangeProductStatusInput }) => {
             return productService.changeStatus(input);
-        },
+        }),
 
-    })
+    }),
 
 };

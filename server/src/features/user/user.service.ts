@@ -47,13 +47,13 @@ export class UserService {
      * (`findUniqueOrThrow`), so no manual null check is needed.
      *
      * @async
-     * @param {UUIDInput} userId - The unique ID of the user to retrieve.
+     * @param {Prisma.UserWhereUniqueInput} where - The unique identifier of the user to retrieve.
      * @returns {Promise<User>} The user record with the selected fields.
      * @throws {Prisma.NotFoundError} If the user does not exist.
      */
-    async getUser(userId: UUIDInput) {
+    async getUser(where: Prisma.UserWhereUniqueInput) {
         return await prisma.user.findUniqueOrThrow({
-            where: { id: userId },
+            where,
             select: this.select
         });
     }

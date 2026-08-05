@@ -42,6 +42,11 @@ export const stockMovementsTypeDefs = `#graphql
         notes: String
         createdAt: String!
         reason: MovementReason!
+
+        # Relations
+        author: User!
+        product: Product!
+        inventory: Inventory!
     }
 
     # Paginated stock movements list response

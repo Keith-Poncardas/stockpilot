@@ -70,15 +70,10 @@ export const recordMovementSchema = z.object({
         .number()
         .int("Quantity must be a whole number")
         .nonnegative("Quantity must be 0 or greater"),
-    reference: z
-        .string()
-        .trim()
-        .max(255, "Reference must not exceed 255 characters")
-        .optional(),
     notes: z
         .string()
         .trim()
-        .max(1000, "Notes must not exceed 1 000 characters")
+        .max(500, "Notes must not exceed 500 characters")
         .optional(),
     reorderLevel: z
         .number()

@@ -1,7 +1,6 @@
 import { prisma } from "@/lib";
 import { buildSearchQuery, createPaginator } from "@/utils";
 import { MovementType, Prisma } from "@prisma/client";
-import { UUIDInput } from "@/schemas";
 import { inventoryService } from "../inventory";
 import { PaginatedStockMovementsInput } from "./types";
 
@@ -109,12 +108,12 @@ export class StockMovementsService {
      *
      * Throws an error if the stock movement does not exist.
      *
-     * @param movementId - The unique ID of the stock movement.
+     * @param where - The unique ID of the stock movement.
      * @returns The matching stock movement record.
      */
-    async getStockMovement(movementId: UUIDInput) {
+    async getStockMovement(where: Prisma.StockMovementWhereUniqueInput) {
         return await prisma.stockMovement.findUniqueOrThrow({
-            where: { id: movementId }
+            where
         });
     }
 
@@ -209,7 +208,7 @@ export class StockMovementsService {
      */
     async recordStockMovement(
         tx: Prisma.TransactionClient,
-        movement: Prisma.StockMovementCreateInput
+        movement: Prisma.StockMovementUncheckedCreateInput
     ) {
         return await tx.stockMovement.create({ data: movement });
     }

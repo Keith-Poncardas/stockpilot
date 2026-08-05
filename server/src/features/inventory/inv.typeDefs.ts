@@ -182,12 +182,17 @@ export const inventoryTypeDefs = `#graphql
         notes: String
     }
 
+    # Inventory input type
+    input InventoryInput {
+        quantity: Int!
+        reorderLevel: Int!
+        maxStock: Int!
+    }
+
     # Create a new inventory record for a product (initial stock-in)
     input CreateInventoryInput {
         productId: ID!
-        quantityOnHand: Int!
-        reorderLevel: Int!
-        maxStock: Int!
+        inventory: InventoryInput!
     }
 
     # ─── Queries & Mutations ──────────────────────────────────────────────────

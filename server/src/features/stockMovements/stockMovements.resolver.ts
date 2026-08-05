@@ -8,6 +8,10 @@ import {
 } from "@/graphql/helpers";
 import { paginatedStockMovementsSchema } from "./stockMovements.validation";
 import { PaginatedStockMovementsInput } from "./types";
+import { StockMovement } from "@prisma/client";
+import { userService } from "../user";
+import { inventoryService } from "../inventory";
+import { productService } from "../product";
 
 export const stockMovementsResolver = {
 
@@ -26,7 +30,7 @@ export const stockMovementsResolver = {
         getStockMovement: composeResolvers(
             validate(uuidSchema)
         )(async (_: unknown, { movementId }: { movementId: UUIDInput }) => {
-            return stockMovementsService.getStockMovement(movementId);
+            return stockMovementsService.getStockMovement({ id: movementId });
         }),
 
         /**
@@ -43,6 +47,43 @@ export const stockMovementsResolver = {
             return stockMovementsService.getAllStockMovements(args);
         }),
 
+    }),
+
+    StockMovement: applyErrorHandling({
+
+        /**
+         * Retrieves the author of the stock movement.
+         *
+         * This resolver calls the service layer to get the author
+         * of the stock movement.
+         */
+        author: async (stockMovement: StockMovement) => {
+            return userService.getUser({ id: stockMovement.userId });
+        },
+
+        /**
+         * Retrieves the product of the stock movement.
+         *
+         * This resolver calls the service layer to get the product
+         * of the stock movement.
+         */
+        product: async (stockMovement: StockMovement) => {
+            return productService.getProduct({
+                id: stockMovement.productId
+            });
+        },
+
+        /**
+         * Retrieves the inventory of the stock movement.
+         *
+         * This resolver calls the service layer to get the inventory
+         * of the stock movement.
+         */
+        inventory: async (stockMovement: StockMovement) => {
+            return inventoryService.getInventory({
+                productId: stockMovement.productId
+            });
+        },
     })
 
 };

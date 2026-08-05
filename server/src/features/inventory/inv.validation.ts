@@ -101,9 +101,7 @@ export const searchInventoryProductsInfiniteSchema = z.object({
 });
 export type SearchInventoryProductsInfiniteInput = z.infer<typeof searchInventoryProductsInfiniteSchema>;
 
-/** CREATE INVENTORY SCHEMA */
-export const createInventorySchema = z.object({
-    productId: uuidSchema,
+export const inventorySchemaObject = z.object({
     quantityOnHand: z.coerce
         .number({ message: "Starting quantity is required" })
         .int("Quantity must be a whole number")
@@ -117,5 +115,12 @@ export const createInventorySchema = z.object({
         .int("Max stock must be a whole number")
         .nonnegative("Max stock cannot be negative"),
 });
+
+/** CREATE INVENTORY SCHEMA */
+export const createInventorySchema = z.object({
+    productId: uuidSchema,
+    inventory: inventorySchemaObject
+});
+
 export type CreateInventoryInput = z.infer<typeof createInventorySchema>;
 

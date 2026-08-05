@@ -12,4 +12,10 @@ export const baseTypeDefs = `#graphql
         hasNextPage: Boolean!
     }
 
+    # Order Direction Enum
+    enum OrderDirection {
+        asc
+        desc
+    }
+
 `

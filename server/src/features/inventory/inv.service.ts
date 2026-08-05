@@ -2,120 +2,131 @@ import { prisma } from "@/lib";
 import { createPaginator, throwNotFound, throwConflict, generateReference, createInfiniteScroller } from "@/utils";
 import { MovementType, Prisma } from "@prisma/client";
 import { AdjustStockInput, adjustStockSchema, CreateInventoryInput, createInventorySchema, PaginatedInventoriesInput, paginatedInventoriesSchema, SearchInventoryProductsInfiniteInput, searchInventoryProductsInfiniteSchema } from "./inv.validation";
-import { UUIDInput } from "@/schemas";
 import { ProductStatus, StockStatus } from "@/enums";
 import { resolveStockStatus } from "./inv.utils";
-
 
 export class InventoryService {
 
     /**
-     * Get inventory count by stock status
+     * Counts the number of inventory records that match the given filter.
+     *
+     * If no filter is provided, returns the total number of inventory
+     * records in the system.
+     *
+     * @param where Optional Prisma filter used to count specific inventory records.
+     * @returns The total number of matching inventory records.
      */
     async countInventory(where?: Prisma.InventoryWhereInput) {
         return await prisma.inventory.count({ where });
     }
 
     /**
-     * Returns counts of inventory items grouped by stock status:
+     * Retrieves a single inventory record by its unique identifier.
+     *
+     * Uses Prisma's `findUniqueOrThrow()` to ensure the inventory record
+     * exists. Throws an error if no matching record is found.
+     *
+     * @param where Unique criteria used to locate the inventory record.
+     * @returns The matching inventory record.
+     * @throws {Prisma.PrismaClientKnownRequestError} If the inventory record does not exist.
+     */
+    async getInventory(where: Prisma.InventoryWhereUniqueInput) {
+        return await prisma.inventory.findUniqueOrThrow({ where })
+    }
+
+    /**
+     * Counts inventory records that satisfy a raw SQL condition.
+     *
+     * Executes a raw `COUNT(*)` query using the provided SQL condition
+     * and returns the result as a JavaScript number.
+     *
+     * **Warning:** The `condition` must come from a trusted source.
+     * Do not pass user input directly, as this method uses
+     * `prisma.$queryRawUnsafe()`.
+     *
+     * @param condition The SQL `WHERE` clause condition to apply.
+     * @returns The number of matching inventory records.
+     */
+    private async countByCondition(condition: string): Promise<number> {
+        return prisma.$queryRawUnsafe<[{ count: bigint }]>(
+            `SELECT COUNT(*)::int AS count FROM inventory WHERE ${condition}`
+        ).then(r => Number(r[0].count));
+    }
+
+    /**
+     * Private helper — thin wrapper around `prisma.inventory.findMany`.
+     * Centralises the call so both cursor-based and offset-paginated
+     * queries go through a single place.
+     */
+    private findInventories(args: Prisma.InventoryFindManyArgs) {
+        return prisma.inventory.findMany(args);
+    }
+
+    /**
+     * Retrieves inventory stock status metrics.
+     *
+     * Categorizes inventory records based on their current stock levels
+     * and returns the total counts for each category, including the
+     * combined count of items below the reorder level.
+     *
+     * @returns An object containing the counts for well-stocked, low-stock,
+     * critical-out, and below-reorder-level inventory records.
      */
     async getStatuses() {
 
         const [wellStocked, lowStock, criticalOut] = await Promise.all([
-
-            /** WELL STOCKED: stock is above the reorder threshold */
-            prisma.$queryRaw<[{ count: bigint }]>`
-                SELECT COUNT(*)::int AS count
-                FROM inventory
-                WHERE quantity_on_hand > reorder_level
-            `.then(r => Number(r[0].count)),
-
-            /** LOW STOCK: stock is at or below reorder level but still > 0 */
-            prisma.$queryRaw<[{ count: bigint }]>`
-                SELECT COUNT(*)::int AS count
-                FROM inventory
-                WHERE quantity_on_hand > 0
-                  AND quantity_on_hand <= reorder_level
-            `.then(r => Number(r[0].count)),
-
-            /** CRITICAL / OUT OF STOCK: no units remaining */
-            prisma.$queryRaw<[{ count: bigint }]>`
-                SELECT COUNT(*)::int AS count
-                FROM inventory
-                WHERE quantity_on_hand <= 0
-            `.then(r => Number(r[0].count)),
-
+            this.countByCondition(
+                "quantity_on_hand > reorder_level"
+            ),
+            this.countByCondition(
+                "quantity_on_hand > 0 AND quantity_on_hand <= reorder_level"
+            ),
+            this.countByCondition(
+                "quantity_on_hand <= 0"
+            ),
         ]);
 
+        const belowReorderLevel = lowStock + criticalOut;
+
         return {
-            wellStocked: wellStocked as number,
-            lowStock: lowStock as number,
-            criticalOut: criticalOut as number,
-            belowReorderLevel: (lowStock + criticalOut) as number,
+            wellStocked,
+            lowStock,
+            criticalOut,
+            belowReorderLevel
         };
 
     }
 
     /**
-     * Get a single inventory record by ID.
-     */
-    async getInventory(inventoryId: UUIDInput) {
-
-        const inventory = await prisma.inventory.findUnique({
-            where: { id: inventoryId },
-            include: {
-                product: true,
-                author: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                        role: true
-                    }
-                }
-            }
-        });
-
-        if (!inventory) {
-            throwNotFound("Inventory not found");
-        }
-
-        return {
-            ...inventory,
-            stockStatus: resolveStockStatus(inventory.quantityOnHand, inventory.reorderLevel),
-        };
-
-    }
-
-    /**
-     * Search products for inventory addition:
-     * - Returns up to 5 products if no search is provided.
-     * - Returns matching products if search is provided.
-     * - Adds boolean 'isAddedInventory' flag.
-     */
-    /**
-     * Search products for inventory addition — cursor-based infinite scroll.
-     * - Returns up to `limit` products per page.
-     * - Filters out DISCONTINUED products.
-     * - Adds boolean `isAddedInventory` flag.
-     * - Pass `cursor` (last seen product id) to load the next page.
+     * Retrieves an infinite-scroll list of inventory products.
+     *
+     * Returns inventory records whose associated products are not
+     * discontinued. Supports keyword searching by product name or SKU
+     * and uses cursor-based pagination for efficient infinite scrolling.
+     *
+     * @param input The search criteria and pagination options.
+     * @returns A collection of inventory records with cursor pagination metadata.
      */
     async searchInventoryProducts(input: SearchInventoryProductsInfiniteInput) {
-        const { search, cursor, limit } = searchInventoryProductsInfiniteSchema.parse(input);
-        const { params, buildResult } = createInfiniteScroller({ cursor, limit });
 
-        const where: Prisma.ProductWhereInput = {
-            status: { not: ProductStatus.DISCONTINUED },
-            ...(search && {
-                OR: [
-                    { name: { contains: search, mode: 'insensitive' as const } },
-                    { sku: { contains: search, mode: 'insensitive' as const } },
-                ],
-            }),
+        const { search, cursor, limit } = input;
+        const { params, buildResult } = createInfiniteScroller({
+            cursor, limit
+        });
+
+        const where: Prisma.InventoryWhereInput = {
+            product: {
+                status: { not: ProductStatus.DISCONTINUED },
+                ...(search && {
+                    OR: [
+                        { name: { contains: search, mode: 'insensitive' as const } },
+                        { sku: { contains: search, mode: 'insensitive' as const } },
+                    ],
+                }),
+            },
         };
 
-        const rawProducts = await prisma.product.findMany({
+        const inventories = await this.findInventories({
             where,
             take: params.take + 1,
             ...(params.cursor && {
@@ -125,29 +136,8 @@ export class InventoryService {
             orderBy: { createdAt: 'desc' },
         });
 
-        const { data: products, meta } = buildResult(rawProducts);
-
-        if (products.length === 0) {
-            return { data: [], meta };
-        }
-
-        const productIds = products.map(p => p.id);
-        const inventories = await prisma.inventory.findMany({
-            where: { productId: { in: productIds } },
-            select: { productId: true },
-        });
-
-        const inventorySet = new Set(inventories.map(inv => inv.productId));
-
-        return {
-            data: products.map(product => ({
-                ...product,
-                unitPrice: Number(product.unitPrice),
-                costPrice: product.costPrice ? Number(product.costPrice) : null,
-                isAddedInventory: inventorySet.has(product.id),
-            })),
-            meta,
-        };
+        const { data, meta } = buildResult(inventories);
+        return { data, meta };
     }
 
     /**
@@ -240,7 +230,7 @@ export class InventoryService {
 
         const [inventories, total] = await Promise.all([
 
-            prisma.inventory.findMany({
+            this.findInventories({
                 where,
                 include: {
                     product: {
@@ -257,11 +247,8 @@ export class InventoryService {
                 },
                 skip: params.skip,
                 take: params.limit,
-                orderBy: {
-                    [orderBy]: orderDirection
-                },
-            }
-            ),
+                orderBy: { [orderBy]: orderDirection },
+            }),
 
             prisma.inventory.count({ where }),
 
@@ -362,13 +349,25 @@ export class InventoryService {
     }
 
     /**
+     * Internal helper to create an inventory record within a transaction.
+     * Used by `_createInventory` and other methods that need to
+     * create inventory as part of a larger transaction.
+     */
+    async createInventoryInternal(
+        tx: Prisma.TransactionClient,
+        inventoryData: Prisma.InventoryUncheckedCreateInput
+    ) {
+        return tx.inventory.create({ data: inventoryData });
+    }
+
+    /**
      * Create an initial inventory record for a product.
      * - Validates input
      * - Ensures the product exists
      * - Prevents duplicate inventory records per product
      * - Creates inventory + initial IN stock movement in a transaction
      */
-    async createInventory(userId: string, input: CreateInventoryInput) {
+    async _createInventory(userId: string, input: CreateInventoryInput) {
 
         const { productId, quantityOnHand, reorderLevel, maxStock } = createInventorySchema.parse(input);
 

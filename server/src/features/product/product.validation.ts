@@ -1,63 +1,71 @@
 import { OrderDirectionLower, ProductOrderBy } from "@/enums";
-import { dateRangeSchema, orderDirectionLowerSchema, paginationSchema, productIdSchema, searchSchema } from "@/schemas";
-import { createMinMaxRefine, excludeEnumValue, minMaxRefineMessage } from "@/utils";
+import {
+    dateRangeSchema,
+    orderDirectionLowerSchema,
+    paginationSchema,
+    searchSchema,
+    uuidSchema
+} from "@/schemas";
+import {
+    createMinMaxRefine,
+    excludeEnumValue,
+    minMaxRefineMessage
+} from "@/utils";
 import { ProductStatus } from "@prisma/client";
 import z from "zod";
+import { refineProductSchema } from "./product.util";
+import { inventorySchemaObject } from "../inventory";
 
 /**
- * PRODUCT STATUS SCHEMA
+ * Validates the status filter for product-related operations.
+ *
+ * Accepts only values defined in the `ProductStatus` enum.
  */
 const productStatusSchema = z.enum(ProductStatus);
 
-/** ORDER BY PRODUCT SCHEMA */
+/**
+ * Validates the field used to sort product query results.
+ *
+ * Accepts only values defined in the `ProductOrderBy` enum.
+ */
 const productOrderBySchema = z.enum(ProductOrderBy);
 
 /**
- * MIN AND MAX PRICE SCHEMA
+ * Validates a non-negative numeric value.
+ *
+ * Used for numeric range filters such as minimum and maximum prices.
+ * String inputs are automatically coerced to numbers.
  */
 const minMaxSchema = z.coerce.number().nonnegative();
 
 /**
- * ADD TO INVENTORY SCHEMA
+ * Validates the status of a product that can be assigned.
+ *
+ * Excludes discontinued and archived statuses, allowing only active
+ * and draft statuses to be assigned.
  */
-const addToInventorySchema = z.object({
-    quantity: z.coerce.number().int().nonnegative(),
-    reorderLevel: z.coerce.number().int().nonnegative(),
-    maxStock: z.coerce.number().int().nonnegative(),
-}).optional();
+const assignableProductStatusSchema = z.enum(
+    excludeEnumValue(ProductStatus, [
+        ProductStatus.DISCONTINUED,
+        ProductStatus.ARCHIVED
+    ])
+);
 
 /**
- * BASE PRODUCT SCHEMA FOR REUSABLE PURPOSES
- */
-const baseProductSchemaObject = z.object({
-    name: z
-        .string()
-        .trim()
-        .min(1, "Product name cannot be empty")
-        .max(255, "Product name must not exceed 255 characters"),
-
-    description: z
-        .string()
-        .trim()
-        .optional(),
-
-    unitPrice: z.coerce
-        .number()
-        .nonnegative({ message: "Unit price must be a non-negative number" }),
-
-    costPrice: z.coerce
-        .number()
-        .nonnegative({ message: "Cost price must be a non-negative number" })
-        .optional(),
-});
-
-/**
- *  GET ALL PRODUCTS FILTERED SCHEMA VALIDATION
+ * Validation schema for filtering, sorting, and paginating products.
+ *
+ * Supports:
+ * - Keyword search
+ * - Product status filtering
+ * - Minimum and maximum price range
+ * - Creation date range
+ * - Custom sorting and sort direction
+ *
+ * Also validates that `minPrice` is not greater than `maxPrice`.
  */
 export const filterProductsSchema = dateRangeSchema.extend({
     search: searchSchema,
     status: productStatusSchema.optional(),
-    stockStatus: z.string().optional(),
     minPrice: minMaxSchema.optional(),
     maxPrice: minMaxSchema.optional(),
     orderBy: productOrderBySchema.default(ProductOrderBy.CREATED_AT),
@@ -68,63 +76,90 @@ export const filterProductsSchema = dateRangeSchema.extend({
 );
 
 /**
- * PAGINATED PRODUCTS SCHEMA VALIDATION
+ * Validation schema for retrieving a paginated list of products.
+ *
+ * Combines pagination options with product-specific filtering
+ * and sorting criteria.
  */
 export const paginatedProductsSchema = paginationSchema.extend({
-    filter: filterProductsSchema
+    filter: filterProductsSchema,
 });
 
 /**
- * ASSIGNABLE PRODUCT STATUS SCHEMA
+ * Base validation schema for product data.
+ *
+ * Defines the common fields shared by product-related operations,
+ * including the product name, description, pricing, SKU, and status.
+ * This schema is intended to be extended or reused by create and
+ * update product validation schemas.
  */
-const assignableProductStatusSchema = z.enum(
-    excludeEnumValue(ProductStatus, [
-        ProductStatus.DISCONTINUED,
-        ProductStatus.ARCHIVED
-    ])
-);
+const baseProductSchemaObject = z.object({
+    name: z
+        .string()
+        .trim()
+        .min(1, "Product name cannot be empty")
+        .max(255, "Product name must not exceed 255 characters"),
+    description: z
+        .string()
+        .trim()
+        .max(500, "Description must not exceed 500 characters")
+        .optional(),
+    unitPrice: z.coerce
+        .number()
+        .nonnegative({ message: "Unit price must be a non-negative number" }),
 
-/**
- * CREATE PRODUCT SCHEMA VALIDATION
- */
-export const createProductSchema = baseProductSchemaObject.extend({
+    costPrice: z.coerce
+        .number()
+        .nonnegative({ message: "Cost price must be a non-negative number" })
+        .optional(),
     sku: z
         .string()
         .trim()
-        .max(50, "SKU must not exceed 50 characters")
-        .optional(),
+        .max(50, "SKU must not exceed 50 characters"),
     status: assignableProductStatusSchema,
-    addToInventory: addToInventorySchema,
-}).refine(
-    createMinMaxRefine("costPrice", "unitPrice"),
-    minMaxRefineMessage("costPrice", "unitPrice")
-);
-
-/**
- *  EDIT PRODUCT SCHEMA VALIDATION
- */
-export const editProductSchema = baseProductSchemaObject.extend({
-    productId: productIdSchema,
-    status: assignableProductStatusSchema,
-    addToInventory: addToInventorySchema,
-}).refine(
-    createMinMaxRefine("costPrice", "unitPrice"),
-    minMaxRefineMessage("costPrice", "unitPrice")
-);
-
-/**
- * CHANGE PRODUCT STATUS SCHEMA VALIDATION
- */
-export const changeProductStatusSchema = z.object({
-    productId: productIdSchema,
-    status: productStatusSchema,
 });
 
 /**
- * PRODUCT TYPE DEFINITIONS
+ * Validation schema for creating a new product.
+ *
+ * Validates the product details and its initial inventory, ensuring
+ * that the cost price does not exceed the unit price.
  */
-export type PaginatedProductsInput = z.infer<typeof paginatedProductsSchema>;
-export type FilterProductsInput = z.infer<typeof filterProductsSchema>;
-export type CreateProductInput = z.infer<typeof createProductSchema>;
-export type EditProductInput = z.infer<typeof editProductSchema>;
-export type ChangeProductStatusInput = z.infer<typeof changeProductStatusSchema>;
+export const addProductSchema = z.object({
+    product: baseProductSchemaObject,
+    inventory: inventorySchemaObject
+}).refine(
+    refineProductSchema,
+    {
+        message: "costPrice must be less than or equal to unitPrice",
+        path: ["product", "costPrice"]
+    }
+);
+
+/**
+ * Validation schema for updating an existing product.
+ *
+ * Requires the product ID along with the updated product and inventory
+ * details. Also ensures that the cost price does not exceed the unit price.
+ */
+export const editProductSchema = z.object({
+    productId: uuidSchema,
+    product: baseProductSchemaObject
+}).refine(
+    refineProductSchema,
+    {
+        message: "costPrice must be less than or equal to unitPrice",
+        path: ["product", "costPrice"]
+    }
+);
+
+/**
+ * Validation schema for changing a product's status.
+ *
+ * Requires the product ID and the new status, ensuring that the
+ * status value is valid and assignable.
+ */
+export const changeProductStatusSchema = z.object({
+    productId: uuidSchema,
+    status: productStatusSchema,
+});
