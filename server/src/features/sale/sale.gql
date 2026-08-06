@@ -1,4 +1,17 @@
-export const saleTypeDefs = `#graphql
+
+    # ─── Enums ──────────────────────────────────────────────────────────────────
+
+    enum SaleStatus {
+        PENDING
+        COMPLETED
+        REFUNDED
+        VOIDED
+    }
+
+    enum SaleOrderBy {
+        saleDate
+        totalAmount
+    }
 
     # ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -56,64 +69,6 @@ export const saleTypeDefs = `#graphql
         refundedOrVoidedCount: Int!
     }
 
-    # ─── Enums ──────────────────────────────────────────────────────────────────
-
-    enum SaleStatus {
-        PENDING
-        COMPLETED
-        REFUNDED
-        VOIDED
-    }
-
-    enum SaleOrderBy {
-        saleDate
-        totalAmount
-    }
-
-    # ─── Inputs ─────────────────────────────────────────────────────────────────
-
-    # Filter input for the paginated sales list
-    input GetSalesFilter {
-        # Full-text search across customer and cashier names
-        search: String
-        status: SaleStatus
-        paymentMethod: String
-        dateFrom: String
-        dateTo: String
-        orderBy: SaleOrderBy
-        orderDirection: OrderDirectionLower
-    }
-
-    input PaginatedSalesInput {
-        page: Int!
-        limit: Int!
-        filter: GetSalesFilter!
-    }
-
-    # Date-range filter applied to KPI metrics so they respect the selected period
-    input GetSalesMetricsFilter {
-        dateFrom: String
-        dateTo: String
-    }
-
-    input CreateSaleItemInput {
-        productId: ID!
-        quantity: Int!
-        unitPrice: Float!
-    }
-
-    input CreateSaleInput {
-        customerId: ID
-        paymentMethod: String!
-        status: SaleStatus
-        items: [CreateSaleItemInput!]!
-    }
-
-    input ChangeSaleStatusInput {
-        saleId: ID!
-        status: SaleStatus!
-    }
-
     type SaleDetailItem {
         id: ID!
         productId: ID!
@@ -151,6 +106,50 @@ export const saleTypeDefs = `#graphql
         items: [SaleDetailItem!]!
     }
 
+    # ─── Inputs ─────────────────────────────────────────────────────────────────
+
+    # Filter input for the paginated sales list
+    input GetSalesFilter {
+        # Full-text search across customer and cashier names
+        search: String
+        status: SaleStatus
+        paymentMethod: String
+        dateFrom: String
+        dateTo: String
+        orderBy: SaleOrderBy
+        orderDirection: OrderDirection
+    }
+
+    input PaginatedSalesInput {
+        page: Int!
+        limit: Int!
+        filter: GetSalesFilter!
+    }
+
+    # Date-range filter applied to KPI metrics so they respect the selected period
+    input GetSalesMetricsFilter {
+        dateFrom: String
+        dateTo: String
+    }
+
+    input CreateSaleItemInput {
+        productId: ID!
+        quantity: Int!
+        unitPrice: Float!
+    }
+
+    input CreateSaleInput {
+        customerId: ID
+        paymentMethod: String!
+        status: SaleStatus
+        items: [CreateSaleItemInput!]!
+    }
+
+    input ChangeSaleStatusInput {
+        saleId: ID!
+        status: SaleStatus!
+    }
+
     # ─── Queries ────────────────────────────────────────────────────────────────
 
     type Query {
@@ -165,7 +164,4 @@ export const saleTypeDefs = `#graphql
         createSale(input: CreateSaleInput!): SaleListItem!
         changeSaleStatus(input: ChangeSaleStatusInput!): SaleListItem!
     }
-
-`;
-
 

@@ -1,0 +1,144 @@
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Inventory Feature Schema
+    #
+    # Cross-feature types used here (defined elsewhere):
+    #   - MovementType       → stockMovements.typeDefs.ts
+    #   - MovementReason     → stockMovements.typeDefs.ts
+    #   - ProductStatus      → product.typeDefs.ts
+    #   - UserRole           → user.typeDefs.ts
+    #   - Pagination         → config.base.schema.ts
+    #   - InfiniteScrollMeta → config.base.schema.ts
+    #   - OrderDirection     → config.base.schema.ts
+    #   - Product            → product.typeDefs.ts
+    # ─────────────────────────────────────────────────────────────────────────
+
+    # Stock status filter — maps to the column-to-column comparison logic in getStatuses()
+    enum StockStatus {
+        ALL
+        WELL_STOCKED
+        LOW_STOCK
+        CRITICAL_OUT
+    }
+
+    # Stock status returned on individual inventory records (excludes ALL)
+    enum StockStatusCustom {
+        WELL_STOCKED
+        LOW_STOCK
+        CRITICAL_OUT
+    }
+
+    # Sortable columns for inventory list queries
+    enum InventoryOrderBy {
+        quantityOnHand
+        reorderLevel
+        updatedAt
+    }
+
+    # Infinite-scroll result wrapping Product items for inventory product search
+    type InfiniteProductSearchResult {
+        data: [Product!]!
+        meta: InfiniteScrollMeta!
+    }
+
+    # Lightweight product summary embedded inside an Inventory record
+    type InventoryProduct {
+        id: ID!
+        sku: String!
+        name: String!
+        description: String
+        unitPrice: Float!
+        costPrice: Float
+        status: ProductStatus!
+    }
+
+    # Author (user) who last touched this inventory record
+    type InventoryAuthor {
+        id: ID!
+        firstName: String!
+        lastName: String!
+        email: String!
+        role: UserRole!
+    }
+
+    # Core inventory record (single item)
+    type Inventory {
+        id: ID!
+        productId: ID!
+        quantityOnHand: Int!
+        reorderLevel: Int!
+        maxStock: Int!
+        updatedAt: String!
+        createdAt: String!
+        product: InventoryProduct!
+        author: InventoryAuthor!
+        # Computed by the server — reflects WELL_STOCKED / LOW_STOCK / CRITICAL_OUT
+        stockStatus: StockStatusCustom!
+    }
+
+    # Counts grouped by stock status — returned by getInventoryStatuses
+    type InventoryStatuses {
+        wellStocked: Int!
+        lowStock: Int!
+        criticalOut: Int!
+        belowReorderLevel: Int!
+    }
+
+    # Paginated inventory list response
+    type PaginatedInventories {
+        data: [Inventory!]!
+        meta: Pagination!
+    }
+
+    input InventoryFilterInput {
+        search: String
+        stockStatus: StockStatus
+        minQty: Int
+        maxQty: Int
+        minReorderLevel: Int
+        maxReorderLevel: Int
+        orderBy: InventoryOrderBy
+        orderDirection: OrderDirection
+    }
+
+    input GetInventoriesInput {
+        page: Int
+        limit: Int
+        filter: InventoryFilterInput
+    }
+
+    input AdjustStockInput {
+        inventoryId: ID!
+        # MovementType is defined in stockMovements.typeDefs.ts
+        movementType: MovementType
+        quantity: Int!
+        reorderLevel: Int!
+        maxStock: Int!
+        # MovementReason is defined in stockMovements.typeDefs.ts
+        reason: MovementReason
+        notes: String
+    }
+
+    input InventoryInput {
+        quantity: Int!
+        reorderLevel: Int!
+        maxStock: Int!
+    }
+
+    input CreateInventoryInput {
+        productId: ID!
+        inventory: InventoryInput!
+    }
+
+    type Query {
+        getInventoryStatuses: InventoryStatuses!
+        getInventory(inventoryId: ID!): Inventory!
+        getInventories(input: GetInventoriesInput): PaginatedInventories!
+        searchInventoryProducts(search: String, cursor: String, limit: Int): InfiniteProductSearchResult!
+    }
+
+    type Mutation {
+        adjustStock(input: AdjustStockInput!): Inventory!
+        createInventory(input: CreateInventoryInput!): Inventory!
+    }
+

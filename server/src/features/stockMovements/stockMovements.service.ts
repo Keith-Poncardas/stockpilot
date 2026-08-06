@@ -1,5 +1,5 @@
 import { prisma } from "@/lib";
-import { buildSearchQuery, createPaginator } from "@/utils";
+import { buildSearchQuery, createPaginator, generateReference } from "@/utils";
 import { MovementType, Prisma } from "@prisma/client";
 import { inventoryService } from "../inventory";
 import { PaginatedStockMovementsInput } from "./types";
@@ -208,9 +208,18 @@ export class StockMovementsService {
      */
     async recordStockMovement(
         tx: Prisma.TransactionClient,
-        movement: Prisma.StockMovementUncheckedCreateInput
+        prefix: string,
+        movement: Omit<Prisma.StockMovementUncheckedCreateInput, "reference">,
     ) {
-        return await tx.stockMovement.create({ data: movement });
+
+        const reference = await generateReference(prefix, tx);
+
+        return await tx.stockMovement.create({
+            data: {
+                ...movement,
+                reference,
+            }
+        });
     }
 
 };

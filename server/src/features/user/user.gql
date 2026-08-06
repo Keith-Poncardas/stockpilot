@@ -1,4 +1,3 @@
-export const userTypeDefs = `#graphql
 
     # User role enum
     enum UserRole {
@@ -17,17 +16,11 @@ export const userTypeDefs = `#graphql
         TERMINATED
     }
 
-      # Approval status enum
+    # Approval status enum
     enum UserApprovalStatus {
         PENDING
         APPROVED
         REJECTED
-    }
-
-    # Order direction enum
-    enum OrderDirection {
-        asc
-        desc
     }
 
     # Order by field enum (for users)
@@ -119,4 +112,3 @@ export const userTypeDefs = `#graphql
         assignRole(input: AssignRoleInput!): User
     }
 
-`;

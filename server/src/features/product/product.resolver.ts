@@ -21,6 +21,7 @@ import {
 import { GraphQLContext } from "@/types";
 import { Product } from "@prisma/client";
 import { stockMovementsService } from "../stockMovements";
+import { inventoryService } from "../inventory";
 
 export const productResolver = {
 
@@ -79,6 +80,13 @@ export const productResolver = {
          */
         async stockMovement(parent: Product) {
             return stockMovementsService.getStockMovement({ id: parent.id });
+        },
+
+        /**
+         * Retrieves the inventory associated with the product.
+         */
+        async inventory(parent: Product) {
+            return inventoryService.getInventory({ productId: parent.id });
         },
 
     }),

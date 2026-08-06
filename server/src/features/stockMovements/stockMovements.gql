@@ -1,4 +1,3 @@
-export const stockMovementsTypeDefs = `#graphql
 
     # Type for stock movement reason enum (mirrors MovementReason enum in Prisma)
     enum MovementReason {
@@ -19,16 +18,10 @@ export const stockMovementsTypeDefs = `#graphql
         ADJUSTMENT
     }
 
-    # Sortable columns for stock movement list queries 
+    # Sortable columns for stock movement list queries
     enum StockMovementOrderBy {
         createdAt
         quantity
-    }
-
-    # Sort direction — lowercase to match Prisma's expected values
-    enum OrderDirectionLower {
-        asc
-        desc
     }
 
     # Core stock movement record
@@ -74,7 +67,7 @@ export const stockMovementsTypeDefs = `#graphql
         dateFrom: String
         dateTo: String
         orderBy: StockMovementOrderBy
-        orderDirection: OrderDirectionLower
+        orderDirection: OrderDirection
     }
 
     # Input for paginated stock movements
@@ -91,4 +84,3 @@ export const stockMovementsTypeDefs = `#graphql
         getStockMovement(id: ID!): StockMovement!
     }
 
-`;

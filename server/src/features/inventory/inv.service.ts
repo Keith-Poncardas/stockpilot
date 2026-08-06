@@ -1,9 +1,20 @@
 import { prisma } from "@/lib";
-import { createPaginator, throwNotFound, throwConflict, generateReference, createInfiniteScroller } from "@/utils";
+import {
+    createPaginator,
+    createInfiniteScroller
+} from "@/utils";
 import { MovementType, Prisma } from "@prisma/client";
-import { AdjustStockInput, adjustStockSchema, CreateInventoryInput, createInventorySchema, PaginatedInventoriesInput, paginatedInventoriesSchema, SearchInventoryProductsInfiniteInput, searchInventoryProductsInfiniteSchema } from "./inv.validation";
+import {
+    AdjustStockInput,
+    CreateInventoryInput,
+    PaginatedInventoriesInput,
+    SearchInventoryProductsInfiniteInput
+} from "./inv.validation";
 import { ProductStatus, StockStatus } from "@/enums";
-import { resolveStockStatus } from "./inv.utils";
+import { resolveStockStatus, mapInventoriesWithStatus, calculateQuantityUpdate } from "./inv.utils";
+import { UUIDInput } from "@/schemas";
+import { stockMovementsService } from "../stockMovements";
+import { productService } from "../product";
 
 export class InventoryService {
 
@@ -31,7 +42,7 @@ export class InventoryService {
      * @throws {Prisma.PrismaClientKnownRequestError} If the inventory record does not exist.
      */
     async getInventory(where: Prisma.InventoryWhereUniqueInput) {
-        return await prisma.inventory.findUniqueOrThrow({ where })
+        return await prisma.inventory.findUniqueOrThrow({ where });
     }
 
     /**
@@ -54,9 +65,55 @@ export class InventoryService {
     }
 
     /**
-     * Private helper — thin wrapper around `prisma.inventory.findMany`.
-     * Centralises the call so both cursor-based and offset-paginated
-     * queries go through a single place.
+     * Retrieves inventory IDs that satisfy a raw SQL condition.
+     *
+     * **Warning:** The `condition` must come from a trusted source.
+     * Do not pass user input directly, as this method uses
+     * `prisma.$queryRawUnsafe()`.
+     *
+     * @param condition The SQL `WHERE` clause condition to apply.
+     * @returns An array of matching inventory IDs.
+     */
+    private async getIdsByCondition(condition: string) {
+        return prisma.$queryRawUnsafe<{ id: string }[]>(
+            `SELECT id FROM inventory WHERE ${condition}`
+        ).then(rows => rows.map(r => r.id));
+    }
+
+    /**
+     * Retrieves the IDs of inventory records matching the specified
+     * stock status.
+     *
+     * Resolves stock status into the corresponding inventory IDs using
+     * predefined stock level conditions. Returns `undefined` when no
+     * ID-based filtering is required.
+     *
+     * @param stockStatus The stock status to resolve.
+     * @returns An array of matching inventory IDs, or `undefined` if no filter applies.
+     */
+    private async getStockStatusIds(stockStatus?: StockStatus) {
+        switch (stockStatus) {
+            case StockStatus.WELL_STOCKED:
+                return this.getIdsByCondition(
+                    "quantity_on_hand > reorder_level"
+                );
+
+            case StockStatus.LOW_STOCK:
+                return this.getIdsByCondition(
+                    "quantity_on_hand > 0 AND quantity_on_hand <= reorder_level"
+                );
+            default:
+                return undefined;
+        }
+    }
+
+    /**
+     * Retrieves inventory records matching the specified query options.
+     *
+     * Intended for internal use to centralize inventory retrieval logic.
+     *
+     * @param args The Prisma query options.
+     * @returns The matching inventory records.
      */
     private findInventories(args: Prisma.InventoryFindManyArgs) {
         return prisma.inventory.findMany(args);
@@ -141,20 +198,19 @@ export class InventoryService {
     }
 
     /**
-     * Get a paginated list of inventory records with optional filters:
+     * Retrieves a paginated list of inventory records.
      *
-     *  - search        → product name or SKU (case-insensitive contains)
-     *  - stockStatus   → ALL | WELL_STOCKED | LOW_STOCK | CRITICAL_OUT
-     *  - minQty        → minimum quantityOnHand (inclusive)
-     *  - maxQty        → maximum quantityOnHand (inclusive)
-     *  - minReorderLevel / maxReorderLevel → reorder-level range
-     *  - orderBy       → quantityOnHand | reorderLevel | updatedAt
-     *  - orderDirection → ASC | DESC
+     * Supports searching by product name or SKU, filtering by stock
+     * status, quantity-on-hand range, and reorder-level range, with
+     * customizable sorting and pagination. Each inventory record is
+     * enriched with its computed stock status before being returned.
+     *
+     * @param args The pagination, filtering, and sorting options.
+     * @returns A paginated collection of inventory records with stock status metadata.
      */
     async getInventories(args: PaginatedInventoriesInput) {
 
-        const { filter, limit, page } = paginatedInventoriesSchema.parse(args);
-
+        const { filter, limit, page } = args;
         const { params, buildMeta } = createPaginator({ limit, page });
 
         const {
@@ -168,25 +224,7 @@ export class InventoryService {
             orderDirection
         } = filter;
 
-        /**
-         * WELL_STOCKED / LOW_STOCK need a column-to-column comparison
-         * (quantity_on_hand vs reorder_level). Prisma's `where` only accepts
-         * literal values on the right-hand side, so we resolve the matching IDs
-         * directly in the DB via $queryRaw — same approach used in getStatuses().
-         */
-        let stockStatusIds: string[] | undefined;
-
-        if (stockStatus === StockStatus.WELL_STOCKED) {
-            stockStatusIds = await prisma.$queryRaw<{ id: string }[]>`
-                SELECT id FROM inventory WHERE quantity_on_hand > reorder_level
-            `.then(rows => rows.map(r => r.id));
-        }
-
-        if (stockStatus === StockStatus.LOW_STOCK) {
-            stockStatusIds = await prisma.$queryRaw<{ id: string }[]>`
-                SELECT id FROM inventory WHERE quantity_on_hand > 0 AND quantity_on_hand <= reorder_level
-            `.then(rows => rows.map(r => r.id));
-        }
+        const stockStatusIds = await this.getStockStatusIds(stockStatus);
 
         const where: Prisma.InventoryWhereInput = {
 
@@ -227,24 +265,10 @@ export class InventoryService {
 
         };
 
-
         const [inventories, total] = await Promise.all([
 
             this.findInventories({
                 where,
-                include: {
-                    product: {
-                        select: {
-                            id: true,
-                            sku: true,
-                            name: true,
-                            description: true,
-                            unitPrice: true,
-                            costPrice: true,
-                            status: true,
-                        },
-                    },
-                },
                 skip: params.skip,
                 take: params.limit,
                 orderBy: { [orderBy]: orderDirection },
@@ -254,10 +278,7 @@ export class InventoryService {
 
         ]);
 
-        const mapped = inventories.map((inv) => ({
-            ...inv,
-            stockStatus: resolveStockStatus(inv.quantityOnHand, inv.reorderLevel),
-        }));
+        const mapped = mapInventoriesWithStatus(inventories);
 
         return {
             data: mapped,
@@ -267,10 +288,18 @@ export class InventoryService {
     }
 
     /**
-     * Adjust stock quantity.
-     * Automatically creates a stock movement record.
+     * Adjusts the stock level of an inventory item.
+     *
+     * Updates the inventory quantity and stock thresholds in a single
+     * transaction, then records the adjustment as a stock movement to
+     * maintain an accurate inventory audit trail. The updated inventory
+     * is returned together with its resolved stock status.
+     *
+     * @param userId The ID of the user performing the stock adjustment.
+     * @param input The validated stock adjustment details.
+     * @returns The updated inventory record with its computed stock status.
      */
-    async adjustStock(userId: string, input: AdjustStockInput) {
+    async adjustStock(userId: UUIDInput, input: AdjustStockInput) {
 
         const {
             inventoryId,
@@ -280,78 +309,55 @@ export class InventoryService {
             maxStock,
             reason,
             notes
-        } = adjustStockSchema.parse(input);
+        } = input;
 
-        /** Notes stay as free-text; reason is stored in its own column */
-        const movementNotes = notes ?? undefined;
+        const { recordStockMovement } = stockMovementsService;
+        const quantityOnHand = calculateQuantityUpdate(movementType, quantity);
 
         const inventory = await prisma.$transaction(async (tx) => {
 
-            /** Update inventory */
             const inv = await tx.inventory.update({
                 where: { id: inventoryId },
                 data: {
-                    quantityOnHand: {
-                        ...(movementType === MovementType.IN && { increment: quantity }),
-                        ...(movementType === MovementType.OUT && { decrement: quantity }),
-                        ...(movementType === MovementType.ADJUSTMENT && { set: quantity }),
-                    },
-                    reorderLevel: reorderLevel ?? undefined,
-                    maxStock: maxStock ?? undefined,
+                    quantityOnHand,
+                    reorderLevel,
+                    maxStock
                 },
-                include: {
-                    product: {
-                        select: {
-                            id: true,
-                            sku: true,
-                            name: true,
-                            description: true,
-                            unitPrice: true,
-                            costPrice: true,
-                            status: true,
-                        }
-                    },
-                    author: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                            email: true
-                        }
-                    }
-                }
             });
 
-            const finalReference = await generateReference("ADJ", tx);
-
-            /** Create stock movement */
-            await tx.stockMovement.create({
-                data: {
-                    productId: inv.product.id,
-                    userId: userId,
-                    type: movementType,
-                    quantity,
-                    reason,
-                    reference: finalReference,
-                    notes: movementNotes,
-                },
+            await recordStockMovement(tx, "ADJ", {
+                productId: inv.productId,
+                userId,
+                type: movementType,
+                quantity,
+                reason,
+                notes
             });
 
             return inv;
-
         });
+
+        const stockStatus = resolveStockStatus(
+            inventory.quantityOnHand,
+            inventory.reorderLevel
+        );
 
         return {
             ...inventory,
-            stockStatus: resolveStockStatus(inventory.quantityOnHand, inventory.reorderLevel),
+            stockStatus,
         };
 
     }
 
     /**
-     * Internal helper to create an inventory record within a transaction.
-     * Used by `_createInventory` and other methods that need to
-     * create inventory as part of a larger transaction.
+     * Creates an inventory record within an existing database transaction.
+     *
+     * Intended for internal use by service methods that need to create
+     * inventory records as part of a larger transactional workflow.
+     *
+     * @param tx The active Prisma transaction client.
+     * @param inventoryData The inventory data to be persisted.
+     * @returns The newly created inventory record.
      */
     async createInventoryInternal(
         tx: Prisma.TransactionClient,
@@ -360,80 +366,87 @@ export class InventoryService {
         return tx.inventory.create({ data: inventoryData });
     }
 
+
     /**
-     * Create an initial inventory record for a product.
-     * - Validates input
-     * - Ensures the product exists
-     * - Prevents duplicate inventory records per product
-     * - Creates inventory + initial IN stock movement in a transaction
+     * Ensures that a product with the given ID exists.
+     *
+     * Delegates the lookup to the product service and throws an error
+     * if no matching product is found.
+     *
+     * @param productId The unique identifier of the product.
+     * @returns The matching product.
      */
-    async _createInventory(userId: string, input: CreateInventoryInput) {
+    async ensureProductExist(productId: UUIDInput) {
+        return productService.getProduct({ id: productId });
+    }
 
-        const { productId, quantityOnHand, reorderLevel, maxStock } = createInventorySchema.parse(input);
+    /**
+     * Ensures that an inventory record exists for the given product.
+     *
+     * Retrieves the inventory associated with the specified product
+     * and throws an error if no inventory record is found.
+     *
+     * @param productId The unique identifier of the product.
+     * @returns The matching inventory record.
+     */
+    async ensureInventoryExist(productId: UUIDInput) {
+        return this.getInventory({ productId });
+    }
 
-        /** Ensure the product exists */
-        const product = await prisma.product.findUnique({ where: { id: productId } });
-        if (!product) throwNotFound("Product");
+    /**
+     * Creates an inventory record for a product.
+     *
+     * Ensures the product exists before creating the inventory record
+     * within a transaction. If an initial stock quantity is provided,
+     * an inventory stock movement is recorded to establish the initial
+     * inventory history. The created inventory is returned together
+     * with its resolved stock status.
+     *
+     * @param userId The ID of the user performing the operation.
+     * @param input The validated inventory creation data.
+     * @returns The newly created inventory record with its computed stock status.
+     */
+    async createInventory(userId: UUIDInput, input: CreateInventoryInput) {
 
-        /** Guard against duplicate inventory records */
-        const existing = await prisma.inventory.findFirst({ where: { productId } });
-        if (existing) throwConflict("An inventory record for this product already exists");
+        const { productId, inventory: data } = input;
+        const { quantityOnHand, reorderLevel, maxStock } = data;
+
+        await this.ensureProductExist(productId);
+        await this.ensureInventoryExist(productId);
+
+        const { recordStockMovement } = stockMovementsService;
 
         const inventory = await prisma.$transaction(async (tx) => {
 
-            /** Create the inventory record */
             const inv = await tx.inventory.create({
                 data: {
                     productId,
                     userId,
                     quantityOnHand,
                     reorderLevel,
-                    maxStock,
-                },
-                include: {
-                    product: {
-                        select: {
-                            id: true,
-                            sku: true,
-                            name: true,
-                            description: true,
-                            unitPrice: true,
-                            costPrice: true,
-                            status: true,
-                        },
-                    },
-                    author: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                            email: true,
-                            role: true,
-                        },
-                    },
+                    maxStock
                 },
             });
 
-            const finalReference = await generateReference("INIT", tx);
-
-            /** Record the initial stock-in movement */
-            await tx.stockMovement.create({
-                data: {
-                    productId,
-                    userId,
-                    type: MovementType.IN,
-                    quantity: quantityOnHand,
-                    reference: finalReference,
-                    notes: "Initial inventory record created",
-                },
+            await recordStockMovement(tx, "INIT", {
+                productId,
+                userId,
+                type: MovementType.IN,
+                quantity: quantityOnHand,
+                notes: "Initial inventory record created",
             });
 
             return inv;
         });
 
+        const stockStatus = resolveStockStatus(
+            inventory.quantityOnHand,
+            inventory.reorderLevel
+        );
+
         return {
             ...inventory,
-            stockStatus: resolveStockStatus(inventory.quantityOnHand, inventory.reorderLevel),
+            stockStatus,
         };
 
     }

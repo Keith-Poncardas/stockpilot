@@ -207,7 +207,7 @@ export class ProductService {
                     ...inventory
                 });
 
-                await recordStockMovement(tx, {
+                await recordStockMovement(tx, "IN", {
                     productId: prod.id,
                     userId,
                     type: MovementType.IN,
