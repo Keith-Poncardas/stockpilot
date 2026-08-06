@@ -32,6 +32,29 @@ export const lastNameSchema = z
     .max(100, "Last name must be at most 100 characters");
 
 /**
+ * Validation schema for filtering by minimum and maximum quantity values.
+ *
+ * Accepts both numeric and string inputs, coercing them to non-negative
+ * integers. The minimum quantity must not be greater than the
+ * maximum quantity.
+ */
+export const baseFilterSchema = z.object({
+    search: searchSchema,
+    minQty: z
+        .coerce
+        .number()
+        .int()
+        .nonnegative()
+        .optional(),
+    maxQty: z
+        .coerce
+        .number()
+        .int()
+        .nonnegative()
+        .optional(),
+});
+
+/**
  * Reusable date-range pair schema.
  * Apply this via .extend() or use the refine helper below.
  */

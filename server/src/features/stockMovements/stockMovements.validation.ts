@@ -1,4 +1,4 @@
-import { MovementType } from "@prisma/client";
+import { MovementReason, MovementType } from "@prisma/client";
 import z from "zod";
 import { dateRangeRefine, dateRangeRefineMessage, dateRangeSchema, searchSchema, uuidSchema } from "@/schemas";
 import { OrderDirectionLower, StockMovementOrderBy } from "@/enums";
@@ -11,6 +11,13 @@ import { paginationSchema } from "@/schemas";
  * Accepts only the predefined stock movement types.
  */
 export const movementTypeSchema = z.enum(MovementType);
+
+/**
+ * Validates the stock movement reason.
+ *
+ * Accepts only the predefined stock movement reasons.
+ */
+export const movementReasonSchema = z.enum(MovementReason);
 
 /**
  * Validates the field used to sort stock movements.
@@ -62,9 +69,7 @@ export const paginatedStockMovementsSchema = paginationSchema.extend({
  * Fields mirror the StockMovement model plus an optional
  * reorderLevel that is applied to the linked Inventory record.
  */
-export const recordMovementSchema = z.object({
-    productId: uuidSchema,
-    userId: uuidSchema,
+export const baseMovementSchema = z.object({
     type: movementTypeSchema,
     quantity: z.coerce
         .number()

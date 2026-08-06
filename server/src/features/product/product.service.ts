@@ -1,5 +1,5 @@
 import { prisma } from "@/lib";
-import { buildSearchQuery, createPaginator, throwConflict } from "@/utils";
+import { buildSearchQuery, createInfiniteScroller, createPaginator, throwConflict } from "@/utils";
 import { MovementType, Prisma } from "@prisma/client";
 import { ProductStatus } from "@/enums";
 import { ensureNotDiscontinued } from "./product.util";
@@ -7,7 +7,8 @@ import {
     AddProductInput,
     ChangeProductStatusInput,
     EditProductInput,
-    PaginatedProductsInput
+    PaginatedProductsInput,
+    SearchProductsInfiniteInput
 } from "./types";
 import { inventoryService } from "../inventory";
 import { stockMovementsService } from "../stockMovements";
@@ -42,6 +43,16 @@ export class ProductService {
     }
 
     /**
+     * Retrieves a list of products matching the given criteria.
+     *
+     * @param args The filter criteria and pagination options.
+     * @returns A collection of products matching the criteria.
+     */
+    private findProducts(args: Prisma.ProductFindManyArgs) {
+        return prisma.product.findMany(args);
+    }
+
+    /**
      * Retrieves summary metrics for products.
      *
      * Returns the total number of products, along with counts for
@@ -59,6 +70,43 @@ export class ProductService {
     }
 
     /**
+     * Retrieves an infinite-scroll list of products.
+     *
+     * Returns products that are not discontinued. Supports keyword searching
+     * by product name or SKU and uses cursor-based pagination.
+     *
+     * @param input The search criteria and pagination options.
+     * @returns A paginated collection of products with cursor pagination metadata.
+     */
+    async searchProductsInfinite(input: SearchProductsInfiniteInput) {
+        const { search, cursor, limit } = input;
+        const { params, buildResult } = createInfiniteScroller({
+            cursor, limit
+        });
+
+        const where: Prisma.ProductWhereInput = {
+            status: { not: ProductStatus.DISCONTINUED },
+            ...(search && buildSearchQuery(search, [
+                'sku',
+                'name',
+                'description'
+            ])),
+        };
+
+        const products = await this.findProducts({
+            where,
+            take: params.take + 1,
+            ...(params.cursor && {
+                cursor: { id: params.cursor },
+                skip: 1,
+            }),
+            orderBy: { createdAt: 'desc' },
+        });
+
+        return buildResult(products);
+    }
+
+    /**
      * Retrieves a paginated list of products with filtering and sorting.
      *
      * Supports filtering by status, search keyword, price range, and
@@ -70,7 +118,6 @@ export class ProductService {
     async getProducts(args: PaginatedProductsInput) {
 
         const { limit, page, filter } = args;
-
         const { params, buildMeta } = createPaginator({ limit, page });
 
         const {
@@ -116,7 +163,7 @@ export class ProductService {
 
         const [products, total] = await Promise.all([
 
-            prisma.product.findMany({
+            this.findProducts({
                 where,
                 skip: params.skip,
                 take: params.limit,
@@ -125,7 +172,7 @@ export class ProductService {
                 },
             }),
 
-            prisma.product.count({ where }),
+            this.getProductCount(where),
 
         ]);
 

@@ -1,86 +1,94 @@
+# Type for stock movement reason enum (mirrors MovementReason enum in Prisma)
+enum MovementReason {
+  SALE
+  PURCHASE
+  ADJUSTMENT
+  RETURN
+  DAMAGE
+  EXPIRED
+  TRANSFER
+  INITIAL_STOCK
+}
 
-    # Type for stock movement reason enum (mirrors MovementReason enum in Prisma)
-    enum MovementReason {
-        SALE
-        PURCHASE
-        ADJUSTMENT
-        RETURN
-        DAMAGE
-        EXPIRED
-        TRANSFER
-        INITIAL_STOCK
-    }
+# Movement type — mirrors the Prisma MovementType enum
+enum MovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
 
-    # Movement type — mirrors the Prisma MovementType enum
-    enum MovementType {
-        IN
-        OUT
-        ADJUSTMENT
-    }
+# Sortable columns for stock movement list queries
+enum StockMovementOrderBy {
+  createdAt
+  quantity
+}
 
-    # Sortable columns for stock movement list queries
-    enum StockMovementOrderBy {
-        createdAt
-        quantity
-    }
+# Core stock movement record
+type StockMovement {
+  id: ID!
+  productId: ID!
+  userId: ID!
+  type: MovementType!
+  quantity: Int!
+  reference: String
+  notes: String
+  createdAt: String!
+  reason: MovementReason!
 
-    # Core stock movement record
-    type StockMovement {
-        id: ID!
-        productId: ID!
-        userId: ID!
-        type: MovementType!
-        quantity: Int!
-        reference: String
-        notes: String
-        createdAt: String!
-        reason: MovementReason!
+  # Relations
+  author: User!
+  product: Product!
+  inventory: Inventory!
+}
 
-        # Relations
-        author: User!
-        product: Product!
-        inventory: Inventory!
-    }
+# Paginated stock movements list response
+type PaginatedStockMovements {
+  data: [StockMovement!]!
+  meta: Pagination!
+}
 
-    # Paginated stock movements list response
-    type PaginatedStockMovements {
-        data: [StockMovement!]!
-        meta: Pagination!
-    }
+# Dashboard-level aggregated metrics for stock movements
+type StockMovementDashboardMetrics {
+  totalStockIn: Int!
+  totalStockOut: Int!
+  totalStockAdjustments: Int!
+  lowStockProducts: Int!
+}
 
-    # Dashboard-level aggregated metrics for stock movements
-    type StockMovementDashboardMetrics {
-        totalStockIn: Int!
-        totalStockOut: Int!
-        totalStockAdjustments: Int!
-        lowStockProducts: Int!
-    }
+# Filter + sort options for the stock movements list
+input FilterStockMovementsInput {
+  search: String
+  movementType: MovementType
+  productId: ID
+  userId: ID
+  minQty: Int
+  maxQty: Int
+  dateFrom: String
+  dateTo: String
+  orderBy: StockMovementOrderBy
+  orderDirection: OrderDirection
+}
 
-    # Filter + sort options for the stock movements list
-    input FilterStockMovementsInput {
-        search: String
-        movementType: MovementType
-        productId: ID
-        userId: ID
-        minQty: Int
-        maxQty: Int
-        dateFrom: String
-        dateTo: String
-        orderBy: StockMovementOrderBy
-        orderDirection: OrderDirection
-    }
+# Input for paginated stock movements
+input PaginatedStockMovementsInput {
+  page: Int!
+  limit: Int!
+  filter: FilterStockMovementsInput!
+}
 
-    # Input for paginated stock movements
-    input PaginatedStockMovementsInput {
-        page: Int!
-        limit: Int!
-        filter: FilterStockMovementsInput!
-    }
+# Input for stock movement
+input StockMovementInput {
+  movementType: MovementType
+  quantity: Int!
+  reorderLevel: Int!
+  maxStock: Int!
+  reason: MovementReason
+  notes: String
+}
 
-    # Queries for stock movements
-    type Query {
-        getAllStockMovements(args: PaginatedStockMovementsInput!): PaginatedStockMovements!
-        getStockMovementDashboardMetrics: StockMovementDashboardMetrics!
-        getStockMovement(id: ID!): StockMovement!
-    }
-
+# Queries for stock movements
+type Query {
+  getAllStockMovements(args: PaginatedStockMovementsInput!): PaginatedStockMovements!
+  getStockMovementDashboardMetrics: StockMovementDashboardMetrics!
+  getStockMovement(id: ID!): StockMovement!
+}

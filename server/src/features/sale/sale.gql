@@ -13,26 +13,7 @@
         totalAmount
     }
 
-    # ─── Types ──────────────────────────────────────────────────────────────────
 
-    # Embedded customer name for sale list view
-    type SaleCustomerName {
-        firstName: String
-        lastName: String
-    }
-
-    # Embedded cashier name for sale list view
-    type SaleCashierName {
-        id: ID!
-        firstName: String!
-        lastName: String!
-        role: UserRole!
-    }
-
-    # Count of sale items (for "Items" column)
-    type SaleItemCount {
-        saleItems: Int!
-    }
 
     # Sale row returned by the paginated list query.
     # Only contains what the index table needs — full details live on a detail page.
@@ -42,13 +23,6 @@
         totalAmount: Float!
         paymentMethod: String
         status: SaleStatus!
-
-        # Embedded relations (name-only)
-        customer: SaleCustomerName
-        user: SaleCashierName!
-
-        # Computed item count
-        itemCount: Int!
     }
 
     # Paginated sales response

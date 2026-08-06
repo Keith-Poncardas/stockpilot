@@ -13,6 +13,7 @@ import {
     ChangeSaleStatusInput,
     changeSaleStatusSchema,
 } from "./sale.validation";
+import { buildSaleSearchQuery } from "./sale.utils";
 
 export class SaleService {
 
@@ -67,16 +68,8 @@ export class SaleService {
 
             /**
              * Full-text search across both the customer's and cashier's names.
-             * Each word in the search term must match at least one of the fields.
              */
-            ...(search && {
-                OR: search.trim().split(/\s+/).flatMap((word) => [
-                    { customer: { firstName: { contains: word, mode: "insensitive" as const } } },
-                    { customer: { lastName: { contains: word, mode: "insensitive" as const } } },
-                    { user: { firstName: { contains: word, mode: "insensitive" as const } } },
-                    { user: { lastName: { contains: word, mode: "insensitive" as const } } },
-                ]),
-            }),
+            ...buildSaleSearchQuery(search),
 
         };
 
@@ -87,54 +80,14 @@ export class SaleService {
                 skip: params.skip,
                 take: params.limit,
                 orderBy: { [orderBy]: orderDirection },
-                select: {
-                    id: true,
-                    saleDate: true,
-                    totalAmount: true,
-                    paymentMethod: true,
-                    status: true,
-
-                    customer: {
-                        select: {
-                            firstName: true,
-                            lastName: true,
-                        },
-                    },
-
-                    user: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                            role: true
-                        },
-                    },
-
-                    _count: {
-                        select: { saleItems: true },
-                    },
-                },
             }),
 
             prisma.sale.count({ where }),
 
         ]);
 
-        const data = sales.map((sale) => ({
-            id: sale.id,
-            saleDate: sale.saleDate.toISOString(),
-            totalAmount: Number(sale.totalAmount),
-            paymentMethod: sale.paymentMethod ?? null,
-            status: sale.status,
-            customer: sale.customer
-                ? { firstName: sale.customer.firstName, lastName: sale.customer.lastName }
-                : null,
-            user: sale.user,
-            itemCount: sale._count.saleItems,
-        }));
-
         return {
-            data,
+            data: sales,
             meta: buildMeta(total),
         };
 
@@ -152,60 +105,37 @@ export class SaleService {
      *   3. averageOrderValue     — totalRevenue / COUNT(COMPLETED sales)
      *   4. refundedOrVoidedCount — COUNT WHERE status IN (REFUNDED, VOIDED)
      */
-    async getSalesMetrics(filter?: GetSalesMetricsFilter | null) {
+    private async aggregateCompletedSales() {
+        const agg = await prisma.sale.aggregate({
+            where: { status: SaleStatus.COMPLETED },
+            _sum: { totalAmount: true },
+            _count: { id: true },
+        });
 
-        const { dateFrom, dateTo } = getSalesMetricsSchema.parse(filter ?? {});
+        return {
+            totalRevenue: Number(agg._sum.totalAmount ?? 0),
+            completedSales: agg._count.id,
+        }
+    }
 
-        const dateFilter: Prisma.SaleWhereInput = (dateFrom || dateTo)
-            ? {
-                saleDate: {
-                    ...(dateFrom && { gte: dateFrom }),
-                    ...(dateTo && { lte: dateTo }),
-                },
-            }
-            : {};
+    async getSalesMetrics() {
+
+        const status = { in: [SaleStatus.REFUNDED, SaleStatus.VOIDED] }
 
         const [
             revenueAgg,
             totalTransactions,
-            completedCount,
             refundedOrVoidedCount,
         ] = await Promise.all([
-
-            /** 1 & 3 — Revenue + completed count (two birds, one stone) */
-            prisma.sale.aggregate({
-                where: { ...dateFilter, status: SaleStatus.COMPLETED },
-                _sum: { totalAmount: true },
-                _count: { id: true },
-            }),
-
-            /** 2 — Total transactions across all statuses */
-            prisma.sale.count({ where: dateFilter }),
-
-            /** (completed count already fetched above in revenueAgg._count.id) */
-            Promise.resolve(0),   // placeholder — resolved below
-
-            /** 4 — Refunded or voided */
-            prisma.sale.count({
-                where: {
-                    ...dateFilter,
-                    status: { in: [SaleStatus.REFUNDED, SaleStatus.VOIDED] },
-                },
-            }),
-
+            this.aggregateCompletedSales(),
+            this.saleCount(),
+            this.saleCount({ status })
         ]);
 
-        const totalRevenue = Number(revenueAgg._sum.totalAmount ?? 0);
-        const completedSales = revenueAgg._count.id;
-        const averageOrderValue = completedSales > 0
-            ? totalRevenue / completedSales
-            : 0;
-
         return {
-            totalRevenue,
+            ...revenueAgg,
             totalTransactions,
-            averageOrderValue,
-            refundedOrVoidedCount,
+            refundedOrVoidedCount
         };
 
     }

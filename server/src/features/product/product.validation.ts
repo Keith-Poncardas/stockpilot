@@ -1,6 +1,7 @@
 import { OrderDirectionLower, ProductOrderBy } from "@/enums";
 import {
     dateRangeSchema,
+    infiniteSchema,
     orderDirectionLowerSchema,
     paginationSchema,
     searchSchema,
@@ -83,6 +84,22 @@ export const filterProductsSchema = dateRangeSchema.extend({
  */
 export const paginatedProductsSchema = paginationSchema.extend({
     filter: filterProductsSchema,
+});
+
+/**
+ * Validation schema for filtering, sorting, and paginating products.
+ *
+ * Supports:
+ * - Keyword search
+ * - Product status filtering
+ * - Minimum and maximum price range
+ * - Creation date range
+ * - Custom sorting and sort direction
+ *
+ * Also validates that `minPrice` is not greater than `maxPrice`.
+ */
+export const searchProductsInfiniteSchema = infiniteSchema.extend({
+    search: searchSchema,
 });
 
 /**

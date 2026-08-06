@@ -1,78 +1,131 @@
-import { GraphQLContext } from "@/types";
+import {
+    applyErrorHandling,
+    composeResolvers,
+    protectResolvers,
+    validate
+} from "@/graphql/helpers";
 import { inventoryService } from "./inv.service";
-import { protectResolvers } from "@/graphql/helpers";
-import { AdjustStockInput, CreateInventoryInput, PaginatedInventoriesInput, SearchInventoryProductsInfiniteInput } from "./inv.validation";
-import { UUIDInput } from "@/schemas";
+import { UUIDInput, uuidSchema } from "@/schemas";
+import {
+    adjustStockSchema,
+    createInventorySchema,
+    paginatedInventoriesSchema
+} from "./inv.validation";
+import {
+    AdjustStockInput,
+    CreateInventoryInput,
+    PaginatedInventoriesInput
+} from "./types";
+import { Inventory } from "@prisma/client";
+import { productService } from "../product";
+import { userService } from "../user";
+import { GraphQLContext } from "@/types";
 
 export const inventoryResolver = {
 
-    Query: protectResolvers({
+    Query: composeResolvers(
+        protectResolvers,
+        applyErrorHandling
+    )({
 
         /**
-         * Count of inventory items grouped by stock status:
-         * wellStocked / lowStock / criticalOut / belowReorderLevel
+         * Retrieves summary metrics for inventory stock statuses.
+         *
+         * Returns the total counts for each stock status category,
+         * including well-stocked, low-stock, critical-out, and
+         * below-reorder-level inventory.
          */
         getInventoryStatuses: async () => {
             return inventoryService.getStatuses();
         },
 
         /**
-         * Get a single inventory record by ID (includes linked product)
+         * Retrieves an inventory record by its unique identifier.
+         *
+         * Validates the provided inventory ID before delegating the
+         * request to the inventory service. Throws an error if the
+         * inventory record cannot be found.
          */
-        getInventory: async (
-            _: unknown,
-            { inventoryId }: { inventoryId: UUIDInput }
-        ) => {
-            return inventoryService.getInventory(inventoryId);
+        getInventory: composeResolvers(
+            validate(uuidSchema)
+        )(async (_: unknown, { inventoryId }: { inventoryId: UUIDInput }) => {
+            return inventoryService.getInventory({ id: inventoryId });
+        }),
+
+        /**
+         * Retrieves a paginated list of inventory records.
+         *
+         * Supports pagination, filtering, searching, and sorting
+         * based on the validated query arguments.
+         */
+        getInventories: composeResolvers(
+            validate(paginatedInventoriesSchema)
+        )(async (_: unknown, { args }: { args: PaginatedInventoriesInput }) => {
+            return inventoryService.getInventories(args);
+        }),
+
+    }),
+
+    Inventory: protectResolvers({
+
+        /**
+         * Resolves the product associated with an inventory record.
+         *
+         * Retrieves the product referenced by the inventory's `productId`.
+         */
+        product: async (parent: Inventory) => {
+            return productService.getProduct({ id: parent.productId });
         },
 
         /**
-         * Get a paginated + filtered list of inventory records
+         * Resolves the user who created or last managed the inventory record.
+         *
+         * Retrieves the user referenced by the inventory's `userId`.
          */
-        getInventories: async (
-            _: unknown,
-            { input }: { input: PaginatedInventoriesInput }
-        ) => {
-            return inventoryService.getInventories(input);
-        },
-
-        /**
-         * Search products for inventory addition — cursor-based infinite scroll
-         */
-        searchInventoryProducts: async (
-            _: unknown,
-            input: SearchInventoryProductsInfiniteInput
-        ) => {
-            return inventoryService.searchInventoryProducts(input);
+        author: async (parent: Inventory) => {
+            return userService.getUser({ id: parent.userId });
         },
 
     }),
 
-    Mutation: protectResolvers({
+    Mutation: composeResolvers(
+        protectResolvers,
+        applyErrorHandling
+    )({
 
         /**
-         * Adjust stock quantity.
-         * Automatically creates a StockMovement record under the hood.
+         * Adjusts the stock level of an inventory item.
+         *
+         * Validates the adjustment request before delegating the operation
+         * to the inventory service. Records the stock movement and returns
+         * the updated inventory with its computed stock status.
          */
-        adjustStock: async (
+        adjustStock: composeResolvers(
+            validate(adjustStockSchema)
+        )(async (
             _: unknown,
             { input }: { input: AdjustStockInput },
             ctx: GraphQLContext
         ) => {
-            return inventoryService.adjustStock(ctx.user!.id, input);
-        },
+            return inventoryService.adjustStock(ctx.user?.id!, input);
+        }),
 
         /**
-         * Create an initial inventory record for a product.
-         * Guards: product must exist, no duplicate inventory allowed.
+         * Creates an inventory record for a product.
+         *
+         * Validates the inventory data before delegating the operation
+         * to the inventory service. Returns the newly created inventory
+         * with its computed stock status.
          */
-        createInventory: async (
+        createInventory: composeResolvers(
+            validate(createInventorySchema)
+        )(async (
             _: unknown,
             { input }: { input: CreateInventoryInput },
             ctx: GraphQLContext
         ) => {
-            return inventoryService.createInventory(ctx.user!.id, input);
-        },
+            return inventoryService.createInventory(ctx.user?.id!, input);
+        }),
 
     }),
 

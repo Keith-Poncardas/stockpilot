@@ -4,7 +4,8 @@ import {
     changeProductStatusSchema,
     editProductSchema,
     filterProductsSchema,
-    paginatedProductsSchema
+    paginatedProductsSchema,
+    searchProductsInfiniteSchema
 } from "./product.validation";
 
 /**
@@ -45,4 +46,12 @@ export type EditProductInput = z.infer<
  */
 export type ChangeProductStatusInput = z.infer<
     typeof changeProductStatusSchema
+>;
+
+/**
+ * Type representing the validated input required
+ * to search products for inventory.
+ */
+export type SearchProductsInfiniteInput = z.infer<
+    typeof searchProductsInfiniteSchema
 >;

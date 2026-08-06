@@ -1,17 +1,19 @@
 import { prisma } from "@/lib";
 import {
-    createPaginator,
-    createInfiniteScroller
+    createPaginator
 } from "@/utils";
-import { MovementType, Prisma } from "@prisma/client";
+import { MovementReason, MovementType, Prisma } from "@prisma/client";
 import {
     AdjustStockInput,
     CreateInventoryInput,
     PaginatedInventoriesInput,
-    SearchInventoryProductsInfiniteInput
-} from "./inv.validation";
-import { ProductStatus, StockStatus } from "@/enums";
-import { resolveStockStatus, mapInventoriesWithStatus, calculateQuantityUpdate } from "./inv.utils";
+} from "./types";
+import { StockStatus } from "@/enums";
+import {
+    resolveStockStatus,
+    mapInventoriesWithStatus,
+    calculateQuantityUpdate
+} from "./inv.utils";
 import { UUIDInput } from "@/schemas";
 import { stockMovementsService } from "../stockMovements";
 import { productService } from "../product";
@@ -93,6 +95,7 @@ export class InventoryService {
      */
     private async getStockStatusIds(stockStatus?: StockStatus) {
         switch (stockStatus) {
+
             case StockStatus.WELL_STOCKED:
                 return this.getIdsByCondition(
                     "quantity_on_hand > reorder_level"
@@ -102,21 +105,10 @@ export class InventoryService {
                 return this.getIdsByCondition(
                     "quantity_on_hand > 0 AND quantity_on_hand <= reorder_level"
                 );
+
             default:
                 return undefined;
         }
-    }
-
-    /**
-     * Retrieves inventory records matching the specified query options.
-     *
-     * Intended for internal use to centralize inventory retrieval logic.
-     *
-     * @param args The Prisma query options.
-     * @returns The matching inventory records.
-     */
-    private findInventories(args: Prisma.InventoryFindManyArgs) {
-        return prisma.inventory.findMany(args);
     }
 
     /**
@@ -152,49 +144,6 @@ export class InventoryService {
             belowReorderLevel
         };
 
-    }
-
-    /**
-     * Retrieves an infinite-scroll list of inventory products.
-     *
-     * Returns inventory records whose associated products are not
-     * discontinued. Supports keyword searching by product name or SKU
-     * and uses cursor-based pagination for efficient infinite scrolling.
-     *
-     * @param input The search criteria and pagination options.
-     * @returns A collection of inventory records with cursor pagination metadata.
-     */
-    async searchInventoryProducts(input: SearchInventoryProductsInfiniteInput) {
-
-        const { search, cursor, limit } = input;
-        const { params, buildResult } = createInfiniteScroller({
-            cursor, limit
-        });
-
-        const where: Prisma.InventoryWhereInput = {
-            product: {
-                status: { not: ProductStatus.DISCONTINUED },
-                ...(search && {
-                    OR: [
-                        { name: { contains: search, mode: 'insensitive' as const } },
-                        { sku: { contains: search, mode: 'insensitive' as const } },
-                    ],
-                }),
-            },
-        };
-
-        const inventories = await this.findInventories({
-            where,
-            take: params.take + 1,
-            ...(params.cursor && {
-                cursor: { id: params.cursor },
-                skip: 1,
-            }),
-            orderBy: { createdAt: 'desc' },
-        });
-
-        const { data, meta } = buildResult(inventories);
-        return { data, meta };
     }
 
     /**
@@ -267,7 +216,7 @@ export class InventoryService {
 
         const [inventories, total] = await Promise.all([
 
-            this.findInventories({
+            prisma.inventory.findMany({
                 where,
                 skip: params.skip,
                 take: params.limit,
@@ -301,36 +250,25 @@ export class InventoryService {
      */
     async adjustStock(userId: UUIDInput, input: AdjustStockInput) {
 
-        const {
-            inventoryId,
-            quantity,
-            movementType,
-            reorderLevel,
-            maxStock,
-            reason,
-            notes
-        } = input;
+        const { inventoryId, movement } = input;
+        const { quantity, type, notes } = movement;
 
         const { recordStockMovement } = stockMovementsService;
-        const quantityOnHand = calculateQuantityUpdate(movementType, quantity);
+        const quantityOnHand = calculateQuantityUpdate(type, quantity);
 
         const inventory = await prisma.$transaction(async (tx) => {
 
             const inv = await tx.inventory.update({
                 where: { id: inventoryId },
-                data: {
-                    quantityOnHand,
-                    reorderLevel,
-                    maxStock
-                },
+                data: { quantityOnHand },
             });
 
             await recordStockMovement(tx, "ADJ", {
                 productId: inv.productId,
                 userId,
-                type: movementType,
+                type,
                 quantity,
-                reason,
+                reason: MovementReason.ADJUSTMENT,
                 notes
             });
 

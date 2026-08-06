@@ -1,112 +1,126 @@
+# Product Status Enum
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  DISCONTINUED
+  DRAFT
+  ARCHIVED
+}
 
-    # Product Status Enum
-    enum ProductStatus {
-        ACTIVE
-        INACTIVE
-        DISCONTINUED
-        DRAFT
-        ARCHIVED
-    }
+# Product Order By Enum
+enum ProductOrderBy {
+  createdAt
+  name
+  unitPrice
+}
 
-    # Product Order By Enum
-    enum ProductOrderBy {
-        createdAt
-        name
-        unitPrice
-    }
+# Product Type
+type Product {
+  id: ID!
+  sku: String!
+  name: String!
+  description: String
+  unitPrice: Float!
+  costPrice: Float
+  status: ProductStatus!
+  createdAt: String!
+  updatedAt: String!
 
-    # Product Type
-    type Product {
-        id: ID!
-        sku: String!
-        name: String!
-        description: String
-        unitPrice: Float!
-        costPrice: Float
-        status: ProductStatus!
-        createdAt: String!
-        updatedAt: String!
+  # Relations
+  sale: Sale!
+  inventory: Inventory!
+  stockMovement: StockMovement!
+}
 
-        # Relations
-        sale: Sale!
-        inventory: Inventory!
-        stockMovement: StockMovement!
-    }
+# Product Metrics Type
+type ProductMetrics {
+  total: Int!
+  active: Int!
+  draft: Int!
+}
 
-    # Product Metrics Type
-    type ProductMetrics {
-        total: Int!
-        active: Int!
-        draft: Int!
-    }
+# Paginated Products Type
+type PaginatedProducts {
+  data: [Product!]
+  meta: Pagination!
+}
 
-    # Paginated Products Type
-    type PaginatedProducts {
-        data: [Product!]
-        meta: Pagination!
-    }
+# Get Products Input Type
+input GetProductsInput {
+  search: String
+  status: ProductStatus
+  stockStatus: String
+  minPrice: Float
+  maxPrice: Float
+  dateFrom: String
+  dateTo: String
+  orderBy: ProductOrderBy
+  orderDirection: OrderDirection
+}
 
-    # Get Products Input Type
-    input GetProductsInput {
-        search: String
-        status: ProductStatus
-        stockStatus: String
-        minPrice: Float
-        maxPrice: Float
-        dateFrom: String
-        dateTo: String
-        orderBy: ProductOrderBy
-        orderDirection: OrderDirection
-    }
+# Paginated Products Input Type
+input PaginatedProductsInput {
+  page: Int!
+  limit: Int!
+  filter: GetProductsInput!
+}
 
-    # Paginated Products Input Type
-    input PaginatedProductsInput {
-        page: Int!
-        limit: Int!
-        filter: GetProductsInput!
-    }
+# Create Product Input Type
+input BaseProductMutationInput {
+  name: String!
+  description: String
+  sku: String
+  unitPrice: Float!
+  costPrice: Float
+  status: ProductStatus!
+}
 
-    # Create Product Input Type
-    input BaseProductMutationInput {
-        name: String!
-        description: String
-        sku: String
-        unitPrice: Float!
-        costPrice: Float
-        status: ProductStatus!
-    }
+# Create Product Input Type
+input CreateProductInput {
+  product: BaseProductMutationInput!
+  inventory: InventoryInput!
+}
 
-    # Create Product Input Type
-    input CreateProductInput {
-        product: BaseProductMutationInput!
-        inventory: InventoryInput!
-    }
+# Edit Product Input Type
+input EditProductInput {
+  productId: ID!
+  product: BaseProductMutationInput!
+  inventory: InventoryInput!
+}
 
-    # Edit Product Input Type
-    input EditProductInput {
-        productId: ID!
-        product: BaseProductMutationInput!
-        inventory: InventoryInput!
-    }
+# Change Product Status Input Type
+input ChangeProductStatusInput {
+  productId: ID!
+  status: ProductStatus!
+}
 
-    # Change Product Status Input Type
-    input ChangeProductStatusInput {
-        productId: ID!
-        status: ProductStatus!
-    }
+# Search Products Input Type
+input SearchProductsInfiniteInput {
+  search: String!
+  cursor: String
+  limit: Int
+}
 
-    # Query Type
-    type Query {
-        getProduct(productId: ID!): Product!
-        getProducts(args: PaginatedProductsInput!): PaginatedProducts!
-        getTotalProductsCount: Int!
-        getProductMetrics: ProductMetrics!
-    }
+# Infinite Products Result Type
+type InfiniteProductsResult {
+  data: [Product!]!
+  meta: InfiniteScrollMeta!
+}
 
-    # Mutation Type
-    type Mutation {
-        createProduct(input: CreateProductInput!): Product!
-        editProduct(input: EditProductInput!): Product!
-        changeProductStatus(input: ChangeProductStatusInput!): Product!
-    }
+# Query Type
+type Query {
+  getProduct(productId: ID!): Product!
+  getProducts(args: PaginatedProductsInput!): PaginatedProducts!
+  searchProductsInfinite(
+    input: SearchProductsInfiniteInput!
+  ): InfiniteProductsResult!
+  getTotalProductsCount: Int!
+  getProductMetrics: ProductMetrics!
+}
 
+# Mutation Type
+type Mutation {
+  createProduct(input: CreateProductInput!): Product!
+  editProduct(input: EditProductInput!): Product!
+  changeProductStatus(input: ChangeProductStatusInput!): Product!
+}
