@@ -61,10 +61,9 @@ export const saleResolver = {
             { input }: { input: any },
             context: any
         ) => {
-            return saleService.changeStatus(input, context.user!.id);
+            return saleService.changeSaleStatus(context.user!.id, input);
         },
 
     }),
 
 };
-

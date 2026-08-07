@@ -48,7 +48,7 @@ export class ProductService {
      * @param args The filter criteria and pagination options.
      * @returns A collection of products matching the criteria.
      */
-    private findProducts(args: Prisma.ProductFindManyArgs) {
+    findProducts(args: Prisma.ProductFindManyArgs) {
         return prisma.product.findMany(args);
     }
 

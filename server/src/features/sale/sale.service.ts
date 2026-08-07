@@ -1,7 +1,7 @@
 import { prisma } from "@/lib";
 import { z } from "zod";
 import { buildSearchQuery, createPaginator, throwNotFound, throwConflict, generateReference } from "@/utils";
-import { Prisma, SaleStatus, MovementType, MovementReason } from "@prisma/client";
+import { Prisma, SaleStatus, MovementType, MovementReason, ProductStatus, PaymentMethod, Sale, SaleItem } from "@prisma/client";
 import {
     FilterSalesInput,
     GetSalesMetricsFilter,
@@ -12,8 +12,14 @@ import {
     createSaleSchema,
     ChangeSaleStatusInput,
     changeSaleStatusSchema,
+    CreateSaleItemInput,
 } from "./sale.validation";
-import { buildSaleSearchQuery } from "./sale.utils";
+import { buildSaleSearchQuery, validateSaleItems, formatSaleItems, calculateTotalAmount, ensureSaleIsMutable } from "./sale.utils";
+import { UUIDInput } from "@/schemas";
+import { customerService } from "../customer";
+import { productService } from "../product";
+import { inventoryService } from "../inventory";
+import { stockMovementsService } from "../stockMovements";
 
 export class SaleService {
 
@@ -54,9 +60,7 @@ export class SaleService {
             ...(status && { status }),
 
             /** Filter by payment method */
-            ...(paymentMethod && {
-                paymentMethod: { equals: paymentMethod, mode: "insensitive" },
-            }),
+            ...(paymentMethod && { paymentMethod }),
 
             /** Filter by saleDate range */
             ...((dateFrom || dateTo) && {
@@ -106,6 +110,7 @@ export class SaleService {
      *   4. refundedOrVoidedCount — COUNT WHERE status IN (REFUNDED, VOIDED)
      */
     private async aggregateCompletedSales() {
+
         const agg = await prisma.sale.aggregate({
             where: { status: SaleStatus.COMPLETED },
             _sum: { totalAmount: true },
@@ -116,8 +121,18 @@ export class SaleService {
             totalRevenue: Number(agg._sum.totalAmount ?? 0),
             completedSales: agg._count.id,
         }
+
     }
 
+    /**
+     * Retrieves summary metrics for sales.
+     *
+     * Aggregates key sales statistics, including total revenue,
+     * completed sales, total transactions, and the number of
+     * refunded or voided transactions.
+     *
+     * @returns An object containing aggregated sales metrics.
+     */
     async getSalesMetrics() {
 
         const status = { in: [SaleStatus.REFUNDED, SaleStatus.VOIDED] }
@@ -132,8 +147,11 @@ export class SaleService {
             this.saleCount({ status })
         ]);
 
+        const { totalRevenue, completedSales } = revenueAgg;
+
         return {
-            ...revenueAgg,
+            totalRevenue,
+            completedSales,
             totalTransactions,
             refundedOrVoidedCount
         };
@@ -141,205 +159,146 @@ export class SaleService {
     }
 
     /**
-     * Create a new sale from POS.
-     * - Validates products exist, are active, and have sufficient stock (if COMPLETED).
-     * - In a transaction:
-     *   - Creates Sale record + nested SaleItem records
-     *   - If COMPLETED:
-     *     - Decrements inventory quantityOnHand for each item
-     *     - Creates StockMovement (type: OUT, reason: SALE) for each item
+     * Checks if a customer exists, otherwise throws a 404 error.
+     *
+     * @param customerId - The unique identifier of the customer.
+     * @returns The customer record if found.
+     * @throws {CustomerNotFoundException} If the customer does not exist.
      */
-    async createSale(input: CreateSaleInput, userId: string) {
+    async ensureCustomerExist(customerId?: UUIDInput) {
+        if (customerId) {
+            await customerService.getCustomer({ id: customerId });
+        }
+    }
+
+    /**
+     * Ensures that all products referenced by sale items exist and
+     * validates the sale items against the retrieved product data.
+     *
+     * @param items - Sale items containing the product IDs to validate.
+     * @param status - Current sale status used during item validation.
+     * @throws {Error} If a referenced product does not exist or a sale item
+     * fails validation.
+     */
+    private async ensureSaleItemProductExist(
+        items: { productId: string; quantity: number }[],
+        status: SaleStatus
+    ) {
+
+        const productIds = items.map((i) => i.productId);
+        const { findProducts } = productService;
+
+        const products = await findProducts({
+            where: {
+                id: { in: productIds },
+            },
+            include: { inventory: { select: { quantityOnHand: true } } },
+        });
+
+        const productMap = new Map(products.map((p) => [p.id, p]));
+        validateSaleItems(items, productMap, status);
+
+    }
+
+    /**
+     * Processes inventory changes for a completed sale by deducting the
+     * sold quantity from each product's inventory and recording the
+     * corresponding stock movements.
+     *
+     * @param tx - Prisma transaction client used to execute all inventory
+     * updates and stock movement records atomically.
+     * @param items - Sale items containing the products and quantities sold.
+     * @param userId - ID of the user who completed the sale.
+     */
+    private async deduction(
+        tx: Prisma.TransactionClient,
+        items: { productId: string; quantity: number }[],
+        userId: UUIDInput,
+        notesCallback?: (ref: string) => string
+    ) {
+
+        const { inventoryUpdateInternal } = inventoryService;
+        const { recordStockMovement } = stockMovementsService;
+
+        for (const item of items) {
+
+            await inventoryUpdateInternal(tx, item.productId, {
+                quantityOnHand: {
+                    decrement: item.quantity,
+                },
+            });
+
+            await recordStockMovement(tx, "SALE", (ref) => ({
+                productId: item.productId,
+                userId,
+                type: MovementType.OUT,
+                quantity: item.quantity,
+                reason: MovementReason.SALE,
+                notes: notesCallback ? notesCallback(ref) : `Sold via POS — Sale #${ref}`,
+            }));
+
+        }
+    }
+
+    /**
+     * Creates a new sale and, when completed, updates inventory and
+     * records the corresponding stock movements within the same transaction.
+     *
+     * @param userId - ID of the user creating the sale.
+     * @param input - Sale details including customer, payment method,
+     * status, and sale items.
+     * @returns The newly created sale.
+     * @throws {Error} If the customer or products are invalid, or if
+     * the sale transaction fails.
+     */
+    async createSale(userId: UUIDInput, input: CreateSaleInput) {
+
         const {
-            customerId,
+            customerId: customerIdUnsafe,
             paymentMethod,
             status,
             items
-        } = createSaleSchema.parse(input);
+        } = input;
 
-        if (customerId) {
-            const customer = await prisma.customer.findUnique({ where: { id: customerId } });
-            if (!customer) throwNotFound("Customer not found");
-        }
+        await this.ensureCustomerExist(customerIdUnsafe);
+        await this.ensureSaleItemProductExist(items, status);
 
-        for (const item of items) {
-            const product = await prisma.product.findUnique({
-                where: { id: item.productId },
-                include: { inventory: true },
-            });
-
-            if (!product) {
-                throwNotFound(`Product ${item.productId} not found`);
-            }
-            if (product.status === "DISCONTINUED" || product.status === "ARCHIVED") {
-                throwConflict(`Product "${product.name}" is discontinued or archived`);
-            }
-
-            if (status === SaleStatus.COMPLETED) {
-                const available = product.inventory?.quantityOnHand ?? 0;
-                if (item.quantity > available) {
-                    throwConflict(
-                        `Insufficient stock for "${product.name}". Available: ${available}, Requested: ${item.quantity}`
-                    );
-                }
-            }
-        }
-
-        const totalAmount = items.reduce(
-            (sum, item) => sum + item.quantity * item.unitPrice,
-            0
-        );
+        const totalAmount = calculateTotalAmount(items);
+        const statusCompleted = status === SaleStatus.COMPLETED;
+        const customerId = customerIdUnsafe ?? null;
+        const saleItems = { create: formatSaleItems(items) };
 
         const createdSale = await prisma.$transaction(async (tx) => {
+
             const sale = await tx.sale.create({
                 data: {
-                    customerId: customerId ?? null,
+                    customerId,
                     userId,
                     paymentMethod,
                     status,
                     totalAmount,
-                    saleItems: {
-                        create: items.map((item) => ({
-                            productId: item.productId,
-                            quantity: item.quantity,
-                            unitPrice: item.unitPrice,
-                        })),
-                    },
-                },
-                include: {
-                    customer: {
-                        select: { firstName: true, lastName: true },
-                    },
-                    user: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                            role: true,
-                        },
-                    },
-                    _count: {
-                        select: { saleItems: true },
-                    },
+                    saleItems,
                 },
             });
 
-            if (status === SaleStatus.COMPLETED) {
-
-                const ref = await generateReference("SALE", tx);
-
-                for (const item of items) {
-                    await tx.inventory.updateMany({
-                        where: { productId: item.productId },
-                        data: {
-                            quantityOnHand: {
-                                decrement: item.quantity,
-                            },
-                        },
-                    });
-
-                    await tx.stockMovement.create({
-                        data: {
-                            productId: item.productId,
-                            userId,
-                            type: MovementType.OUT,
-                            quantity: item.quantity,
-                            reason: MovementReason.SALE,
-                            reference: ref,
-                            notes: `Sold in POS sale #${ref}`,
-                        },
-                    });
-                }
+            if (statusCompleted) {
+                await this.deduction(tx, items, userId);
             }
 
             return sale;
         });
 
-        return {
-            id: createdSale.id,
-            saleDate: createdSale.saleDate.toISOString(),
-            totalAmount: Number(createdSale.totalAmount),
-            paymentMethod: createdSale.paymentMethod,
-            status: createdSale.status,
-            customer: createdSale.customer,
-            user: createdSale.user,
-            itemCount: createdSale._count.saleItems,
-        };
+        return createdSale;
+
     }
 
     /**
      * Get details of a specific sale by ID.
      */
-    async getSale(saleId: string) {
-        const id = z.string().uuid("Invalid sale ID").parse(saleId);
-        const sale = await prisma.sale.findUnique({
-            where: { id },
-            include: {
-                customer: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                        phone: true,
-                    },
-                },
-                user: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        role: true,
-                        email: true,
-                    },
-                },
-                saleItems: {
-                    include: {
-                        product: {
-                            select: {
-                                sku: true,
-                                name: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
-
-        if (!sale) throwNotFound("Sale not found");
-
-        return {
-            id: sale.id,
-            saleDate: sale.saleDate.toISOString(),
-            totalAmount: Number(sale.totalAmount),
-            paymentMethod: sale.paymentMethod ?? null,
-            status: sale.status,
-            customer: sale.customer
-                ? {
-                    id: sale.customer.id,
-                    firstName: sale.customer.firstName,
-                    lastName: sale.customer.lastName,
-                    email: sale.customer.email,
-                    phone: sale.customer.phone,
-                }
-                : null,
-            user: {
-                id: sale.user.id,
-                firstName: sale.user.firstName,
-                lastName: sale.user.lastName,
-                role: sale.user.role,
-                email: sale.user.email,
-            },
-            items: sale.saleItems.map((item) => ({
-                id: item.id,
-                productId: item.productId,
-                sku: item.product?.sku ?? "N/A",
-                name: item.product?.name ?? "Deleted Product",
-                quantity: item.quantity,
-                unitPrice: Number(item.unitPrice),
-                totalPrice: item.quantity * Number(item.unitPrice),
-            })),
-        };
+    async getSale<T extends Prisma.SaleFindUniqueArgs>(
+        args: Prisma.SelectSubset<T, Prisma.SaleFindUniqueArgs>
+    ) {
+        return await prisma.sale.findUniqueOrThrow<T>(args);
     }
 
     /**
@@ -347,112 +306,38 @@ export class SaleService {
      * - Validates against changing VOIDED or REFUNDED sales.
      * - Manages inventory adjustments if changing to/from COMPLETED status.
      */
-    async changeStatus(input: ChangeSaleStatusInput, userId: string) {
-        const { saleId, status } = changeSaleStatusSchema.parse(input);
+    async changeSaleStatus(userId: UUIDInput, input: ChangeSaleStatusInput) {
+        const { saleId, status } = input;
 
-        const sale = await prisma.sale.findUnique({
+        const sale = await this.getSale({
             where: { id: saleId },
-            include: {
-                saleItems: true,
-                customer: {
-                    select: { firstName: true, lastName: true },
-                },
-                user: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        role: true,
-                    },
-                },
-                _count: {
-                    select: { saleItems: true },
-                },
-            },
+            include: { saleItems: true }
         });
 
-        if (!sale) throwNotFound("Sale not found");
+        ensureSaleIsMutable(sale.status);
 
-        if (sale.status === SaleStatus.VOIDED || sale.status === SaleStatus.REFUNDED) {
-            throwConflict(`Cannot change status of a ${sale.status.toLowerCase()} sale.`);
-        }
+        const saleWasCompleted = sale.status === SaleStatus.COMPLETED;
+        const newStatusIsCompleted = status === SaleStatus.COMPLETED;
 
-        if (sale.status === status) {
-            return {
-                id: sale.id,
-                saleDate: sale.saleDate.toISOString(),
-                totalAmount: Number(sale.totalAmount),
-                paymentMethod: sale.paymentMethod ?? null,
-                status: sale.status,
-                customer: sale.customer
-                    ? { firstName: sale.customer.firstName, lastName: sale.customer.lastName }
-                    : null,
-                user: sale.user,
-                itemCount: sale._count.saleItems,
-            };
+        if (!saleWasCompleted && newStatusIsCompleted) {
+            await this.ensureSaleItemProductExist(sale.saleItems, status);
         }
 
         const updatedSale = await prisma.$transaction(async (tx) => {
+
             const updated = await tx.sale.update({
                 where: { id: saleId },
-                data: { status },
-                include: {
-                    customer: {
-                        select: { firstName: true, lastName: true },
-                    },
-                    user: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                            role: true,
-                        },
-                    },
-                    _count: {
-                        select: { saleItems: true },
-                    },
-                },
+                data: { status }
             });
 
-            // If transitioning TO COMPLETED -> decrement stock & create OUT stock movement
-            if (sale.status !== SaleStatus.COMPLETED && status === SaleStatus.COMPLETED) {
-                const ref = await generateReference("SALE", tx);
-
-                for (const item of sale.saleItems) {
-                    const product = await tx.product.findUnique({
-                        where: { id: item.productId },
-                        include: { inventory: true },
-                    });
-
-                    const available = product?.inventory?.quantityOnHand ?? 0;
-                    if (item.quantity > available) {
-                        throwConflict(
-                            `Insufficient stock for product. Available: ${available}, Requested: ${item.quantity}`
-                        );
-                    }
-
-                    await tx.inventory.updateMany({
-                        where: { productId: item.productId },
-                        data: {
-                            quantityOnHand: {
-                                decrement: item.quantity,
-                            },
-                        },
-                    });
-
-                    await tx.stockMovement.create({
-                        data: {
-                            productId: item.productId,
-                            userId,
-                            type: MovementType.OUT,
-                            quantity: item.quantity,
-                            reason: MovementReason.SALE,
-                            reference: ref,
-                            notes: `Sold in POS sale #${ref} (Status updated to COMPLETED)`,
-                        },
-                    });
-                }
-            }
+            if (!saleWasCompleted && newStatusIsCompleted) {
+                await this.deduction(
+                    tx,
+                    sale.saleItems,
+                    userId,
+                    (ref) => `Sold in POS sale #${ref} (Status updated to COMPLETED)`
+                );
+            };
 
             // If transitioning FROM COMPLETED to REFUNDED or VOIDED -> restock & create IN stock movement
             if (sale.status === SaleStatus.COMPLETED && (status === SaleStatus.REFUNDED || status === SaleStatus.VOIDED)) {
@@ -491,11 +376,11 @@ export class SaleService {
             totalAmount: Number(updatedSale.totalAmount),
             paymentMethod: updatedSale.paymentMethod ?? null,
             status: updatedSale.status,
-            customer: updatedSale.customer
-                ? { firstName: updatedSale.customer.firstName, lastName: updatedSale.customer.lastName }
+            customer: sale.customer
+                ? { firstName: sale.customer.firstName, lastName: sale.customer.lastName }
                 : null,
-            user: updatedSale.user,
-            itemCount: updatedSale._count.saleItems,
+            user: sale.user,
+            itemCount: sale._count.saleItems,
         };
     }
 

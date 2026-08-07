@@ -209,14 +209,17 @@ export class StockMovementsService {
     async recordStockMovement(
         tx: Prisma.TransactionClient,
         prefix: string,
-        movement: Omit<Prisma.StockMovementUncheckedCreateInput, "reference">,
+        movementInput: 
+            | Omit<Prisma.StockMovementUncheckedCreateInput, "reference">
+            | ((reference: string) => Omit<Prisma.StockMovementUncheckedCreateInput, "reference">)
     ) {
 
         const reference = await generateReference(prefix, tx);
+        const data = typeof movementInput === "function" ? movementInput(reference) : movementInput;
 
         return await tx.stockMovement.create({
             data: {
-                ...movement,
+                ...data,
                 reference,
             }
         });

@@ -16,6 +16,18 @@ import {
 export class CustomerService {
 
     /**
+     * Returns a customer record by its ID.
+     *
+     * Throws an error if the customer does not exist.
+     *
+     * @param where - The unique ID of the customer.
+     * @returns The matching customer record.
+     */
+    async getCustomer(where: Prisma.CustomerWhereUniqueInput) {
+        return await prisma.customer.findUniqueOrThrow({ where });
+    }
+
+    /**
      * Get a paginated list of customers with computed aggregates.
      *
      * Computed per customer (from Sales relation):
@@ -39,7 +51,7 @@ export class CustomerService {
             ...((dateFrom || dateTo) && {
                 createdAt: {
                     ...(dateFrom && { gte: dateFrom }),
-                    ...(dateTo  && { lte: dateTo  }),
+                    ...(dateTo && { lte: dateTo }),
                 },
             }),
 
@@ -63,8 +75,8 @@ export class CustomerService {
             prisma.sale.groupBy({
                 by: ['customerId'],
                 _count: { id: true },
-                _sum:   { totalAmount: true },
-                _max:   { saleDate: true },
+                _sum: { totalAmount: true },
+                _max: { saleDate: true },
             }),
 
         ]);
@@ -75,7 +87,7 @@ export class CustomerService {
                 agg.customerId,
                 {
                     totalOrders: agg._count.id,
-                    totalSpent:  Number(agg._sum.totalAmount ?? 0),
+                    totalSpent: Number(agg._sum.totalAmount ?? 0),
                     lastPurchase: agg._max.saleDate?.toISOString() ?? null,
                 },
             ])
@@ -85,8 +97,8 @@ export class CustomerService {
             const agg = salesMap.get(customer.id);
             return {
                 ...customer,
-                totalOrders:  agg?.totalOrders  ?? 0,
-                totalSpent:   agg?.totalSpent   ?? 0,
+                totalOrders: agg?.totalOrders ?? 0,
+                totalSpent: agg?.totalSpent ?? 0,
                 lastPurchase: agg?.lastPurchase ?? null,
             };
         });
@@ -104,7 +116,7 @@ export class CustomerService {
      *   - Purchase summary (computed from Sales)
      *   - Recent purchases (last 5 sales)
      */
-    async getCustomer(input: GetCustomerInput) {
+    async _getCustomer(input: GetCustomerInput) {
 
         const { id } = getCustomerSchema.parse(input);
 
@@ -116,9 +128,9 @@ export class CustomerService {
             prisma.sale.aggregate({
                 where: { customerId: id },
                 _count: { id: true },
-                _sum:   { totalAmount: true },
-                _max:   { saleDate: true },
-                _min:   { saleDate: true },
+                _sum: { totalAmount: true },
+                _max: { saleDate: true },
+                _min: { saleDate: true },
             }),
 
             /** All customer sales */
@@ -138,8 +150,8 @@ export class CustomerService {
 
         if (!customer) throwNotFound('Customer not found');
 
-        const totalOrders  = salesAgg._count.id;
-        const totalSpent   = Number(salesAgg._sum.totalAmount ?? 0);
+        const totalOrders = salesAgg._count.id;
+        const totalSpent = Number(salesAgg._sum.totalAmount ?? 0);
         const lastPurchase = salesAgg._max.saleDate?.toISOString() ?? null;
         const firstPurchase = salesAgg._min.saleDate?.toISOString() ?? null;
         const averageOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;

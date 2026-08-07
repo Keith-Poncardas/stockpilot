@@ -237,6 +237,26 @@ export class InventoryService {
     }
 
     /**
+     * Updates the stock level of an inventory item.
+     *
+     * Updates the inventory quantity and stock thresholds in a single
+     * transaction. The updated inventory is returned together with its resolved stock status.
+     *
+     * @param productId The ID of the inventory item to update.
+     * @param data The stock update data.
+     */
+    async inventoryUpdateInternal(
+        tx: Prisma.TransactionClient,
+        productId: UUIDInput,
+        data: Prisma.InventoryUpdateManyArgs['data']
+    ) {
+        await tx.inventory.updateMany({
+            where: { productId },
+            data,
+        })
+    }
+
+    /**
      * Adjusts the stock level of an inventory item.
      *
      * Updates the inventory quantity and stock thresholds in a single
