@@ -1,141 +1,156 @@
 
-    # ─── Enums ──────────────────────────────────────────────────────────────────
+"""
+Represents the current lifecycle status of a sale transaction.
+"""
+enum SaleStatus {
+    PENDING
+    COMPLETED
+    REFUNDED
+    VOIDED
+}
 
-    enum SaleStatus {
-        PENDING
-        COMPLETED
-        REFUNDED
-        VOIDED
-    }
+"""
+Available payment methods that can be used for a transaction.
+"""
+enum PaymentMethod {
+    CASH
+    GCASH
+    BANK_TRANSFER
+    CREDIT_CARD
+    DEBIT_CARD
+}
 
-    enum SaleOrderBy {
-        saleDate
-        totalAmount
-    }
+"""
+Fields available for sorting the sales list.
+"""
+enum SaleOrderBy {
+    saleDate
+    totalAmount
+}
 
+"""
+Represents a complete sale record including customer and item details.
+"""
+type Sale {
+    id: ID!
+    customerId: ID!
+    userId: ID!
+    status: SaleStatus!
+    totalAmount: Float!
+    paymentMethod: PaymentMethod!
+    saleDate: String!
+    createdAt: String!
+    updatedAt: String!
 
+    # Relations
+    saleItems: [SaleItem!]!
+    customer: Customer
+    author: User!
+}
 
-    # Sale row returned by the paginated list query.
-    # Only contains what the index table needs — full details live on a detail page.
-    type SaleListItem {
-        id: ID!
-        saleDate: String!
-        totalAmount: Float!
-        paymentMethod: String
-        status: SaleStatus!
-    }
+"""
+Represents an individual line item within a sale transaction.
+"""
+type SaleItem {
+    id: ID!
+    saleId: ID!
+    productId: ID!
+    quantity: Int!
+    unitPrice: Float!
 
-    # Paginated sales response
-    type PaginatedSales {
-        data: [SaleListItem!]!
-        meta: Pagination!
-    }
+    # Relation
+    product: Product!
+}
 
-    # KPI metrics for the Sales index page
-    type SaleMetrics {
-        # SUM(totalAmount) WHERE status = COMPLETED
-        totalRevenue: Float!
-        # COUNT of all sales (optionally filtered by date)
-        totalTransactions: Int!
-        # totalRevenue / completed sales count
-        averageOrderValue: Float!
-        # COUNT WHERE status IN (REFUNDED, VOIDED)
-        refundedOrVoidedCount: Int!
-    }
+"""
+Key performance indicators and aggregated metrics for sales.
+"""
+type SaleMetrics {
+    totalRevenue: Float!
+    totalTransactions: Int!
+    completedSales: Int!
+    refundedOrVoidedCount: Int!
+}
 
-    type SaleDetailItem {
-        id: ID!
-        productId: ID!
-        sku: String!
-        name: String!
-        quantity: Int!
-        unitPrice: Float!
-        totalPrice: Float!
-    }
+"""
+Response wrapper for paginated sales data, including pagination metadata.
+"""
+type PaginatedSales {
+    data: [Sale!]!
+    meta: Pagination!
+}
 
-    type SaleDetailCustomer {
-        id: ID!
-        firstName: String
-        lastName: String
-        email: String
-        phone: String
-    }
+"""
+Filter criteria for querying the sales list.
+"""
+input GetSalesFilter {
+    search: String
+    status: SaleStatus
+    paymentMethod: PaymentMethod
+    dateFrom: String
+    dateTo: String
+    orderBy: SaleOrderBy
+    orderDirection: OrderDirection
+}
 
-    type SaleDetailUser {
-        id: ID!
-        firstName: String!
-        lastName: String!
-        role: UserRole!
-        email: String!
-    }
+"""
+Input parameters for retrieving a paginated list of sales.
+"""
+input PaginatedSalesInput {
+    page: Int!
+    limit: Int!
+    filter: GetSalesFilter!
+}
 
-    type SaleDetail {
-        id: ID!
-        saleDate: String!
-        totalAmount: Float!
-        paymentMethod: String
-        status: SaleStatus!
-        customer: SaleDetailCustomer
-        user: SaleDetailUser!
-        items: [SaleDetailItem!]!
-    }
+"""
+Optional filters applied when computing sales metrics, such as a date range.
+"""
+input GetSalesMetricsFilter {
+    dateFrom: String
+    dateTo: String
+}
 
-    # ─── Inputs ─────────────────────────────────────────────────────────────────
+"""
+Input data required for an individual line item when creating a sale.
+"""
+input CreateSaleItemInput {
+    productId: ID!
+    quantity: Int!
+    unitPrice: Float!
+}
 
-    # Filter input for the paginated sales list
-    input GetSalesFilter {
-        # Full-text search across customer and cashier names
-        search: String
-        status: SaleStatus
-        paymentMethod: String
-        dateFrom: String
-        dateTo: String
-        orderBy: SaleOrderBy
-        orderDirection: OrderDirection
-    }
+"""
+Input data required to create a new sale transaction.
+"""
+input CreateSaleInput {
+    customerId: ID
+    paymentMethod: PaymentMethod!
+    status: SaleStatus
+    items: [CreateSaleItemInput!]!
+}
 
-    input PaginatedSalesInput {
-        page: Int!
-        limit: Int!
-        filter: GetSalesFilter!
-    }
+"""
+Input data required for changing the status of an existing sale.
+"""
+input ChangeSaleStatusInput {
+    saleId: ID!
+    status: SaleStatus!
+}
 
-    # Date-range filter applied to KPI metrics so they respect the selected period
-    input GetSalesMetricsFilter {
-        dateFrom: String
-        dateTo: String
-    }
+"""
+Available GraphQL queries for the sales module.
+"""
+type Query {
+    getSale(saleId: ID!): Sale!
+    getSales(args: PaginatedSalesInput!): PaginatedSales!
+    getSalesMetrics: SaleMetrics!
+}
 
-    input CreateSaleItemInput {
-        productId: ID!
-        quantity: Int!
-        unitPrice: Float!
-    }
-
-    input CreateSaleInput {
-        customerId: ID
-        paymentMethod: String!
-        status: SaleStatus
-        items: [CreateSaleItemInput!]!
-    }
-
-    input ChangeSaleStatusInput {
-        saleId: ID!
-        status: SaleStatus!
-    }
-
-    # ─── Queries ────────────────────────────────────────────────────────────────
-
-    type Query {
-        getSales(args: PaginatedSalesInput!): PaginatedSales!
-        getSalesMetrics(filter: GetSalesMetricsFilter): SaleMetrics!
-        getSale(saleId: ID!): SaleDetail!
-    }
-
-    # ─── Mutations ──────────────────────────────────────────────────────────────
-
-    type Mutation {
-        createSale(input: CreateSaleInput!): SaleListItem!
-        changeSaleStatus(input: ChangeSaleStatusInput!): SaleListItem!
-    }
+"""
+Available GraphQL mutations for the sales module.
+"""
+type Mutation {
+    createSale(input: CreateSaleInput!): Sale!
+    changeSaleStatus(input: ChangeSaleStatusInput!): Sale!
+}
 

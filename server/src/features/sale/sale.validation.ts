@@ -1,6 +1,6 @@
 import z from "zod";
 import { PaymentMethod, SaleStatus } from "@prisma/client";
-import { OrderDirectionLower } from "@/enums";
+import { OrderDirectionLower, SaleOrderBy } from "@/enums";
 import {
     dateRangeSchema,
     orderDirectionLowerSchema,
@@ -9,32 +9,31 @@ import {
     uuidSchema,
 } from "@/schemas";
 
-// ─── Enums ────────────────────────────────────────────────────────────────────
+/**
+ * SALE ORDER BY SCHEMA
+ * Validates the field to order sales by using the SaleOrderBy enum.
+ */
+const saleOrderBySchema = z.enum(SaleOrderBy);
 
 /**
- * Sort-by fields available for the sales list.
+ * PAYMENT METHOD SCHEMA
+ * Validates the payment method using the PaymentMethod enum.
  */
-export enum SaleOrderBy {
-    SALE_DATE = "saleDate",
-    TOTAL_AMOUNT = "totalAmount",
-}
-
-const saleOrderBySchema = z.enum(SaleOrderBy);
 const paymentMethodSchema = z.enum(PaymentMethod);
 
-// ─── Filter Schema ────────────────────────────────────────────────────────────
+/**
+ * SALE STATUS SCHEMA
+ * Validates the sale status using the SaleStatus enum.
+ */
+const saleStatusSchema = z.enum(SaleStatus);
 
 /**
- * GET SALES FILTER SCHEMA
- * Extends the shared dateRangeSchema so dateFrom / dateTo are pre-coerced to Date.
+ * FILTER SALES SCHEMA
+ * Extends the shared dateRangeSchema to include search, status, payment method, order by, and order direction fields for filtering sales.
  */
 export const filterSalesSchema = dateRangeSchema.extend({
-    /** Full-text search across customer and cashier names */
     search: searchSchema,
-
-    /** Filter by sale status */
-    status: z.enum(SaleStatus).optional(),
-    /** Filter by payment method (plain string — no enum to avoid drift) */
+    status: saleStatusSchema.optional(),
     paymentMethod: paymentMethodSchema,
     orderBy: saleOrderBySchema.default(SaleOrderBy.SALE_DATE),
     orderDirection: orderDirectionLowerSchema.default(OrderDirectionLower.DESC),
@@ -42,19 +41,16 @@ export const filterSalesSchema = dateRangeSchema.extend({
 
 /**
  * PAGINATED SALES SCHEMA
+ * Extends the shared paginationSchema to include the filterSalesSchema for paginated sales requests.
  */
 export const paginatedSalesSchema = paginationSchema.extend({
     filter: filterSalesSchema,
 });
 
-/**
- * SALES METRICS FILTER SCHEMA
- * A lighter version — only the date range to scope KPI calculations.
- */
-export const getSalesMetricsSchema = dateRangeSchema;
 
 /**
- * CREATE SALE SCHEMA
+ * CREATE SALE ITEM SCHEMA
+ * Validates the details of a single item within a sale.
  */
 export const createSaleItemSchema = z.object({
     productId: uuidSchema,
@@ -62,24 +58,30 @@ export const createSaleItemSchema = z.object({
     unitPrice: z.number().nonnegative("Unit price must be non-negative"),
 });
 
-export const saleItemSchema = z.array(createSaleItemSchema).min(1, "At least one item is required in the cart");
+/**
+ * SALE ITEMS ARRAY SCHEMA
+ * Validates an array of sale items, ensuring at least one item is provided.
+ */
+export const saleItemSchema = z.array(createSaleItemSchema).min(1,
+    "At least one item is required in the cart"
+);
 
+/**
+ * CREATE SALE SCHEMA
+ * Validates the payload for creating a new sale, including customer, payment, status, and items.
+ */
 export const createSaleSchema = z.object({
     customerId: uuidSchema.optional(),
     paymentMethod: paymentMethodSchema,
-    status: z.enum(SaleStatus).optional().default(SaleStatus.COMPLETED),
+    status: saleStatusSchema.optional().default(SaleStatus.COMPLETED),
     items: saleItemSchema,
 });
 
+/**
+ * CHANGE SALE STATUS SCHEMA
+ * Validates the payload for updating the status of an existing sale.
+ */
 export const changeSaleStatusSchema = z.object({
     saleId: uuidSchema,
-    status: z.enum(SaleStatus),
+    status: saleStatusSchema,
 });
-
-export type FilterSalesInput = z.infer<typeof filterSalesSchema>;
-export type PaginatedSalesInput = z.infer<typeof paginatedSalesSchema>;
-export type GetSalesMetricsFilter = z.infer<typeof getSalesMetricsSchema>;
-export type CreateSaleItemInput = z.infer<typeof createSaleItemSchema>;
-export type CreateSaleInput = z.infer<typeof createSaleSchema>;
-export type ChangeSaleStatusInput = z.infer<typeof changeSaleStatusSchema>;
-

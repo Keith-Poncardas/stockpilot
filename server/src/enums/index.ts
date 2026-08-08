@@ -3,3 +3,4 @@ export * from "./enum.inventory";
 export * from "./enum.user";
 export * from "./enum.product";
 export * from "./enum.stockMovements";
+export * from "./enum.sale";
