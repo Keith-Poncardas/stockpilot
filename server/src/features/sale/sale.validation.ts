@@ -54,8 +54,13 @@ export const paginatedSalesSchema = paginationSchema.extend({
  */
 export const createSaleItemSchema = z.object({
     productId: uuidSchema,
-    quantity: z.number().int().positive("Quantity must be greater than zero"),
-    unitPrice: z.number().nonnegative("Unit price must be non-negative"),
+    quantity: z
+        .number()
+        .int()
+        .positive("Quantity must be greater than zero"),
+    unitPrice: z
+        .number()
+        .nonnegative("Unit price must be non-negative"),
 });
 
 /**
@@ -73,7 +78,9 @@ export const saleItemSchema = z.array(createSaleItemSchema).min(1,
 export const createSaleSchema = z.object({
     customerId: uuidSchema.optional(),
     paymentMethod: paymentMethodSchema,
-    status: saleStatusSchema.optional().default(SaleStatus.COMPLETED),
+    status: saleStatusSchema
+        .optional()
+        .default(SaleStatus.COMPLETED),
     items: saleItemSchema,
 });
 

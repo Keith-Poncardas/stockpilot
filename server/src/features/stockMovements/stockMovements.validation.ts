@@ -44,8 +44,18 @@ export const filterStockMovementsSchema = dateRangeSchema.extend({
     movementType: movementTypeSchema.optional(),
     productId: uuidSchema,
     userId: uuidSchema,
-    minQty: z.coerce.number().int().nonnegative().optional(),
-    maxQty: z.coerce.number().int().nonnegative().optional(),
+    minQty: z
+        .coerce
+        .number()
+        .int()
+        .nonnegative()
+        .optional(),
+    maxQty: z
+        .coerce
+        .number()
+        .int()
+        .nonnegative()
+        .optional(),
     orderBy: orderBySchema.default(StockMovementOrderBy.CREATED_AT),
     orderDirection: orderDirectionLowerSchema.default(OrderDirectionLower.DESC),
 

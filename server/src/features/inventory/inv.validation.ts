@@ -1,6 +1,11 @@
 
 import z from "zod";
-import { baseFilterSchema, orderDirectionLowerSchema, paginationSchema, searchSchema, uuidSchema } from "@/schemas";
+import {
+    baseFilterSchema,
+    orderDirectionLowerSchema,
+    paginationSchema,
+    uuidSchema
+} from "@/schemas";
 import { InventoryOrderBy, OrderDirectionLower, StockStatus } from "@/enums";
 import { createMinMaxRefine, minMaxRefineMessage } from "@/utils";
 import { baseMovementSchema } from "../stockMovements";

@@ -1,3 +1,4 @@
+export * from "./types";
 export * from "./user.resolver";
 export * from "./user.service";
-export * from "./types";
+export * from "./user.validation";

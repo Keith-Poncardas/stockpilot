@@ -1,5 +1,9 @@
 import z from "zod";
-import { adjustStockSchema, createInventorySchema, paginatedInventoriesSchema } from "./inv.validation";
+import {
+    adjustStockSchema,
+    createInventorySchema,
+    paginatedInventoriesSchema
+} from "./inv.validation";
 
 /**
  * Validates the stock movement reason.
