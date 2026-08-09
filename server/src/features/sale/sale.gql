@@ -72,6 +72,28 @@ type SaleMetrics {
     refundedOrVoidedCount: Int!
 }
 
+
+"""
+Represents a single row in the sales overview.
+"""
+type SaleOverviewRow {
+    label: String!
+    date: String!
+    sales: Float!
+    isActive: Boolean!
+}
+
+"""
+Aggregated metrics for a customer's purchase history.
+"""
+type CustomerPurchaseSummary {
+    totalOrders: Int!
+    totalSpent: Float!
+    averageOrderValue: Float!
+    firstPurchase: String!
+    lastPurchase: String!
+}
+
 """
 Response wrapper for paginated sales data, including pagination metadata.
 """
@@ -85,6 +107,7 @@ Filter criteria for querying the sales list.
 """
 input GetSalesFilter {
     search: String
+    customerId: ID
     status: SaleStatus
     paymentMethod: PaymentMethod
     dateFrom: String

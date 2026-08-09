@@ -1,10 +1,11 @@
-import { ProductStatus, SaleItem } from "@prisma/client";
+import { ProductStatus, SaleItem, Prisma } from "@prisma/client";
 import z from "zod";
 import {
     paginatedSalesSchema,
     createSaleItemSchema,
     createSaleSchema,
     changeSaleStatusSchema,
+    salesOverviewPeriodSchema,
 } from "./sale.validation";
 
 /**
@@ -20,9 +21,23 @@ export type ProductWithInventory = {
 };
 
 /**
+ * Represents a single item in the sales overview, including its label,
+ * date, sales count, and active status.
+ */
+export interface SalesOverviewItem {
+    label: string;
+    date: string;
+    sales: number;
+    isActive: boolean;
+}
+
+/**
  * Core data required for an individual item within a sale.
  */
-export type SaleItemData = Pick<SaleItem, "productId" | "quantity">;
+export type SaleItemData = Pick<
+    SaleItem,
+    "productId" | "quantity"
+>;
 
 /**
  * Input structure for fetching paginated sales records.
@@ -51,3 +66,18 @@ export type CreateSaleInput = z.infer<
 export type ChangeSaleStatusInput = z.infer<
     typeof changeSaleStatusSchema
 >;
+
+/**
+ * Input structure for fetching sales overview data.
+ */
+export type SalesOverviewInput = z.infer<
+    typeof salesOverviewPeriodSchema
+>;
+
+/**
+ * Represents a single row returned by the sales aggregation query.
+ */
+export type SalesAggregationRow = {
+    bucket: Date;
+    sales: Prisma.Decimal;
+};

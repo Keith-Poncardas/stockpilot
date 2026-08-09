@@ -146,7 +146,128 @@ export const ensureSaleIsMutable = (status: SaleStatus) => {
         throwConflict(
             `Cannot change status of a ${status.toLowerCase()} sale.`
         );
-
     }
 
+};
+
+/**
+ * Returns a Date object representing the current time in Manila,
+ * but mapped as a naive UTC Date. 
+ * This aligns with Prisma's parsing of timezone-stripped Postgres timestamps.
+ */
+export function getManilaToday(): Date {
+    // Current time in real world + 8 hours for Manila
+    return new Date(Date.now() + 8 * 60 * 60 * 1000);
+}
+
+/**
+ * Compares two naive UTC dates to see if they fall on the same day.
+ */
+export function isSameDay(d1: Date, d2: Date): boolean {
+    return d1.getUTCFullYear() === d2.getUTCFullYear() &&
+           d1.getUTCMonth() === d2.getUTCMonth() &&
+           d1.getUTCDate() === d2.getUTCDate();
+}
+
+/**
+ * Compares two naive UTC dates to see if they fall in the same month.
+ */
+export function isSameMonth(d1: Date, d2: Date): boolean {
+    return d1.getUTCFullYear() === d2.getUTCFullYear() &&
+           d1.getUTCMonth() === d2.getUTCMonth();
+}
+
+/**
+ * Compares two naive UTC dates to see if they fall in the same week (Monday start).
+ */
+export function isSameWeek(d1: Date, d2: Date): boolean {
+    const getWeekStart = (d: Date) => {
+        const date = new Date(d.getTime());
+        const day = date.getUTCDay();
+        const diff = date.getUTCDate() - day + (day === 0 ? -6 : 1);
+        date.setUTCDate(diff);
+        date.setUTCHours(0, 0, 0, 0);
+        return date;
+    };
+    return getWeekStart(d1).getTime() === getWeekStart(d2).getTime();
+}
+
+/**
+ * Formats a naive UTC date to its short weekday name (e.g., 'Mon', 'Tue').
+ */
+export function formatShortWeekday(date: Date): string {
+    return date.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
+}
+
+/**
+ * Formats a naive UTC date to its short month name (e.g., 'Jan', 'Feb').
+ */
+export function formatShortMonth(date: Date): string {
+    return date.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
+}
+
+/**
+ * Returns the week of the month (1-5) for a given naive UTC date.
+ */
+export function getWeekOfMonth(date: Date): number {
+    const firstDayOfMonth = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+    const firstDayWeekday = firstDayOfMonth.getUTCDay() || 7;
+    const offsetDate = date.getUTCDate() + firstDayWeekday - 1;
+    return Math.ceil(offsetDate / 7);
+}
+
+/**
+ * Formats a naive UTC date to 'Mon DD, YYYY'
+ */
+export function formatDate(date: Date): string {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${monthNames[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
+}
+
+/**
+ * Generates the raw SQL query for sales aggregation.
+ */
+export const buildSalesAggregationQuery = (
+    rangeType: string,
+    rangeInterval: string,
+    bucketInterval: string,
+    bucketType: string,
+    timezone: string
+) => {
+    return Prisma.sql`
+        WITH date_range AS (
+          SELECT
+            date_trunc(
+              ${Prisma.raw(`'${rangeType}'`)},
+              CURRENT_TIMESTAMP AT TIME ZONE ${timezone}
+            ) AS start_date,
+            date_trunc(
+              ${Prisma.raw(`'${rangeType}'`)},
+              CURRENT_TIMESTAMP AT TIME ZONE ${timezone}
+            ) + ${Prisma.raw(`INTERVAL '${rangeInterval}'`)} AS end_date
+        ),
+        buckets AS (
+          SELECT generate_series(
+            start_date,
+            end_date - ${Prisma.raw(`INTERVAL '${bucketInterval}'`)},
+            ${Prisma.raw(`INTERVAL '${bucketInterval}'`)}
+          ) AS bucket
+          FROM date_range
+        )
+        SELECT
+          buckets.bucket,
+          COALESCE(
+            SUM(s.total_amount),
+            0
+          ) AS sales
+        FROM buckets
+        LEFT JOIN sales s
+          ON date_trunc(
+               ${Prisma.raw(`'${bucketType}'`)},
+               s.sale_date AT TIME ZONE ${timezone}
+             ) = buckets.bucket
+          AND s.status = 'COMPLETED'
+        GROUP BY buckets.bucket
+        ORDER BY buckets.bucket;
+    `;
 };

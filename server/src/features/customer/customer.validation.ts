@@ -1,92 +1,86 @@
 import z from "zod";
-import { customerId } from "@/schemas";
-import { dateRangeSchema, orderDirectionLowerSchema, paginationSchema, searchSchema } from "@/schemas";
+import {
+    dateRangeRefine,
+    dateRangeRefineMessage,
+    dateRangeSchema,
+    firstNameSchema,
+    lastNameSchema,
+    orderDirectionLowerSchema,
+    paginationSchema,
+    searchSchema,
+    emailSchema,
+    infiniteSchema
+} from "@/schemas";
 import { OrderDirectionLower } from "@/enums";
+import { psgcAddressRefine } from "@/utils";
+import { CustomerOrderBy } from "./constants";
+
 
 /**
- * CUSTOMER ORDER BY ENUM
+ * Schema for sorting customer records.
+ * Ensures the order by field is a valid column from CustomerOrderBy.
  */
-export enum CustomerOrderBy {
-    CREATED_AT = "createdAt",
-    FIRST_NAME  = "firstName",
-    LAST_NAME   = "lastName",
-}
-
-const customerOrderBySchema = z.nativeEnum(CustomerOrderBy);
+const customerOrderBySchema = z.enum(CustomerOrderBy);
 
 /**
- * GET CUSTOMERS FILTER SCHEMA
+ * Schema for filtering customer records.
+ * Includes optional date ranges, search query, ordering, and direction.
  */
-export const filterCustomersSchema = dateRangeSchema.extend({
+const filterCustomersSchema = dateRangeSchema.extend({
     search: searchSchema,
     orderBy: customerOrderBySchema.default(CustomerOrderBy.CREATED_AT),
     orderDirection: orderDirectionLowerSchema.default(OrderDirectionLower.DESC),
-});
+}).refine(dateRangeRefine, dateRangeRefineMessage);
 
 /**
- * PAGINATED CUSTOMERS SCHEMA
+ * Schema for paginated customer requests.
+ * Combines pagination settings (page, limit) with customer filters.
  */
 export const paginatedCustomersSchema = paginationSchema.extend({
     filter: filterCustomersSchema,
 });
 
 /**
- * GET CUSTOMER BY ID SCHEMA
+ * Schema for infinite scroll searches of customers.
+ * Combines cursor-based infinite pagination with search text.
  */
-export const getCustomerSchema = z.object({
-    id: customerId,
+export const searchCustomersInfiniteSchema = infiniteSchema.extend({
+    search: searchSchema,
 });
 
 /**
- * CREATE CUSTOMER SCHEMA
+ * Schema for creating a new customer.
+ * Validates personal information, contact details, and requires a valid PSGC address for the Philippines.
  */
-export const createCustomerSchema = z.object({
-    firstName: z
-        .string()
-        .trim()
-        .min(1, "First name is required")
-        .max(100, "First name must not exceed 100 characters"),
-
-    lastName: z
-        .string()
-        .trim()
-        .min(1, "Last name is required")
-        .max(100, "Last name must not exceed 100 characters"),
-
-    phone: z
-        .string()
-        .trim()
-        .max(20, "Phone number must not exceed 20 characters")
-        .optional()
-        .transform((val) => (val === "" ? undefined : val)),
-
-    email: z
-        .string()
-        .trim()
-        .toLowerCase()
-        .email("Must be a valid email address")
-        .optional()
-        .or(z.literal("").transform(() => undefined)),
-
-    addressLine1: z.string().trim().max(255).optional().transform((val) => val || undefined),
-    addressLine2: z.string().trim().max(255).optional().transform((val) => val || undefined),
-    city:         z.string().trim().max(100).optional().transform((val) => val || undefined),
-    province:     z.string().trim().max(100).optional().transform((val) => val || undefined),
-    postalCode:   z.string().trim().max(10).optional().transform((val) => val || undefined),
-    country:      z.string().trim().max(100).default("Philippines"),
-});
-
-export const searchCustomersInfiniteSchema = z.object({
-    search: z.string().trim().optional().default(""),
-    cursor: z.string().trim().optional().nullable(),
-    limit:  z.number().int().min(1).max(50).default(20),
-});
-
-/**
- * TYPE ALIASES
- */
-export type FilterCustomersInput    = z.infer<typeof filterCustomersSchema>;
-export type PaginatedCustomersInput = z.infer<typeof paginatedCustomersSchema>;
-export type GetCustomerInput        = z.infer<typeof getCustomerSchema>;
-export type CreateCustomerInput     = z.infer<typeof createCustomerSchema>;
-export type SearchCustomersInfiniteInput = z.infer<typeof searchCustomersInfiniteSchema>;
+export const createCustomerSchema = z
+    .object({
+        firstName: firstNameSchema,
+        lastName: lastNameSchema,
+        phone: z
+            .string()
+            .trim()
+            .max(20, "Phone number must not exceed 20 characters")
+            .optional(),
+        email: emailSchema.optional(),
+        addressLine1: z
+            .string()
+            .trim()
+            .max(255)
+            .optional(),
+        addressLine2: z
+            .string()
+            .trim()
+            .max(255)
+            .optional(),
+        provinceCode: z
+            .string()
+            .trim()
+            .length(4, "Province code must be exactly 4 characters"),
+        cityCode: z
+            .string()
+            .trim()
+            .length(6, "City/municipality code must be exactly 6 characters"),
+        postalCode: z.string().trim().max(10).optional(),
+        country: z.literal("Philippines").default("Philippines"),
+    })
+    .superRefine(psgcAddressRefine);

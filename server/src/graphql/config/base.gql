@@ -1,25 +1,31 @@
 
-    # Pagination metadata (shared across all paginated features)
-    type Pagination {
-        page: Int!
-        limit: Int!
-        firstItem: Int!
-        lastItem: Int!
-        totalItems: Int!
-        totalPages: Int!
-        hasPreviousPage: Boolean!
-        hasNextPage: Boolean!
-    }
+# Pagination metadata (shared across all paginated features)
+type Pagination {
+    page: Int!
+    limit: Int!
+    firstItem: Int!
+    lastItem: Int!
+    totalItems: Int!
+    totalPages: Int!
+    hasPreviousPage: Boolean!
+    hasNextPage: Boolean!
+}
 
-    # Infinite scroll metadata
-    type InfiniteScrollMeta {
-        nextCursor: String
-        hasNextPage: Boolean!
-    }
+# Infinite scroll metadata
+type InfiniteScrollMeta {
+    nextCursor: String
+    hasNextPage: Boolean!
+}
 
-    # Order Direction Enum
-    enum OrderDirection {
-        asc
-        desc
-    }
+# Input for searching infinitely
+input InfiniteSearchInput {
+    search: String
+    cursor: String
+    limit: Int
+}
 
+# Order Direction Enum
+enum OrderDirection {
+    asc
+    desc
+}

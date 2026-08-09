@@ -1,68 +1,130 @@
-import { protectResolvers } from "@/graphql/helpers";
+import {
+    applyErrorHandling,
+    composeResolvers,
+    protectResolvers,
+    validate
+} from "@/graphql/helpers";
 import { customerService } from "./customer.service";
-import { CreateCustomerInput, GetCustomerInput, PaginatedCustomersInput } from "./customer.validation";
+import {
+    CreateCustomerInput,
+    PaginatedCustomersInput,
+    SearchCustomersInfiniteInput
+} from "./types";
+import { UUIDInput, uuidSchema } from "@/schemas";
+import {
+    createCustomerSchema,
+    paginatedCustomersSchema,
+    searchCustomersInfiniteSchema
+} from "./customer.validation";
+import { PaginatedSalesInput, saleService } from "../sale";
+import { Customer } from "@prisma/client";
 
 export const customerResolver = {
 
-    Query: protectResolvers({
+    Query: composeResolvers(
+        protectResolvers,
+        applyErrorHandling
+    )({
 
         /**
-         * Get paginated customers with computed aggregates
+         * Retrieves full customer details by ID.
+         *
+         * @param _ - The parent resolver object (unused).
+         * @param args - The arguments containing the customerId.
+         * @returns The customer record.
          */
-        getCustomers: async (
-            _: unknown,
-            { args }: { args: PaginatedCustomersInput }
-        ) => {
+        getCustomer: composeResolvers(
+            validate(uuidSchema)
+        )(async (_: unknown, { customerId }: { customerId: UUIDInput }) => {
+            return customerService.getCustomer({ id: customerId });
+        }),
+
+        /**
+         * Retrieves a paginated list of customers with computed aggregates.
+         *
+         * @param _ - The parent resolver object (unused).
+         * @param args - The pagination and filtering arguments.
+         * @returns A paginated list of customers.
+         */
+        getCustomers: composeResolvers(
+            validate(paginatedCustomersSchema)
+        )(async (_: unknown, { args }: { args: PaginatedCustomersInput }) => {
             return customerService.getCustomers(args);
-        },
+        }),
 
         /**
-         * Get full customer details by ID
-         */
-        getCustomer: async (
-            _: unknown,
-            { id }: { id: string }
-        ) => {
-            return customerService.getCustomer({ id } as GetCustomerInput);
-        },
-
-        /**
-         * Get dashboard metric cards
+         * Retrieves dashboard metric cards for customers (e.g. total, active).
+         *
+         * @returns The aggregated customer metrics.
          */
         getCustomerMetrics: async () => {
             return customerService.getCustomerMetrics();
         },
 
         /**
-         * Search customers for POS addition — cursor-based infinite scroll
+         * Searches customers using cursor-based infinite scroll (e.g. for POS addition).
+         *
+         * @param _ - The parent resolver object (unused).
+         * @param args - The search and cursor arguments.
+         * @returns An infinite scroll result containing customers and the next cursor.
          */
-        searchCustomers: async (
-            _: unknown,
-            input: any
-        ) => {
-            return customerService.searchCustomers(input);
-        },
+        searchCustomers: composeResolvers(
+            validate(searchCustomersInfiniteSchema)
+        )(async (_: unknown, { args }: { args: SearchCustomersInfiniteInput }) => {
+            return customerService.searchCustomers(args);
+        }),
 
     }),
 
-    Mutation: protectResolvers({
+    Customer: applyErrorHandling({
 
         /**
-         * Create a new customer
+         * Resolves the purchase summary (total orders, total spent, etc.) for a specific customer.
+         *
+         * @param customer - The parent customer record.
+         * @returns The purchase summary for the customer.
          */
-        createCustomer: async (
-            _: unknown,
-            { input }: { input: CreateCustomerInput }
+        purchaseSummary: async (customer: Customer) => {
+            return saleService.getCustomerPurchaseSummary(customer.id);
+        },
+
+        /**
+         * Resolves the paginated purchase history (sales) for a specific customer.
+         *
+         * @param customer - The parent customer record.
+         * @param args - The pagination and filtering arguments for sales.
+         * @returns A paginated list of sales for the customer.
+         */
+        purchaseHistory: async (
+            customer: Customer,
+            { args }: { args: PaginatedSalesInput }
         ) => {
-            return customerService.createCustomer(input);
+            return saleService.getSales({
+                ...args,
+                filter: { ...args.filter, customerId: customer.id }
+            });
         },
 
     }),
 
-    Customer: {
-        totalOrders: (parent: any) => parent.totalOrders ?? 0,
-        totalSpent: (parent: any) => parent.totalSpent ?? 0,
-        lastPurchase: (parent: any) => parent.lastPurchase ?? null,
-    },
+    Mutation: composeResolvers(
+        protectResolvers,
+        applyErrorHandling
+    )({
+
+        /**
+         * Creates a new customer record.
+         *
+         * @param _ - The parent resolver object (unused).
+         * @param args - The input data for the new customer.
+         * @returns The newly created customer record.
+         */
+        createCustomer: composeResolvers(
+            validate(createCustomerSchema)
+        )(async (_: unknown, { args }: { args: CreateCustomerInput }) => {
+            return customerService.createCustomer(args);
+        }),
+
+    })
 
 };

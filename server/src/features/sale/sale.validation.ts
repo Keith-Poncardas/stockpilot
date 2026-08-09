@@ -8,6 +8,7 @@ import {
     searchSchema,
     uuidSchema,
 } from "@/schemas";
+import { SalesOverviewPeriod } from "./constants";
 
 /**
  * SALE ORDER BY SCHEMA
@@ -28,13 +29,20 @@ const paymentMethodSchema = z.enum(PaymentMethod);
 const saleStatusSchema = z.enum(SaleStatus);
 
 /**
+ * SALES OVERVIEW PERIOD SCHEMA
+ * Validates the sales overview period using the SalesOverviewPeriod enum.
+ */
+export const salesOverviewPeriodSchema = z.enum(SalesOverviewPeriod);
+
+/**
  * FILTER SALES SCHEMA
  * Extends the shared dateRangeSchema to include search, status, payment method, order by, and order direction fields for filtering sales.
  */
 export const filterSalesSchema = dateRangeSchema.extend({
     search: searchSchema,
+    customerId: uuidSchema.optional(),
     status: saleStatusSchema.optional(),
-    paymentMethod: paymentMethodSchema,
+    paymentMethod: paymentMethodSchema.optional(),
     orderBy: saleOrderBySchema.default(SaleOrderBy.SALE_DATE),
     orderDirection: orderDirectionLowerSchema.default(OrderDirectionLower.DESC),
 });

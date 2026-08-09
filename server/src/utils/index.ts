@@ -11,3 +11,4 @@ export * from "./utils.search";
 export * from "./utils.date";
 export * from "./utils.generateSku";
 export * from "./utils.generateReference";
+export * from "./utils.psgc";

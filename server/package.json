@@ -20,6 +20,7 @@
         "@as-integrations/express4": "^1.1.2",
         "@graphql-tools/load-files": "^7.0.1",
         "@graphql-tools/schema": "^10.0.33",
+        "@jobuntux/psgc": "^0.2.1",
         "@prisma/client": "^5.22.0",
         "argon2": "^0.44.0",
         "cors": "^2.8.5",
