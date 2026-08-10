@@ -1,7 +1,9 @@
 import { Prisma, SaleStatus, ProductStatus } from "@prisma/client";
 import { throwNotFound, throwConflict } from "@/utils";
-import { ProductWithInventory, SaleItemData } from "./types";
+import { SortOrder } from "@/enums";
+import { ProductWithInventory, SaleItemData, SalesAggregationRow, SalesOverviewItem, SalesLocationRow } from "./types";
 import { CreateSaleItemInput } from "./types";
+import { listMuncities } from "@jobuntux/psgc";
 
 /**
  * Formats a list of sale item inputs by extracting the required fields.
@@ -165,8 +167,8 @@ export function getManilaToday(): Date {
  */
 export function isSameDay(d1: Date, d2: Date): boolean {
     return d1.getUTCFullYear() === d2.getUTCFullYear() &&
-           d1.getUTCMonth() === d2.getUTCMonth() &&
-           d1.getUTCDate() === d2.getUTCDate();
+        d1.getUTCMonth() === d2.getUTCMonth() &&
+        d1.getUTCDate() === d2.getUTCDate();
 }
 
 /**
@@ -174,7 +176,7 @@ export function isSameDay(d1: Date, d2: Date): boolean {
  */
 export function isSameMonth(d1: Date, d2: Date): boolean {
     return d1.getUTCFullYear() === d2.getUTCFullYear() &&
-           d1.getUTCMonth() === d2.getUTCMonth();
+        d1.getUTCMonth() === d2.getUTCMonth();
 }
 
 /**
@@ -270,4 +272,84 @@ export const buildSalesAggregationQuery = (
         GROUP BY buckets.bucket
         ORDER BY buckets.bucket;
     `;
+};
+
+/**
+ * Formats raw sales aggregation rows into structured overview items.
+ * 
+ * @param rows - The raw sales aggregation rows returned by the database query.
+ * @param labelFn - A function that generates a descriptive label for a given bucket date.
+ * @param isActiveFn - A function that determines if the given bucket date corresponds to the current active period.
+ * @returns An array of formatted sales overview items ready for frontend presentation.
+ */
+export const formatSalesOverviewRows = (
+    rows: SalesAggregationRow[],
+    labelFn: (date: Date) => string,
+    isActiveFn: (date: Date) => boolean
+): SalesOverviewItem[] => {
+    return rows.map((row) => {
+        const date = new Date(row.bucket);
+
+        return {
+            label: labelFn(date),
+            date: formatDate(date),
+            sales: Number(row.sales) ?? 0,
+            isActive: isActiveFn(date),
+        };
+    });
+};
+
+/**
+ * Generates the raw SQL query to get sales ranked by location.
+ */
+export const buildSalesLocationQuery = (sort: SortOrder, limit: number) => {
+    const orderClause = sort === SortOrder.HIGH ? Prisma.sql`DESC` : Prisma.sql`ASC`;
+    return Prisma.sql`
+        SELECT
+            c.city,
+            SUM(s.total_amount) AS revenue
+        FROM sales s
+        LEFT JOIN customers c ON c.id = s.customer_id
+        WHERE s.status = 'COMPLETED'
+        GROUP BY c.city
+        ORDER BY revenue ${orderClause}
+        LIMIT ${limit}
+    `;
+};
+
+/**
+ * Formats sales by location into a ranked response with city names.
+ * Uses @jobuntux/psgc to translate city codes into actual names.
+ */
+export const formatSalesLocationRanking = (
+    rows: SalesLocationRow[]
+) => {
+    if (rows.length === 0) return [];
+
+    const allMuncities = listMuncities();
+    const cityMap = new Map(allMuncities.map(m => [m.munCityCode, m.munCityName]));
+
+    const maxRevenue = Number(rows[0].revenue);
+
+    return rows.map((r, index) => {
+        let name = "Unknown";
+
+        if (r.city) {
+
+            const mappedName = cityMap.get(r.city);
+            if (mappedName) {
+                name = mappedName;
+            } else {
+                name = r.city;
+            }
+        }
+
+        return {
+            cityCode: r.city ?? "unknown",
+            name,
+            revenue: Number(r.revenue),
+            percentage: maxRevenue > 0 ? Math.round((Number(r.revenue) / maxRevenue) * 100) : 0,
+            rank: index + 1,
+        };
+    });
 };

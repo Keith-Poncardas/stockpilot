@@ -16,16 +16,6 @@ import {
 export class CustomerService {
 
     /**
-     * Counts the total number of customers matching the given filter.
-     * 
-     * @param where - Optional Prisma filter conditions.
-     * @returns The total count of matching customers.
-     */
-    private async customerCount(where?: Prisma.CustomerWhereInput) {
-        return await prisma.customer.count({ where });
-    }
-
-    /**
      * Retrieves a list of customers based on the given arguments.
      * 
      * @param args - Prisma query arguments to find the customers, including select/include options.
@@ -63,6 +53,16 @@ export class CustomerService {
         if (customer) throwConflict(
             'A customer with this email address already exists.'
         );
+    }
+
+    /**
+     * Counts the total number of customers matching the given filter.
+     * 
+     * @param where - Optional Prisma filter conditions.
+     * @returns The total count of matching customers.
+     */
+    async customerCount(where?: Prisma.CustomerWhereInput) {
+        return await prisma.customer.count({ where });
     }
 
     /**

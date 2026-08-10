@@ -14,3 +14,11 @@ export enum OrderDirectionLower {
     ASC = "asc",
     DESC = "desc"
 }
+
+/**
+ * Enum for sort order.
+ */
+export enum SortOrder {
+    HIGH = "HIGH",
+    LOW = "LOW"
+}

@@ -45,6 +45,15 @@ type PaginatedProducts {
   meta: Pagination!
 }
 
+# Product Ranked Sales Type
+type ProductRankedSales {
+  id: ID!
+  name: String!
+  quantitySold: Int!
+  percentage: Float!
+  rank: Int!
+}
+
 # Get Products Input Type
 input GetProductsInput {
   search: String

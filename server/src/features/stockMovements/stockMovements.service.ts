@@ -158,7 +158,7 @@ export class StockMovementsService {
      * @returns The total number of low-stock products.
      */
     private async lowStockProducts() {
-        return inventoryService.countInventory({
+        return inventoryService.inventoryCount({
             quantityOnHand: {
                 lte: prisma.inventory.fields.reorderLevel
             }
@@ -209,7 +209,7 @@ export class StockMovementsService {
     async recordStockMovement(
         tx: Prisma.TransactionClient,
         prefix: string,
-        movementInput: 
+        movementInput:
             | Omit<Prisma.StockMovementUncheckedCreateInput, "reference">
             | ((reference: string) => Omit<Prisma.StockMovementUncheckedCreateInput, "reference">)
     ) {

@@ -1,4 +1,4 @@
-import { OrderDirectionLower, ProductOrderBy } from "@/enums";
+import { OrderDirectionLower, ProductOrderBy, SortOrder } from "@/enums";
 import {
     dateRangeSchema,
     infiniteSchema,
@@ -179,4 +179,25 @@ export const editProductSchema = z.object({
 export const changeProductStatusSchema = z.object({
     productId: uuidSchema,
     status: productStatusSchema,
+});
+
+/**
+ * Validation schema for getting sales by location.
+ *
+ * Requires the sort order and limit, ensuring that the limit is
+ * a positive integer not exceeding 100.
+ */
+export const getSalesByLocationSchema = z.object({
+    sort: z.enum(SortOrder).default(SortOrder.HIGH),
+    limit: z.coerce.number().int().positive().max(100).optional().default(10),
+});
+
+/**
+ * Validation schema for changing a product's status.
+ *
+ * Requires the product ID and the new status, ensuring that the
+ * status value is valid and assignable.
+ */
+export const getTopSellingProductsSchema = z.object({
+    sort: z.enum(SortOrder).default(SortOrder.HIGH),
 });

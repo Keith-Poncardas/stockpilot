@@ -29,7 +29,7 @@ export class InventoryService {
      * @param where Optional Prisma filter used to count specific inventory records.
      * @returns The total number of matching inventory records.
      */
-    async countInventory(where?: Prisma.InventoryWhereInput) {
+    async inventoryCount(where?: Prisma.InventoryWhereInput) {
         return await prisma.inventory.count({ where });
     }
 

@@ -84,6 +84,17 @@ type SaleOverviewRow {
 }
 
 """
+Represents a sales ranked by location.
+"""
+type SaleLocationRanking {
+    cityCode: String!
+    name: String!
+    revenue: Float!
+    percentage: Float!
+    rank: Int!
+}
+
+"""
 Aggregated metrics for a customer's purchase history.
 """
 type CustomerPurchaseSummary {

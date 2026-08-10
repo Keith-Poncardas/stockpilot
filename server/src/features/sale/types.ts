@@ -32,6 +32,14 @@ export interface SalesOverviewItem {
 }
 
 /**
+ * Represents a row returned by the sales location query.
+ */
+export type SalesLocationRow = {
+    city: string | null;
+    revenue: Prisma.Decimal;
+};
+
+/**
  * Core data required for an individual item within a sale.
  */
 export type SaleItemData = Pick<

@@ -1,3 +1,6 @@
+"""
+Sales Overview Period Enum
+"""
 enum SalesOverviewPeriod {
     DAILY
     WEEKLY
@@ -5,11 +8,40 @@ enum SalesOverviewPeriod {
     YEARLY
 }
 
-type Dashboard {
+"""
+Sort Order Enum
+"""
+enum SortOrder {
+    HIGH
+    LOW
+}
+
+"""
+Dashboard Metrics Type
+"""
+type DashboardMetrics {
     totalSales: Float!
     totalProducts: Int!
     totalCustomers: Int!
     totalUnitsInStock: Int!
+}
 
-    getSalesOverview(period: SalesOverviewPeriod!): [SaleOverviewRow!]!
+"""
+Get sales by location input type
+"""
+input GetSalesByLocationInput {
+    sort: SortOrder!
+    limit: Int
+}
+
+"""
+Query Type
+"""
+type Query {
+    dashboardMetrics: DashboardMetrics!
+    getSalesOverview(period: SalesOverviewPeriod!): [SalesOverviewRow!]!
+    getSalesByLocation(input: GetSalesByLocationInput!): [SaleLocationRanking!]!
+    getTopSellingProducts(sort: SortOrder!): [ProductRankedSales!]!
+    recentSales(args: PaginatedSalesInput!): PaginatedSales!
+    lowStockAlerts(input: GetInventoriesInput): PaginatedInventories!
 }

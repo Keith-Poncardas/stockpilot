@@ -1,13 +1,15 @@
 import { prisma } from "@/lib";
 import { buildSearchQuery, createInfiniteScroller, createPaginator, throwConflict } from "@/utils";
-import { MovementType, Prisma } from "@prisma/client";
-import { ProductStatus } from "@/enums";
-import { ensureNotDiscontinued } from "./product.util";
+import { MovementType, Prisma, SaleStatus } from "@prisma/client";
+import { ProductStatus, SortOrder } from "@/enums";
+import { ensureNotDiscontinued, calculateRankedProducts } from "./product.util";
 import {
     AddProductInput,
     ChangeProductStatusInput,
     EditProductInput,
+    getTopSellingProductsInput,
     PaginatedProductsInput,
+    ProductSalesRanking,
     SearchProductsInfiniteInput
 } from "./types";
 import { inventoryService } from "../inventory";
@@ -15,6 +17,54 @@ import { stockMovementsService } from "../stockMovements";
 import { UUIDInput } from "@/schemas";
 
 export class ProductService {
+
+    /**
+     * Ensures that a product with the given ID exists.
+     *
+     * @param productId The unique identifier of the product.
+     * @returns The matching product.
+     * @throws {Prisma.PrismaClientKnownRequestError} If the product does not exist.
+     */
+    private async ensureProductExist(productId: UUIDInput) {
+        return await prisma.product.findUniqueOrThrow({
+            where: { id: productId },
+        });
+    }
+
+    /**
+     * Ensures that no existing product has the same value for the specified field.
+     *
+     * Performs a case-insensitive uniqueness check and throws a conflict
+     * error if a matching product is found.
+     *
+     * @template K A product field that can be used for filtering.
+     * @param field The product field to check (e.g. `sku`, `name`).
+     * @param value The value to search for.
+     * @param message Optional custom conflict error message.
+     * @throws {ConflictError} If a matching product already exists.
+     */
+    private async ensureNoDuplication<
+        K extends keyof Prisma.ProductWhereInput
+    >(
+        field: K,
+        value: string,
+        message?: string
+    ) {
+        const exists = await prisma.product.findFirst({
+            where: {
+                [field]: {
+                    equals: value,
+                    mode: "insensitive",
+                },
+            } as Prisma.ProductWhereInput,
+        });
+
+        if (exists) {
+            throwConflict(
+                message ?? `Product with ${field} "${value}" already exists.`
+            );
+        }
+    }
 
     /**
      * Retrieves a single product by a unique identifier.
@@ -33,23 +83,23 @@ export class ProductService {
     }
 
     /**
-     * Counts the number of products that match the given filter.
-     *
-     * @param where Optional Prisma filter. If omitted, counts all products.
-     * @returns The total number of matching products.
-     */
-    async getProductCount(where?: Prisma.ProductWhereInput) {
-        return prisma.product.count({ where });
-    }
-
-    /**
      * Retrieves a list of products matching the given criteria.
      *
      * @param args The filter criteria and pagination options.
      * @returns A collection of products matching the criteria.
      */
-    findProducts(args: Prisma.ProductFindManyArgs) {
-        return prisma.product.findMany(args);
+    get findProducts() {
+        return prisma.product.findMany;
+    }
+
+    /**
+     * Counts the number of products that match the given filter.
+     *
+     * @param where Optional Prisma filter. If omitted, counts all products.
+     * @returns The total number of matching products.
+     */
+    async productCount(where?: Prisma.ProductWhereInput) {
+        return prisma.product.count({ where });
     }
 
     /**
@@ -62,11 +112,52 @@ export class ProductService {
      */
     async getProductMetrics() {
         const [total, active, draft] = await Promise.all([
-            this.getProductCount(),
-            this.getProductCount({ status: ProductStatus.ACTIVE }),
-            this.getProductCount({ status: ProductStatus.DRAFT }),
+            this.productCount(),
+            this.productCount({ status: ProductStatus.ACTIVE }),
+            this.productCount({ status: ProductStatus.DRAFT }),
         ]);
         return { total, active, draft };
+    }
+
+    /**
+     * Retrieves a list of top-selling products.
+     *
+     * @param sort The sort order for the products.
+     * @returns A list of top-selling products.
+     */
+    async getTopSellingProducts(
+        input: getTopSellingProductsInput
+    ): Promise<ProductSalesRanking[]> {
+        const { sort } = input;
+
+        const products = await this.findProducts({
+            where: {
+                saleItems: {
+                    some: {
+                        sale: {
+                            status: SaleStatus.COMPLETED,
+                        },
+                    },
+                },
+            },
+            select: {
+                id: true,
+                name: true,
+                saleItems: {
+                    where: {
+                        sale: {
+                            status: SaleStatus.COMPLETED,
+                        },
+                    },
+                    select: {
+                        quantity: true,
+                        unitPrice: true,
+                    },
+                },
+            },
+        });
+
+        return calculateRankedProducts(products, sort);
     }
 
     /**
@@ -172,7 +263,7 @@ export class ProductService {
                 },
             }),
 
-            this.getProductCount(where),
+            this.productCount(where),
 
         ]);
 
@@ -181,41 +272,6 @@ export class ProductService {
             meta: buildMeta(total),
         };
 
-    }
-
-    /**
-     * Ensures that no existing product has the same value for the specified field.
-     *
-     * Performs a case-insensitive uniqueness check and throws a conflict
-     * error if a matching product is found.
-     *
-     * @template K A product field that can be used for filtering.
-     * @param field The product field to check (e.g. `sku`, `name`).
-     * @param value The value to search for.
-     * @param message Optional custom conflict error message.
-     * @throws {ConflictError} If a matching product already exists.
-     */
-    private async ensureNoDuplication<
-        K extends keyof Prisma.ProductWhereInput
-    >(
-        field: K,
-        value: string,
-        message?: string
-    ) {
-        const exists = await prisma.product.findFirst({
-            where: {
-                [field]: {
-                    equals: value,
-                    mode: "insensitive",
-                },
-            } as Prisma.ProductWhereInput,
-        });
-
-        if (exists) {
-            throwConflict(
-                message ?? `Product with ${field} "${value}" already exists.`
-            );
-        }
     }
 
     /**
@@ -265,19 +321,6 @@ export class ProductService {
             }
 
             return prod;
-        });
-    }
-
-    /**
-     * Ensures that a product with the given ID exists.
-     *
-     * @param productId The unique identifier of the product.
-     * @returns The matching product.
-     * @throws {Prisma.PrismaClientKnownRequestError} If the product does not exist.
-     */
-    private async ensureProductExist(productId: UUIDInput) {
-        return await prisma.product.findUniqueOrThrow({
-            where: { id: productId },
         });
     }
 

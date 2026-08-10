@@ -4,9 +4,34 @@ import {
     changeProductStatusSchema,
     editProductSchema,
     filterProductsSchema,
+    getSalesByLocationSchema,
+    getTopSellingProductsSchema,
     paginatedProductsSchema,
     searchProductsInfiniteSchema
 } from "./product.validation";
+
+/**
+ * Type representing a product's sales ranking.
+ */
+export type ProductSalesRanking = {
+    id: string;
+    name: string;
+    quantitySold: number;
+    percentage: number;
+    rank: number;
+};
+
+/**
+ * Type representing a product with its sale items.
+ */
+export type ProductWithSaleItems = {
+    id: string;
+    name: string;
+    saleItems: {
+        quantity: number;
+        unitPrice: any;
+    }[];
+};
 
 /**
  * Type representing the validated input for retrieving
@@ -54,4 +79,20 @@ export type ChangeProductStatusInput = z.infer<
  */
 export type SearchProductsInfiniteInput = z.infer<
     typeof searchProductsInfiniteSchema
+>;
+
+/**
+ * Type representing the validated input required
+ * to get sales by location.
+ */
+export type getSalesByLocationInput = z.infer<
+    typeof getSalesByLocationSchema
+>;
+
+/**
+ * Type representing the validated input required
+ * to get top selling products.
+ */
+export type getTopSellingProductsInput = z.infer<
+    typeof getTopSellingProductsSchema
 >;

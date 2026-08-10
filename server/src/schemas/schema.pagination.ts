@@ -1,7 +1,7 @@
 import z from "zod";
 import { uuidSchema } from "./schema.uuid";
 
-const limitSchema = z
+export const limitSchema = z
     .coerce
     .number()
     .int()
@@ -9,7 +9,7 @@ const limitSchema = z
     .max(100, "Limit must not exceed 100")
     .default(25);
 
-const pageSchema = z
+export const pageSchema = z
     .coerce
     .number()
     .int()

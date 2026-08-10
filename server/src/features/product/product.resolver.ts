@@ -60,7 +60,7 @@ export const productResolver = {
          * currently stored in the system.
          */
         getTotalProductsCount: async () => {
-            return productService.getProductCount();
+            return productService.productCount();
         },
 
         /**

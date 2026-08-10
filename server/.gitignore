@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .env
+test_db.ts
+test_psgc.js
+test_psgc.ts

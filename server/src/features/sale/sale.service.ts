@@ -13,6 +13,7 @@ import {
     SalesOverviewInput,
     SalesOverviewItem,
     SalesAggregationRow,
+    SalesLocationRow,
 } from "./types";
 import {
     buildSaleSearchQuery,
@@ -24,15 +25,18 @@ import {
     isSameDay,
     isSameWeek,
     isSameMonth,
-    formatDate,
     getWeekOfMonth,
     buildSalesAggregationQuery,
     formatShortWeekday,
-    formatShortMonth
+    formatShortMonth,
+    formatSalesOverviewRows,
+    formatSalesLocationRanking,
+    buildSalesLocationQuery
 } from "./sale.utils";
 import { UUIDInput } from "@/schemas";
 import { customerService } from "../customer";
-import { productService } from "../product";
+import { SortOrder } from "@/enums";
+import { getSalesByLocationInput, productService } from "../product";
 import { inventoryService } from "../inventory";
 import { stockMovementsService } from "../stockMovements";
 import { SaleItemData } from "./types";
@@ -330,30 +334,6 @@ export class SaleService {
         return await prisma.$queryRaw<SalesAggregationRow[]>(query);
     }
 
-    /**
-     * Formats raw sales aggregation rows into structured overview items.
-     * 
-     * @param rows - The raw sales aggregation rows returned by the database query.
-     * @param labelFn - A function that generates a descriptive label for a given bucket date.
-     * @param isActiveFn - A function that determines if the given bucket date corresponds to the current active period.
-     * @returns An array of formatted sales overview items ready for frontend presentation.
-     */
-    private formatSalesOverviewRows(
-        rows: SalesAggregationRow[],
-        labelFn: (date: Date) => string,
-        isActiveFn: (date: Date) => boolean
-    ): SalesOverviewItem[] {
-        return rows.map((row) => {
-            const date = new Date(row.bucket);
-
-            return {
-                label: labelFn(date),
-                date: formatDate(date),
-                sales: Number(row.sales) ?? 0,
-                isActive: isActiveFn(date),
-            };
-        });
-    }
 
     /**
      * Retrieves a single sale by its unique identifier.
@@ -581,7 +561,22 @@ export class SaleService {
                 throw new Error(`Unsupported SalesOverviewPeriod: ${period}`);
         }
 
-        return this.formatSalesOverviewRows(rows, labelFn!, isActiveFn!);
+        return formatSalesOverviewRows(rows, labelFn!, isActiveFn!);
+    }
+
+    /**
+     * Retrieves sales by location (city), ranked by revenue.
+     * 
+     * @param sort - The sort order (HIGH for highest revenue first, LOW for lowest).
+     * @param limit - Optional limit for the number of locations to return (default 5).
+     */
+    async getSalesLocation(args: getSalesByLocationInput) {
+        const { sort, limit } = args;
+
+        const query = buildSalesLocationQuery(sort, limit);
+        const rows = await prisma.$queryRaw<SalesLocationRow[]>(query);
+
+        return formatSalesLocationRanking(rows);
     }
 
     /**
