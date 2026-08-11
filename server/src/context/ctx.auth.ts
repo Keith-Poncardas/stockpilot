@@ -1,6 +1,6 @@
 import { prisma } from "@/lib";
 import { GraphQLContext } from "@/types";
-import { throwGraphQLError, verifyToken } from "@/utils";
+import { omit, throwGraphQLError, verifyToken } from "@/utils";
 import { IncomingMessage } from "http";
 
 /**
@@ -38,7 +38,7 @@ export async function createContext({ req }: { req: IncomingMessage })
         return { user: null }
     }
 
-    const { passwordHash, tokenVersion, ...safeUser } = user;
+    const safeUser = omit(user, ["passwordHash", "tokenVersion"]);
 
     return { user: safeUser };
 }

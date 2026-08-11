@@ -1,15 +1,33 @@
-import { prisma, mailer } from "@/lib";
-import { generateOtpEmailHtml, OtpEmailType } from "./templates/otpEmail";
-import { generateToken, throwBadInput, throwUnauthorized, requireValidUserAccess, generateOtp, throwNotFound } from "@/utils";
+import { prisma } from "@/lib";
+import {
+    generateToken,
+    throwBadInput,
+    throwUnauthorized,
+    requireValidUserAccess,
+    omit
+} from "@/utils";
 import * as argon2 from "argon2";
-import { ChangePasswordInput, changePasswordSchema, LoginInput, loginSchema, SignUpInput, signUpSchema, ResendOtpInput, resendOtpSchema, ForgotPasswordInput, forgotPasswordSchema, VerifyOtpRegistrationInput, verifyOtpRegistrationSchema, VerifyForgotPasswordOtpInput, verifyForgotPasswordOtpSchema } from "./auth.validation";
 import { Prisma } from "@prisma/client";
+import {
+    sendOtpEmail,
+    checkOtpRateLimit,
+    checkOtpExpiration,
+    generateOtpData,
+    processOtpResend,
+    verifyHash
+} from "./auth.utils";
+import {
+    ChangePasswordInput,
+    ForgotPasswordInput,
+    LoginInput,
+    ResendOtpInput,
+    SignUpInput,
+    VerifyForgotPasswordOtpInput,
+    VerifyOtpRegistrationInput
+} from "./types";
 
 export class AuthService {
 
-    /**
-     * Select user model properties
-     */
     private select = {
         id: true,
         firstName: true,
@@ -23,103 +41,170 @@ export class AuthService {
     } satisfies Prisma.UserSelect;
 
     /**
-     * Reusable helper to send OTP emails
+     * Validates a user's credentials and access rights.
+     *
+     * This method searches the database for a user matching the provided email.
+     * It then verifies the provided password against the user's stored hash.
+     * Finally, it checks if the user has valid access rights.
+     *
+     * @async
+     * @param {string} email - The email address of the user.
+     * @param {string} password - The plain text password of the user.
+     * @returns {Promise<import("@prisma/client").User>} The validated user record.
+     * @throws {Error} If the user is not found, password is invalid, or access is denied.
      */
-    private async sendOtpEmail(email: string, firstName: string, otp: string, subject: string, type: OtpEmailType = 'signup') {
-        if (process.env.NODE_ENV === 'development') {
-            console.log(`[DEVELOPMENT] OTP for ${email}: ${otp}`);
-            return;
-        }
-
-        try {
-            const info = await mailer.sendMail({
-                from: `"StockPilot" <${process.env.SMTP_EMAIL}>`,
-                to: email,
-                subject,
-                html: generateOtpEmailHtml(otp, firstName, type),
-            });
-            console.log("Email sent successfully! Message ID:", info.messageId);
-            return info;
-        } catch (error) {
-            console.error("Failed to send email with Nodemailer:", error);
-            // Non-blocking error
-        }
-    }
-
-    /**
-     * Enforce a 60-second cooldown between OTP requests.
-     */
-    private checkOtpRateLimit(expiresAt: Date) {
-        // Since expiresAt is always set to exactly 15 mins after generation, we can deduce the generation time
-        const otpGeneratedAt = new Date(expiresAt.getTime() - 15 * 60 * 1000);
-        const msSinceLastOtp = Date.now() - otpGeneratedAt.getTime();
-
-        if (msSinceLastOtp < 60000) {
-            const secondsLeft = Math.ceil((60000 - msSinceLastOtp) / 1000);
-            throwBadInput(`Please wait ${secondsLeft} seconds before requesting a new OTP.`);
-        }
-    }
-
-    /**
-     * Check if OTP has expired
-     */
-    private checkOtpExpiration(expiresAt: Date) {
-        if (expiresAt < new Date()) {
-            throwBadInput("OTP has expired. Please request a new one.");
-        }
-    }
-
-    /**
-     * Generate OTP, hash it, and set expiration time (15 mins)
-     */
-    private async generateOtpData() {
-        const otp = generateOtp();
-        const hashedOtp = await argon2.hash(otp);
-        const expiresAt = new Date();
-        expiresAt.setMinutes(expiresAt.getMinutes() + 15);
-        return { otp, hashedOtp, expiresAt };
-    }
-
-    /**
-     * Core reusable logic to handle OTP resend
-     */
-    private async processOtpResend(
-        email: string,
-        firstName: string,
-        currentExpiresAt: Date,
-        updateRecordFn: (email: string, otpHash: string, newExpiresAt: Date) => Promise<any>,
-        emailSubject: string,
-        emailType: OtpEmailType
-    ) {
-        this.checkOtpRateLimit(currentExpiresAt);
-
-        const { otp, hashedOtp, expiresAt: newExpiresAt } = await this.generateOtpData();
-
-        const updatedRecord = await updateRecordFn(email, hashedOtp, newExpiresAt);
-
-        await this.sendOtpEmail(email, firstName, otp, emailSubject, emailType);
-
-        return updatedRecord;
-    }
-
-    /**
-     * User login (login user) and return user and token 
-     */
-    async login(input: LoginInput) {
-
-        const { email, password } = loginSchema.parse(input);
+    private async ensureUserIsValid(email: string, password: string) {
 
         const user = await prisma.user.findUnique({
-            where: { email },
+            where: { email }
         });
 
         if (!user) throwUnauthorized("Invalid email or password");
 
-        const validPassword = await argon2.verify(user.passwordHash, password);
-
-        if (!validPassword) throwUnauthorized("Invalid email or password");
+        await verifyHash(
+            user.passwordHash,
+            password,
+            () => throwUnauthorized("Invalid email or password")
+        );
 
         requireValidUserAccess(user, { allowInactiveOrUnassigned: true });
+
+        return user;
+    }
+
+    /**
+     * Ensures that an email address is not already registered.
+     *
+     * This method searches the database for a user with the given email.
+     * If a user is found, it throws a Bad Input error indicating the email
+     * is already in use.
+     *
+     * @async
+     * @param {string} email - The email address to check.
+     * @returns {Promise<void>} Resolves if the email is not registered.
+     * @throws {Error} If the email is already registered.
+     */
+    private async ensureEmailNotRegistered(email: string) {
+        const existingUser = await prisma.user.findUnique({
+            where: { email }
+        });
+
+        if (existingUser) throwBadInput("Email is already registered");
+    }
+
+    /**
+     * Retrieves a pending registration record by email.
+     *
+     * This method searches the database for a pending registration matching
+     * the provided email. If no record is found, it throws a Bad Input error.
+     *
+     * @async
+     * @param {string} email - The email address associated with the pending registration.
+     * @returns {Promise<import("@prisma/client").PendingRegistration>} The pending registration record.
+     * @throws {Error} If no pending registration is found for the email.
+     */
+    private async ensurePendingRegistrationExists(email: string) {
+        const pending = await prisma.pendingRegistration.findUnique({
+            where: { email },
+        });
+
+        if (!pending) throwBadInput(
+            "No pending registration found for this email"
+        );
+
+        return pending;
+    }
+
+    /**
+     * Retrieves a password reset record by email.
+     *
+     * This method searches the database for a password reset request matching
+     * the provided email. If no record is found, it throws a Bad Input error.
+     *
+     * @async
+     * @param {string} email - The email address associated with the password reset request.
+     * @returns {Promise<import("@prisma/client").PasswordReset>} The password reset record.
+     * @throws {Error} If no password reset request is found for the email.
+     */
+    private async ensurePasswordResetRecordExists(email: string) {
+        const resetRecord = await prisma.passwordReset.findUnique({
+            where: { email }
+        });
+
+        if (!resetRecord) throwBadInput(
+            "No password reset request found. Please request a new one."
+        );
+
+        return resetRecord;
+    }
+
+    /**
+     * Retrieves a user record by email.
+     *
+     * This method searches the database for a user matching the provided email.
+     * If no user is found, it throws a Bad Input error.
+     *
+     * @async
+     * @param {string} email - The email address of the user to retrieve.
+     * @returns {Promise<import("@prisma/client").User>} The user record.
+     * @throws {Error} If no user is found for the email.
+     */
+    private async ensureUserExists(email: string) {
+        const user = await prisma.user.findUnique({
+            where: { email }
+        });
+
+        if (!user) throwBadInput("No user found");
+
+        return user;
+    }
+
+    /**
+     * Checks and retrieves specific fields of a password reset record by email.
+     *
+     * This method searches the database for a password reset request matching
+     * the provided email and selects specific fields (id, expiresAt, otpHash).
+     * If no record is found, it throws a Bad Input error.
+     *
+     * @async
+     * @param {string} email - The email address associated with the password reset request.
+     * @returns {Promise<{id: string, expiresAt: Date, otpHash: string}>} The selected fields of the password reset record.
+     * @throws {Error} If no password reset request is found for the email.
+     */
+    private async checkResetRecord(email: string) {
+        const resetRecord = await prisma.passwordReset.findUnique({
+            where: { email },
+            select: {
+                id: true,
+                expiresAt: true,
+                otpHash: true,
+            }
+        });
+
+        if (!resetRecord) throwBadInput(
+            "No password reset request found for this email"
+        );
+
+        return resetRecord;
+    }
+
+    /**
+     * Authenticates a user and generates an access token.
+     *
+     * This method validates the user's credentials and, upon success,
+     * generates a JWT access token. It returns the user object (excluding
+     * sensitive fields) and the generated token.
+     *
+     * @async
+     * @param {LoginInput} input - The login credentials (email and password).
+     * @returns {Promise<{user: Partial<import("@prisma/client").User>, token: string}>} The authenticated user object and access token.
+     * @throws {Error} If authentication fails.
+     */
+    async login(input: LoginInput) {
+
+        const { email, password } = input;
+
+        const user = await this.ensureUserIsValid(email, password);
 
         const token = generateToken({
             userId: user.id,
@@ -127,7 +212,10 @@ export class AuthService {
             tokenVersion: user.tokenVersion
         });
 
-        const { passwordHash, tokenVersion, ...userWithoutPassword } = user;
+        const userWithoutPassword = omit(user, [
+            "passwordHash",
+            "tokenVersion"
+        ]);
 
         return {
             user: userWithoutPassword,
@@ -137,7 +225,16 @@ export class AuthService {
     }
 
     /**
-     * User signup (register user)
+     * Initiates the user registration process.
+     *
+     * This method ensures the email is not already registered, hashes the password,
+     * generates an OTP, creates or updates a pending registration record, and sends
+     * the OTP via email.
+     *
+     * @async
+     * @param {SignUpInput} input - The user's sign-up details.
+     * @returns {Promise<import("@prisma/client").PendingRegistration>} The created or updated pending registration record.
+     * @throws {Error} If the email is already registered or other errors occur during the process.
      */
     async signup(input: SignUpInput) {
         const {
@@ -145,16 +242,12 @@ export class AuthService {
             lastName,
             email,
             password
-        } = signUpSchema.parse(input);
+        } = input;
 
-        const existingUser = await prisma.user.findUnique({
-            where: { email },
-        });
-
-        if (existingUser) throwBadInput("Email is already registered");
+        await this.ensureEmailNotRegistered(email);
 
         const hashedPassword = await argon2.hash(password);
-        const { otp, hashedOtp, expiresAt } = await this.generateOtpData();
+        const { otp, hashedOtp, expiresAt } = await generateOtpData();
 
         const pending = await prisma.pendingRegistration.upsert({
             where: { email },
@@ -175,7 +268,7 @@ export class AuthService {
             },
         });
 
-        await this.sendOtpEmail(
+        await sendOtpEmail(
             email,
             firstName,
             otp,
@@ -183,24 +276,34 @@ export class AuthService {
             'signup'
         );
 
-        return pending;
+        const pendingWithoutHash = omit(pending, [
+            "passwordHash",
+            "otpHash"
+        ]);
+
+        return pendingWithoutHash;
     }
 
     /**
-     * Verify OTP and complete registration
+     * Verifies the OTP for a pending registration and creates the user account.
+     *
+     * This method checks the validity and expiration of the provided OTP against
+     * the pending registration record. If successful, it creates a new user,
+     * deletes the pending registration, and generates an access token.
+     *
+     * @async
+     * @param {VerifyOtpRegistrationInput} input - The email and OTP for verification.
+     * @returns {Promise<{user: Partial<import("@prisma/client").User>, token: string}>} The newly created user object and access token.
+     * @throws {Error} If the pending registration is not found, or the OTP is invalid/expired.
      */
     async verifyOtpRegistration(input: VerifyOtpRegistrationInput) {
-        const { email, otp } = verifyOtpRegistrationSchema.parse(input);
+        const { email, otp } = input;
 
-        const pending = await prisma.pendingRegistration.findUnique({
-            where: { email },
-        });
+        const pending = await this.ensurePendingRegistrationExists(email);
 
-        if (!pending) throwBadInput("No pending registration found for this email");
+        checkOtpExpiration(pending.expiresAt);
 
-        this.checkOtpExpiration(pending.expiresAt);
-        const validOtp = await argon2.verify(pending.otpHash, otp);
-        if (!validOtp) throwBadInput("Invalid OTP");
+        await verifyHash(pending.otpHash, otp);
 
         const [newUser] = await prisma.$transaction([
             prisma.user.create({
@@ -209,7 +312,7 @@ export class AuthService {
                     lastName: pending.lastName,
                     email: pending.email,
                     passwordHash: pending.passwordHash
-                },
+                }
             }),
             prisma.pendingRegistration.delete({
                 where: { id: pending.id },
@@ -222,7 +325,10 @@ export class AuthService {
             tokenVersion: newUser.tokenVersion
         });
 
-        const { passwordHash, tokenVersion, ...userWithoutPassword } = newUser;
+        const userWithoutPassword = omit(newUser, [
+            "passwordHash",
+            "tokenVersion"
+        ]);
 
         return {
             user: userWithoutPassword,
@@ -231,24 +337,24 @@ export class AuthService {
     }
 
     /**
-     * Resend OTP for pending registration
+     * Resends the OTP for a pending sign-up registration.
+     *
+     * This method ensures the email is not fully registered but has a pending
+     * registration. It then processes the OTP resend, generating a new OTP and
+     * sending it via email.
+     *
+     * @async
+     * @param {ResendOtpInput} input - The email address to resend the OTP to.
+     * @returns {Promise<void>} Resolves when the new OTP has been sent.
+     * @throws {Error} If the email is already registered or no pending registration exists.
      */
     async resendOtpSignUp(input: ResendOtpInput) {
-        const { email } = resendOtpSchema.parse(input);
+        const { email } = input;
 
-        const existingUser = await prisma.user.findUnique({
-            where: { email }
-        });
+        await this.ensureEmailNotRegistered(email);
+        const pending = await this.ensurePendingRegistrationExists(email);
 
-        if (existingUser) throwBadInput("Email is already registered");
-
-        const pending = await prisma.pendingRegistration.findUnique({
-            where: { email }
-        });
-
-        if (!pending) throwBadInput("No pending registration found. Please sign up first.");
-
-        return this.processOtpResend(
+        return processOtpResend(
             email,
             pending.firstName,
             pending.expiresAt,
@@ -262,26 +368,24 @@ export class AuthService {
     }
 
     /**
-     * Resend OTP for forgot password
+     * Resends the OTP for a password reset request.
+     *
+     * This method ensures a user exists and a password reset record is present
+     * for the given email. It then processes the OTP resend, generating a new OTP
+     * and sending it via email.
+     *
+     * @async
+     * @param {ResendOtpInput} input - The email address to resend the OTP to.
+     * @returns {Promise<void>} Resolves when the new OTP has been sent.
+     * @throws {Error} If the user or password reset record does not exist.
      */
     async resendOtpForgotPassword(input: ResendOtpInput) {
-        const { email } = resendOtpSchema.parse(input);
+        const { email } = input;
 
-        const user = await prisma.user.findUnique({
-            where: { email }
-        });
+        const user = await this.ensureUserExists(email);
+        const resetRecord = await this.ensurePasswordResetRecordExists(email);
 
-        if (!user) throwNotFound("User not found");
-
-        const resetRecord = await prisma.passwordReset.findUnique({
-            where: { email }
-        });
-
-        if (!resetRecord) throwBadInput(
-            "No password reset request found. Please request a new one."
-        );
-
-        return this.processOtpResend(
+        return processOtpResend(
             email,
             user.firstName,
             resetRecord.expiresAt,
@@ -295,27 +399,28 @@ export class AuthService {
     }
 
     /**
-     * Request forgot password OTP
+     * Initiates the password reset process.
+     *
+     * This method checks if a user exists, enforces rate limits on existing
+     * reset requests, generates a new OTP, creates or updates the password reset
+     * record, and sends the OTP via email.
+     *
+     * @async
+     * @param {ForgotPasswordInput} input - The email address for the password reset.
+     * @returns {Promise<{id: string, email: string}>} The created or updated password reset record's basic details.
+     * @throws {Error} If the user does not exist or rate limits are exceeded.
      */
     async forgotPassword(input: ForgotPasswordInput) {
-        const { email } = forgotPasswordSchema.parse(input);
+        const { email } = input;
 
-        const user = await prisma.user.findUnique({
-            where: { email }
-        });
-
-        if (!user) throwNotFound("Email");
-
-        // Check rate limit if there's an existing password reset request
-        const existingReset = await prisma.passwordReset.findUnique({
-            where: { email }
-        });
+        const user = await this.ensureUserExists(email);
+        const existingReset = await this.ensurePasswordResetRecordExists(email);
 
         if (existingReset) {
-            this.checkOtpRateLimit(existingReset.expiresAt);
+            checkOtpRateLimit(existingReset.expiresAt);
         }
 
-        const { otp, hashedOtp, expiresAt } = await this.generateOtpData();
+        const { otp, hashedOtp, expiresAt } = await generateOtpData();
 
         const passReset = await prisma.passwordReset.upsert({
             where: { email },
@@ -334,8 +439,7 @@ export class AuthService {
             }
         });
 
-        // FOR PRODUCTION ONLY
-        await this.sendOtpEmail(
+        await sendOtpEmail(
             email,
             user.firstName,
             otp,
@@ -347,28 +451,23 @@ export class AuthService {
     }
 
     /**
-     * Verify OTP for forgot password request
+     * Verifies the OTP for a password reset request.
+     *
+     * This method checks the validity and expiration of the provided OTP against
+     * the password reset record. It returns the record's details if successful,
+     * which can be used to proceed with changing the password.
+     *
+     * @async
+     * @param {VerifyForgotPasswordOtpInput} input - The email and OTP for verification.
+     * @returns {Promise<{id: string, email: string}>} The validated password reset record details.
+     * @throws {Error} If the password reset record is not found, or the OTP is invalid/expired.
      */
     async verifyForgotPasswordOtp(input: VerifyForgotPasswordOtpInput) {
-        const { email, otp } = verifyForgotPasswordOtpSchema.parse(input);
+        const { email, otp } = input;
 
-        const resetRecord = await prisma.passwordReset.findUnique({
-            where: { email },
-            select: {
-                id: true,
-                expiresAt: true,
-                otpHash: true,
-            }
-        });
-
-        if (!resetRecord) throwBadInput(
-            "No password reset request found for this email"
-        );
-
-        this.checkOtpExpiration(resetRecord.expiresAt);
-
-        const validOtp = await argon2.verify(resetRecord.otpHash, otp);
-        if (!validOtp) throwBadInput("Invalid OTP");
+        const resetRecord = await this.checkResetRecord(email);
+        checkOtpExpiration(resetRecord.expiresAt);
+        await verifyHash(resetRecord.otpHash, otp);
 
         return {
             id: resetRecord.id,
@@ -377,27 +476,31 @@ export class AuthService {
     }
 
     /**
-     * Change user password (requires current password)
+     * Changes a user's password.
+     *
+     * This method verifies the user exists and the new password is not the same
+     * as the old one. It then hashes the new password, updates the user's record
+     * (incrementing the token version to invalidate old tokens), and deletes the
+     * password reset record.
+     *
+     * @async
+     * @param {ChangePasswordInput} input - The email and new password.
+     * @returns {Promise<Partial<import("@prisma/client").User>>} The updated user record with selected fields.
+     * @throws {Error} If the user is not found or the new password is the same as the old one.
      */
     async changePassword(input: ChangePasswordInput) {
         const {
             email,
             newPassword,
-        } = changePasswordSchema.parse(input);
+        } = input;
 
-        const user = await prisma.user.findUnique({
-            where: { email }
-        });
+        const user = await this.ensureUserExists(email);
 
-        if (!user) throwBadInput("User");
-
-        const validateNewPassword = await argon2.verify(
+        await verifyHash(
             user.passwordHash,
-            newPassword
+            newPassword,
+            () => throwBadInput("New password is same as old password")
         );
-
-        if (validateNewPassword)
-            throwBadInput("New password is same as old password");
 
         const hashedNewPassword = await argon2.hash(newPassword);
 

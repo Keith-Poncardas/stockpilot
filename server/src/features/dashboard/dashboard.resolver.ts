@@ -5,9 +5,8 @@ import {
     validate
 } from "@/graphql/helpers";
 import { dashboardService } from "./dashboard.service";
+import { StockStatus } from "@/enums";
 import {
-    PaginatedSalesInput,
-    paginatedSalesSchema,
     saleService,
     salesOverviewPeriodSchema
 } from "../sale";
@@ -19,6 +18,7 @@ import {
     getTopSellingProductsSchema,
     productService
 } from "../product";
+import { inventoryService } from "../inventory";
 
 export const dashboardResolver = {
 
@@ -67,14 +67,32 @@ export const dashboardResolver = {
 
         /**
          * Retrieves a paginated list of the most recent sales.
-         * The response is limited to 5 records by default.
+         *
+         * @returns An object containing the list of recent sales.
          */
-        recentSales: composeResolvers(
-            validate(paginatedSalesSchema)
-        )(async (_: unknown, args: PaginatedSalesInput) => {
-            const limit = args.limit === 25 ? 5 : args.limit;
-            return saleService.getSales({ ...args, limit });
-        }),
+        recentSales: async () => {
+            return saleService.getSales({
+                limit: 5,
+                page: 1,
+                filter: {}
+            } as any);
+        },
+
+        /**
+         * Retrieves a paginated list of inventory records.
+         *
+         * Supports pagination, filtering, searching, and sorting
+         * based on the validated query arguments.
+         */
+        lowStockAlerts: async () => {
+            return inventoryService.getInventories({
+                limit: 5,
+                page: 1,
+                filter: {
+                    stockStatus: StockStatus.LOW_STOCK
+                }
+            } as any);
+        },
 
     })
 

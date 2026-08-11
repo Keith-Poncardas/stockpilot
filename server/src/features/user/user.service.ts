@@ -209,6 +209,7 @@ export class UserService {
         });
     }
 
+
     /**
      * Assigns a new role to an existing user.
      *

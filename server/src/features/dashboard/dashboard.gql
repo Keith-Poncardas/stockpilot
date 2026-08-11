@@ -42,6 +42,6 @@ type Query {
     getSalesOverview(period: SalesOverviewPeriod!): [SalesOverviewRow!]!
     getSalesByLocation(input: GetSalesByLocationInput!): [SaleLocationRanking!]!
     getTopSellingProducts(sort: SortOrder!): [ProductRankedSales!]!
-    recentSales(args: PaginatedSalesInput!): PaginatedSales!
-    lowStockAlerts(input: GetInventoriesInput): PaginatedInventories!
+    recentSales: PaginatedSales!
+    lowStockAlerts: PaginatedInventories!
 }

@@ -1,89 +1,92 @@
+"""
+Response payload for a pending user registration containing the user's details and OTP expiration.
+"""
+type PendingRegistrationResponse {
+    id: String!
+    firstName: String!
+    lastName: String!
+    email: String!
+    expiresAt: String!
+    createdAt: String!
+}
 
-    # Response after successful auth operation (login or change password)
-    type AuthResponse {
-        user: User!
-        token: String!
-    }
+"""
+Response payload for a password reset request containing the OTP expiration details.
+"""
+type PasswordResetResponse {
+    id: String!
+    email: String!
+    expiresAt: String!
+    createdAt: String!
+}
 
-    # User login input
-    input LoginInput {
-        email: String!
-        password: String!
-    }
+"""
+Response payload for successful authentication containing the user details and JWT token.
+"""
+type AuthResponse {
+    user: User!
+    token: String!
+}
 
-    # Change password input
-    input ChangePasswordInput {
-        email: String!
-        newPassword: String!
-        confirmPassword: String!
-    }
+"""
+Input parameters for user login authentication.
+"""
+input LoginInput {
+    email: String!
+    password: String!
+}
 
-    # Query to get current authenticated user
-    type Query {
-        me: User
-    }
+"""
+Input parameters for creating a new user account.
+"""
+input SignUpInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    password: String!
+}
 
-    # Forgot password response
-    type ForgotPasswordResponse {
-        id: ID!
-        email: String!
-    }
+"""
+Input parameters for verifying a user registration OTP.
+"""
+input VerifyOtpRegistrationInput {
+    email: String!
+    otp: String!
+}
 
-    # Sign up input
-    input SignUpInput {
-        firstName: String!
-        lastName: String!
-        email: String!
-        password: String!
-    }
+"""
+Input parameters for resending a sign-up or password reset OTP.
+"""
+input ResendOtpSignUpInput {
+    email: String!
+}
 
-    # Verify OTP REGISTRATION input
-    input VerifyOtpRegistrationInput {
-        email: String!
-        otp: String!
-    }
+"""
+Input parameters for changing a user's password.
+"""
+input ChangesPasswordInput {
+    email: String!
+    newPassword: String!
+    confirmPassword: String!
+}
 
-    # Resend OTP input
-    input ResendOtpInput {
-        email: String!
-    }
+"""
+Root query operations for authentication and user sessions.
+"""
+type Query {
+    me: User!
+}
 
-    # Forgot Password input
-    input ForgotPasswordInput {
-        email: String!
-    }
-
-    # Verify Forgot Password OTP input
-    input VerifyForgotPasswordOtpInput {
-        email: String!
-        otp: String!
-    }
-
-    # Pending Registration type
-    type PendingRegistration {
-        id: ID!
-        email: String!
-        firstName: String!
-        lastName: String!
-        expiresAt: String!
-    }
-
-    # Password Reset type
-    type PasswordReset {
-        id: ID!
-        email: String!
-        expiresAt: String!
-    }
-
-    # Mutations for authentication
-    type Mutation {
-        login(input: LoginInput!): AuthResponse!
-        changePassword(input: ChangePasswordInput!): User!
-        signUp(input: SignUpInput!): PendingRegistration!
-        verifyOtpRegistration(input: VerifyOtpRegistrationInput!): AuthResponse!
-        resendOtpSignUp(input: ResendOtpInput!): PendingRegistration!
-        resendOtpForgotPassword(input: ResendOtpInput!): PasswordReset!
-        forgotPassword(input: ForgotPasswordInput!): ForgotPasswordResponse!
-        verifyForgotPasswordOtp(input: VerifyForgotPasswordOtpInput!): ForgotPasswordResponse!
-    }
-
+"""
+Root mutation operations for authentication and account management.
+"""
+type Mutation {
+    login(input: LoginInput!): AuthResponse!
+    signup(input: SignUpInput): PendingRegistrationResponse!
+    verifyOtpRegistration(input: VerifyOtpRegistrationInput): AuthResponse!
+    resendOtpSignUp(input: ResendOtpSignUpInput): PendingRegistrationResponse!
+    resendOtpForgotPassword(input: ResendOtpSignUpInput): PasswordResetResponse!
+    forgotPassword(input: ResendOtpSignUpInput): PasswordResetResponse!
+    verifyForgotPasswordOtp(input: VerifyOtpRegistrationInput): PasswordResetResponse!
+    changePassword(input: ChangesPasswordInput): User!
+}

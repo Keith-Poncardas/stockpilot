@@ -48,12 +48,3 @@ export const verifyForgotPasswordOtpSchema = z.object({
     email: emailSchema,
     otp: z.string().trim().length(6, "OTP must be exactly 6 characters")
 });
-
-/** INFER TYPES  */
-export type LoginInput = z.infer<typeof loginSchema>;
-export type SignUpInput = z.infer<typeof signUpSchema>;
-export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
-export type VerifyOtpRegistrationInput = z.infer<typeof verifyOtpRegistrationSchema>;
-export type ResendOtpInput = z.infer<typeof resendOtpSchema>;
-export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
-export type VerifyForgotPasswordOtpInput = z.infer<typeof verifyForgotPasswordOtpSchema>;
