@@ -88,7 +88,7 @@ input StockMovementInput {
 
 # Queries for stock movements
 type Query {
-  getAllStockMovements(args: PaginatedStockMovementsInput!): PaginatedStockMovements!
+  getStockMovements(args: PaginatedStockMovementsInput!): PaginatedStockMovements!
   getStockMovementDashboardMetrics: StockMovementDashboardMetrics!
-  getStockMovement(id: ID!): StockMovement!
+  getStockMovement(movementId: ID!): StockMovement!
 }

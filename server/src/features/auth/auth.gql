@@ -82,7 +82,7 @@ Root mutation operations for authentication and account management.
 """
 type Mutation {
     login(input: LoginInput!): AuthResponse!
-    signup(input: SignUpInput): PendingRegistrationResponse!
+    signUp(input: SignUpInput): PendingRegistrationResponse!
     verifyOtpRegistration(input: VerifyOtpRegistrationInput): AuthResponse!
     resendOtpSignUp(input: ResendOtpSignUpInput): PendingRegistrationResponse!
     resendOtpForgotPassword(input: ResendOtpSignUpInput): PasswordResetResponse!

@@ -1,98 +1,164 @@
 import { GraphQLContext } from "@/types";
 import { authService } from "./auth.service";
-import { ChangePasswordInput, ForgotPasswordInput, LoginInput, ResendOtpInput, SignUpInput, VerifyOtpRegistrationInput, VerifyForgotPasswordOtpInput } from "./auth.validation";
-import { throwUnauthorized } from "@/utils";
+import { applyErrorHandling, composeResolvers, protectResolvers, validate } from "@/graphql/helpers";
+import {
+    changePasswordSchema,
+    forgotPasswordSchema,
+    loginSchema,
+    resendOtpSchema,
+    signUpSchema,
+    verifyForgotPasswordOtpSchema,
+    verifyOtpRegistrationSchema
+} from "./auth.validation";
+import {
+    ChangePasswordInput,
+    ForgotPasswordInput,
+    LoginInput,
+    ResendOtpInput,
+    SignUpInput,
+    VerifyForgotPasswordOtpInput,
+    VerifyOtpRegistrationInput
+} from "./types";
 
 export const authResolver = {
 
-    Query: {
+    Query: composeResolvers(
+        protectResolvers,
+        applyErrorHandling
+    )({
 
         /**
-         * Get current authenticated user
+         * Retrieves the authenticated user's details.
+         *
+         * @param _ - The parent resolver object (unused).
+         * @param __ - The arguments (unused).
+         * @param context - The GraphQL context containing the authenticated user.
+         * @returns The authenticated user record.
          */
         me: async (_: unknown, __: unknown, context: GraphQLContext) => {
-            if (!context.user) throwUnauthorized("You must be logged in to access this resource.");
             return context.user;
         },
 
-    },
+    }),
 
     Mutation: {
 
-        /**
-         * User login (login user) and return user and token
-         */
-        login: async (_: unknown, { input }: { input: LoginInput }) => {
-            return authService.login(input);
-        },
+        ...composeResolvers(
+            applyErrorHandling
+        )({
 
-        /**
-         * Change user password (requires current password)
-         */
-        changePassword: async (
-            _: unknown,
-            { input }: { input: ChangePasswordInput }
-        ) => {
-            return authService.changePassword(input);
-        },
+            /**
+             * Authenticates a user and returns a token.
+             *
+             * @param _ - The parent resolver object (unused).
+             * @param args - The arguments containing the login input.
+             * @returns The login response containing user data and token.
+             */
+            login: composeResolvers(
+                validate(loginSchema)
+            )(async (_: unknown, { input }: { input: LoginInput }) => {
+                return authService.login(input);
+            }),
 
-        /**
-         * Sign up a new user (Pending Registration)
-         */
-        signUp: async (_: unknown, { input }: { input: SignUpInput }) => {
-            return authService.signup(input);
-        },
+            /**
+             * Registers a new user.
+             *
+             * @param _ - The parent resolver object (unused).
+             * @param args - The arguments containing the sign-up input.
+             * @returns The sign-up response.
+             */
+            signUp: composeResolvers(
+                validate(signUpSchema)
+            )(async (_: unknown, { input }: { input: SignUpInput }) => {
+                return authService.signup(input);
+            }),
 
-        /**
-         * Verify OTP for pending registration
-         */
-        verifyOtpRegistration: async (
-            _: unknown,
-            { input }: { input: VerifyOtpRegistrationInput }
-        ) => {
-            return authService.verifyOtpRegistration(input);
-        },
+            /**
+             * Verifies a user's registration OTP.
+             *
+             * @param _ - The parent resolver object (unused).
+             * @param args - The arguments containing the OTP verification input.
+             * @returns The verification response.
+             */
+            verifyOtpRegistration: composeResolvers(
+                validate(verifyOtpRegistrationSchema)
+            )(async (_: unknown, { input }: { input: VerifyOtpRegistrationInput }) => {
+                return authService.verifyOtpRegistration(input);
+            }),
 
-        /**
-         * Resend OTP for signup
-         */
-        resendOtpSignUp: async (
-            _: unknown,
-            { input }: { input: ResendOtpInput }
-        ) => {
-            return authService.resendOtpSignUp(input);
-        },
+            /**
+             * Resends the registration OTP to the user.
+             *
+             * @param _ - The parent resolver object (unused).
+             * @param args - The arguments containing the resend OTP input.
+             * @returns The resend OTP response.
+             */
+            resendOtpSignUp: composeResolvers(
+                validate(resendOtpSchema)
+            )(async (_: unknown, { input }: { input: ResendOtpInput }) => {
+                return authService.resendOtpSignUp(input);
+            }),
 
-        /**
-         * Resend OTP for forgot password
-         */
-        resendOtpForgotPassword: async (
-            _: unknown,
-            { input }: { input: ResendOtpInput }
-        ) => {
-            return authService.resendOtpForgotPassword(input);
-        },
+            /**
+             * Resends the password recovery OTP to the user.
+             *
+             * @param _ - The parent resolver object (unused).
+             * @param args - The arguments containing the resend OTP input.
+             * @returns The resend OTP response.
+             */
+            resendOtpForgotPassword: composeResolvers(
+                validate(resendOtpSchema)
+            )(async (_: unknown, { input }: { input: ResendOtpInput }) => {
+                return authService.resendOtpForgotPassword(input);
+            }),
 
-        /**
-         * Forgot password (send OTP)
-         */
-        forgotPassword: async (
-            _: unknown,
-            { input }: { input: ForgotPasswordInput }
-        ) => {
-            return authService.forgotPassword(input);
-        },
+            /**
+             * Initiates the password recovery process.
+             *
+             * @param _ - The parent resolver object (unused).
+             * @param args - The arguments containing the forgot password input.
+             * @returns The forgot password response.
+             */
+            forgotPassword: composeResolvers(
+                validate(forgotPasswordSchema)
+            )(async (_: unknown, { input }: { input: ForgotPasswordInput }) => {
+                return authService.forgotPassword(input);
+            }),
 
-        /**
-         * Verify OTP for forgot password
-         */
-        verifyForgotPasswordOtp: async (
-            _: unknown,
-            { input }: { input: VerifyForgotPasswordOtpInput }
-        ) => {
-            return authService.verifyForgotPasswordOtp(input);
-        }
+            /**
+             * Verifies the password recovery OTP.
+             *
+             * @param _ - The parent resolver object (unused).
+             * @param args - The arguments containing the OTP verification input.
+             * @returns The verification response.
+             */
+            verifyForgotPasswordOtp: composeResolvers(
+                validate(verifyForgotPasswordOtpSchema)
+            )(async (_: unknown, { input }: { input: VerifyForgotPasswordOtpInput }) => {
+                return authService.verifyForgotPasswordOtp(input);
+            }),
 
+        }),
+
+        ...composeResolvers(
+            protectResolvers,
+            applyErrorHandling
+        )({
+
+            /**
+             * Changes the authenticated user's password.
+             *
+             * @param _ - The parent resolver object (unused).
+             * @param args - The arguments containing the change password input.
+             * @returns The change password response.
+             */
+            changePassword: composeResolvers(
+                validate(changePasswordSchema)
+            )(async (_: unknown, { input }: { input: ChangePasswordInput }) => {
+                return authService.changePassword(input);
+            }),
+
+        }),
     }
 
 }

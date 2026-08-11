@@ -43,8 +43,8 @@ type User {
   updatedAt: String!
 
   # Operation Summary
-  salesProcessedCount: Int
-  stockMovementsProcessedCount: Int
+  salesCount: Int
+  stockMovementsCount: Int
 }
 
 # User Metrics Type
