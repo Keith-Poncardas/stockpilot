@@ -43,7 +43,7 @@ export function TransactionSummaryCard({ sale }: TransactionSummaryCardProps) {
 }
 
 export interface CashierInfoCardProps {
-    user: ISaleDetail["user"];
+    user: ISaleDetail["author"];
 }
 
 export function CashierInfoCard({ user }: CashierInfoCardProps) {

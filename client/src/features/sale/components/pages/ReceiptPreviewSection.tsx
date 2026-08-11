@@ -20,11 +20,11 @@ export function ReceiptPreviewSection({ sale }: ReceiptPreviewSectionProps) {
     });
 
     const shortId = sale.id?.slice(0, 8).toUpperCase() || "N/A";
-    const totalItemsCount = sale.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+    const totalItemsCount = sale.saleItems?.reduce((sum, item) => sum + item.quantity, 0) || 0;
     const customerName = sale.customer
         ? `${sale.customer.firstName ?? ""} ${sale.customer.lastName ?? ""}`.trim() || "Customer"
         : "Walk-in Customer";
-    const cashierName = `${sale.user?.firstName ?? ""} ${sale.user?.lastName ?? ""}`.trim() || "Cashier";
+    const cashierName = `${sale.author?.firstName ?? ""} ${sale.author?.lastName ?? ""}`.trim() || "Cashier";
 
     return (
         <FormSection
@@ -105,17 +105,17 @@ export function ReceiptPreviewSection({ sale }: ReceiptPreviewSectionProps) {
                             <span>AMOUNT</span>
                         </div>
                         <div className="space-y-2.5">
-                            {sale.items?.map((item) => (
+                            {sale.saleItems?.map((item) => (
                                 <div key={item.id} className="text-[11px]">
                                     <div className="font-medium text-black truncate">
-                                        {item.name}
+                                        {item.product.name}
                                     </div>
                                     <div className="flex justify-between text-gray-700 mt-0.5">
                                         <span>
                                             {item.quantity} x {formatCurrency(item.unitPrice)}
                                         </span>
                                         <span className="font-semibold text-black">
-                                            {formatCurrency(item.totalPrice)}
+                                            {formatCurrency(item.quantity * item.unitPrice)}
                                         </span>
                                     </div>
                                 </div>

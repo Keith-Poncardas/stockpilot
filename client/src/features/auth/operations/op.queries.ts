@@ -9,6 +9,7 @@ export const ME_QUERY = gql`
             email
             role
             status
+            approvalStatus
         }
     }
 `;
@@ -23,6 +24,7 @@ export const LOGIN = gql`
                 email
                 role
                 status
+                approvalStatus
             }
             token
         }
@@ -51,6 +53,7 @@ export const VERIFY_OTP_REGISTRATION = gql`
                 email
                 role
                 status
+                approvalStatus
             }
             token
         }
@@ -58,16 +61,17 @@ export const VERIFY_OTP_REGISTRATION = gql`
 `;
 
 export const VERIFY_OTP_FORGOT_PASSWORD = gql`
-    mutation VerifyForgotPasswordOtp($input: VerifyForgotPasswordOtpInput!) {
+    mutation VerifyForgotPasswordOtp($input: VerifyOtpRegistrationInput!) {
         verifyForgotPasswordOtp(input: $input) {
             id
             email
+            expiresAt
         }
     }
 `;
 
 export const CHANGE_PASSWORD = gql`
-    mutation ChangePassword($input: ChangePasswordInput!) {
+    mutation ChangePassword($input: ChangesPasswordInput!) {
         changePassword(input: $input) {
             id
             firstName
@@ -80,7 +84,7 @@ export const CHANGE_PASSWORD = gql`
 `;
 
 export const RESEND_OTP_SIGNUP = gql`
-    mutation resendOtpSignUp($input: ResendOtpInput!) {
+    mutation resendOtpSignUp($input: ResendOtpSignUpInput!) {
         resendOtpSignUp(input: $input) {
             id
             firstName
@@ -92,7 +96,7 @@ export const RESEND_OTP_SIGNUP = gql`
 `;
 
 export const RESEND_OTP_FORGOT_PASSWORD = gql`
-    mutation resendOtpForgotPassword($input: ResendOtpInput!) {
+    mutation resendOtpForgotPassword($input: ResendOtpSignUpInput!) {
         resendOtpForgotPassword(input: $input) {
             id
             email
@@ -102,10 +106,11 @@ export const RESEND_OTP_FORGOT_PASSWORD = gql`
 `;
 
 export const FORGOT_PASSWORD = gql`
-    mutation ForgotPassword($input: ForgotPasswordInput!) {
+    mutation ForgotPassword($input: ResendOtpSignUpInput!) {
         forgotPassword(input: $input) {
             id
             email
+            expiresAt
         }
     }
 `;

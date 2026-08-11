@@ -42,8 +42,8 @@ export const orderDirectionLowerSchema = z.enum(OrderDirectionLower);
 export const filterStockMovementsSchema = dateRangeSchema.extend({
     search: searchSchema,
     movementType: movementTypeSchema.optional(),
-    productId: uuidSchema,
-    userId: uuidSchema,
+    productId: uuidSchema.optional(),
+    userId: uuidSchema.optional(),
     minQty: z
         .coerce
         .number()

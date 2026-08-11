@@ -2,13 +2,18 @@ import type { UserRole } from "@/features/user/user.constants";
 
 export type ProductStatus = 'ACTIVE' | 'INACTIVE' | 'DISCONTINUED' | 'DRAFT' | 'ARCHIVED';
 
-export interface IStockMovementProductInventoryStatus {
+/**
+ * The inventory record linked to a stock movement.
+ * Accessible via `StockMovement.inventory` resolver.
+ * NOTE: `lastRestockDate` and `estimatedDaysOfStock` do NOT exist on the
+ * Inventory type — they have been removed.
+ */
+export interface IStockMovementInventory {
     id: string;
     quantityOnHand: number;
     reorderLevel: number;
     maxStock: number;
-    lastRestockDate: string | null;
-    estimatedDaysOfStock: number;
+    updatedAt: string;
 }
 
 export interface IStockMovementProduct {
@@ -19,9 +24,12 @@ export interface IStockMovementProduct {
     /** Nullable — products may not have a cost price configured */
     costPrice: number | null;
     status: ProductStatus;
-    inventoryStatus: IStockMovementProductInventoryStatus | null;
 }
 
+/**
+ * The user who performed the stock movement.
+ * Backend field name is `author` (not `user`) on StockMovement.
+ */
 export interface IStockMovementUser {
     id: string;
     firstName: string;
@@ -55,5 +63,8 @@ export interface IStockMovement {
     reason: MovementReason;
     createdAt: string;
     product: IStockMovementProduct;
-    user: IStockMovementUser;
+    /** The inventory record linked to this movement (via StockMovement.inventory resolver). */
+    inventory?: IStockMovementInventory | null;
+    /** The user who performed this movement (via StockMovement.author resolver). */
+    author: IStockMovementUser;
 }

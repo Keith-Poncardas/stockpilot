@@ -14,7 +14,7 @@ export function StockMovementDetailsPage() {
     const navigate = useNavigate();
 
     const { data, loading, error } = useQuery(GET_STOCK_MOVEMENT, {
-        variables: { id: stockMovementId },
+        variables: { movementId: stockMovementId },
         skip: !stockMovementId,
     });
 
@@ -36,7 +36,7 @@ export function StockMovementDetailsPage() {
     }
 
     const movement = data.getStockMovement;
-    const inventoryStatus = movement.product.inventoryStatus;
+    const inventoryStatus = movement.inventory;
 
     return (
         <>

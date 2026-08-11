@@ -46,9 +46,21 @@ export function ProductViewPage() {
         }
     }
 
-    const { productInfo, inventoryStatus, salesSummary, salesTrend, stockMovementLedger } = data.getProduct;
+    const productInfo = data.getProduct;
+    const inventoryStatus = data.getProduct.inventory;
 
-    const isNotEditable = data.getProduct.productInfo?.status === ProductStatus.DISCONTINUED.a;
+    // Fallback data for properties not currently exposed via GraphQL GET_PRODUCT
+    const salesSummary = {
+        unitsSoldMonth: 0,
+        revenueMonth: 0,
+        transactions: 0,
+        avgPerSale: 0,
+        sellThroughRate: 0,
+    };
+    const salesTrend: any[] = [];
+    const stockMovementLedger: any[] = [];
+
+    const isNotEditable = data.getProduct.status === ProductStatus.DISCONTINUED.a;
 
     return (
         <>

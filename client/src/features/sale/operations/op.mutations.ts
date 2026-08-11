@@ -8,7 +8,6 @@ export const CREATE_SALE = gql`
       totalAmount
       paymentMethod
       status
-      itemCount
     }
   }
 `;
@@ -21,4 +20,3 @@ export const CHANGE_SALE_STATUS = gql`
     }
   }
 `;
-

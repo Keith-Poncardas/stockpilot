@@ -119,7 +119,7 @@ export function SaleViewPage() {
             <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6 max-sm:mb-15">
                 <div className="lg:col-span-2 flex flex-col gap-6">
                     <PurchasedItemsSection
-                        items={sale.items}
+                        items={sale.saleItems}
                         totalAmount={sale.totalAmount}
                     />
                     <ReceiptPreviewSection sale={sale} />
@@ -127,7 +127,7 @@ export function SaleViewPage() {
 
                 <div className="flex flex-col gap-6">
                     <TransactionSummaryCard sale={sale} />
-                    <CashierInfoCard user={sale.user} />
+                    <CashierInfoCard user={sale.author} />
                     <CustomerInfoCard customer={sale.customer} />
                 </div>
             </main>

@@ -44,19 +44,19 @@ export const columns: ColumnDef<ISale>[] = [
         id: "cashier",
         header: "Cashier",
         accessorFn: (row) =>
-            formatCashierName(row.user.firstName, row.user.lastName),
-        cell: ({ row }) => <UserInfoCell user={row.original.user} />,
+            formatCashierName(row.author.firstName, row.author.lastName),
+        cell: ({ row }) => <UserInfoCell user={row.original.author} />,
         size: 140,
     },
     {
-        accessorKey: "itemCount",
+        id: "itemCount",
         header: () => <div className="text-center">Items</div>,
         cell: ({ row }) => (
             <div
                 className="text-center text-sm font-medium text-gray-700"
                 style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}
             >
-                {row.original.itemCount}
+                {row.original.saleItems?.length ?? '—'}
             </div>
         ),
         size: 70,

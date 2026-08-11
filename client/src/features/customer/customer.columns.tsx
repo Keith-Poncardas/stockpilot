@@ -71,49 +71,52 @@ export const columns: ColumnDef<ICustomer>[] = [
     {
         id: "location",
         header: "Location",
-        accessorFn: (row) => formatLocation(row.city, row.province),
+        accessorFn: (row) => formatLocation(row.cityCode, row.provinceCode),
         cell: ({ row }) => (
             <span className="text-sm text-gray-600">
-                {formatLocation(row.original.city, row.original.province)}
+                {formatLocation(row.original.cityCode, row.original.provinceCode)}
             </span>
         ),
         size: 160,
     },
     {
-        accessorKey: "totalOrders",
+        id: "totalOrders",
+        accessorFn: (row) => row.purchaseSummary.totalOrders,
         header: () => <div className="text-left">Total Orders</div>,
         cell: ({ row }) => (
             <div
                 className="text-left text-sm font-medium text-gray-800"
                 style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}
             >
-                {row.original.totalOrders.toLocaleString()}
+                {row.original.purchaseSummary.totalOrders.toLocaleString()}
             </div>
         ),
         size: 110,
     },
     {
-        accessorKey: "totalSpent",
+        id: "totalSpent",
+        accessorFn: (row) => row.purchaseSummary.totalSpent,
         header: () => <div className="text-left">Total Spent</div>,
         cell: ({ row }) => (
             <div
                 className="text-left text-sm font-medium text-gray-800"
                 style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}
             >
-                {formatCurrency(row.original.totalSpent)}
+                {formatCurrency(row.original.purchaseSummary.totalSpent)}
             </div>
         ),
         size: 130,
     },
     {
-        accessorKey: "lastPurchase",
+        id: "lastPurchase",
+        accessorFn: (row) => row.purchaseSummary.lastPurchase,
         header: "Last Purchase",
         cell: ({ row }) => (
             <span
                 className="text-sm text-gray-400"
                 style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}
             >
-                {row.original.lastPurchase ? formatDate(row.original.lastPurchase) : '—'}
+                {row.original.purchaseSummary.lastPurchase ? formatDate(row.original.purchaseSummary.lastPurchase) : '—'}
             </span>
         ),
         size: 130,

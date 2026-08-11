@@ -60,8 +60,8 @@ export const inventoryResolver = {
          */
         getInventories: composeResolvers(
             validate(paginatedInventoriesSchema)
-        )(async (_: unknown, { args }: { args: PaginatedInventoriesInput }) => {
-            return inventoryService.getInventories(args);
+        )(async (_: unknown, { input }: { input: PaginatedInventoriesInput }) => {
+            return inventoryService.getInventories(input);
         }),
 
     }),

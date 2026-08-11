@@ -25,7 +25,7 @@ export function ActionCellContent({
             isLocked && "opacity-50"
         )}>
             {isLocked && <Lock size={16} strokeWidth={2.1} />}
-            <span>{label.replace(/_/g, ' ')}</span>
+            <span>{(label || '').replace(/_/g, ' ')}</span>
         </div>
     )
 }

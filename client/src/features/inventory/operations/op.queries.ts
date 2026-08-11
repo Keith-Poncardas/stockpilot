@@ -84,8 +84,8 @@ export const ADJUST_STOCK = gql`
             productId
             quantityOnHand
             reorderLevel
+            maxStock
             updatedAt
-            stockStatus
             product {
                 id
                 sku
@@ -95,9 +95,15 @@ export const ADJUST_STOCK = gql`
     }
 `;
 
-export const SEARCH_INVENTORY_PRODUCTS = gql`
-    query SearchInventoryProducts($search: String, $cursor: String, $limit: Int) {
-        searchInventoryProducts(search: $search, cursor: $cursor, limit: $limit) {
+/**
+ * Cursor-based infinite scroll search across products.
+ * Used by the inventory "Add Inventory" flow to find products
+ * that can have inventory records created for them.
+ * Corresponds to the backend `searchProductsInfinite` query.
+ */
+export const SEARCH_PRODUCTS_INFINITE = gql`
+    query SearchProductsInfinite($input: SearchProductsInfiniteInput!) {
+        searchProductsInfinite(input: $input) {
             data {
                 id
                 sku
@@ -106,7 +112,6 @@ export const SEARCH_INVENTORY_PRODUCTS = gql`
                 unitPrice
                 costPrice
                 status
-                isAddedInventory
             }
             meta {
                 nextCursor
@@ -125,7 +130,6 @@ export const CREATE_INVENTORY = gql`
             reorderLevel
             maxStock
             createdAt
-            stockStatus
             product {
                 id
                 sku

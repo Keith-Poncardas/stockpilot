@@ -60,9 +60,9 @@ export const dashboardResolver = {
          * Validates the `sort` order and `limit` arguments.
          */
         getTopSellingProducts: composeResolvers(
-            validate(getTopSellingProductsSchema)
-        )(async (_: unknown, { input }: { input: getTopSellingProductsInput }) => {
-            return productService.getTopSellingProducts(input);
+            validate(getTopSellingProductsSchema, (args) => args)
+        )(async (_: unknown, args: getTopSellingProductsInput) => {
+            return productService.getTopSellingProducts(args);
         }),
 
         /**

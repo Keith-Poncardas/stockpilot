@@ -119,10 +119,10 @@ export function StockMovementPage() {
     const metrics = metricsData?.getStockMovementDashboardMetrics;
 
     React.useEffect(() => {
-        if (data?.getAllStockMovements) {
+        if (data?.getStockMovements) {
             setQueryData({
-                data: data.getAllStockMovements.data,
-                meta: data.getAllStockMovements.meta,
+                data: data.getStockMovements.data,
+                meta: data.getStockMovements.meta,
             });
         }
     }, [data, setQueryData]);

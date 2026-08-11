@@ -47,6 +47,13 @@ export const stockMovementsResolver = {
             return stockMovementsService.getAllStockMovements(args);
         }),
 
+        /**
+         * Retrieves the dashboard metrics for stock movements.
+         */
+        getStockMovementDashboardMetrics: async () => {
+            return stockMovementsService.getStockMovementsMetrics();
+        },
+
     }),
 
     StockMovement: applyErrorHandling({

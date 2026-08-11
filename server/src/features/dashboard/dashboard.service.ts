@@ -1,10 +1,6 @@
-import { customerService } from "../customer";
-import { inventoryService } from "../inventory";
-import { productService } from "../product";
-import { saleService } from "../sale";
+import { prisma } from "@/lib";
 
 export class DashboardService {
-
     /**
      * Retrieves a summary of key metrics for the dashboard.
      *
@@ -13,27 +9,32 @@ export class DashboardService {
      * @returns An object containing dashboard metrics.
      */
     async getDashboardMetrics() {
-
         const [
-            totalSales,
+            salesAgg,
             totalProducts,
             totalCustomers,
-            totalInventory
+            inventoryAgg
         ] = await Promise.all([
-            saleService.saleCount,
-            productService.productCount,
-            customerService.customerCount,
-            inventoryService.inventoryCount
-        ])
+            prisma.sale.aggregate({
+                _sum: { totalAmount: true },
+                where: { status: 'COMPLETED' }
+            }),
+            prisma.product.count({
+                where: { status: 'ACTIVE' }
+            }),
+            prisma.customer.count(),
+            prisma.inventory.aggregate({
+                _sum: { quantityOnHand: true }
+            })
+        ]);
 
         return {
-            totalSales,
+            totalSales: Number(salesAgg._sum.totalAmount ?? 0),
             totalProducts,
             totalCustomers,
-            totalInventory
-        }
+            totalUnitsInStock: inventoryAgg._sum.quantityOnHand ?? 0
+        };
     }
-
 }
 
 export const dashboardService = new DashboardService();

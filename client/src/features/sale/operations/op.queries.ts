@@ -3,6 +3,7 @@ import { gql } from '@apollo/client';
 /**
  * Paginated sales list for the Sales Index table.
  * Returns only what the table renders — no product/inventory data.
+ * The cashier relation is `author` (not `user`) per the backend schema.
  */
 export const GET_SALES = gql`
   query GetSales($args: PaginatedSalesInput!) {
@@ -19,14 +20,16 @@ export const GET_SALES = gql`
           lastName
         }
 
-        user {
+        author {
           id
           firstName
           lastName
           role
         }
 
-        itemCount
+        saleItems {
+          id
+        }
       }
       meta {
         page
@@ -44,15 +47,16 @@ export const GET_SALES = gql`
 
 /**
  * KPI metrics for the Sales Index page.
- * Loaded independently from the table so they never block pagination.
- * Accepts an optional date range so KPIs respect the user's active filter.
+ * `getSalesMetrics` takes no arguments per the backend schema.
+ * Returns: totalRevenue, completedSales, totalTransactions, refundedOrVoidedCount.
+ * Note: averageOrderValue is NOT returned by the backend — compute it in the UI if needed.
  */
 export const GET_SALE_METRICS = gql`
-  query GetSaleMetrics($filter: GetSalesMetricsFilter) {
-    getSalesMetrics(filter: $filter) {
+  query GetSaleMetrics {
+    getSalesMetrics {
       totalRevenue
+      completedSales
       totalTransactions
-      averageOrderValue
       refundedOrVoidedCount
     }
   }
@@ -69,7 +73,6 @@ export const GET_POS_PRODUCTS = gql`
         productId
         quantityOnHand
         reorderLevel
-        stockStatus
         product {
           id
           sku
@@ -90,18 +93,18 @@ export const GET_POS_PRODUCTS = gql`
 `;
 
 /**
- * Customers search for POS customer modal with cursor pagination and VIP info.
+ * Customers search for POS customer modal with cursor pagination.
+ * Uses the correct backend argument signature: searchCustomers(args: SearchCustomersInput!)
  */
 export const SEARCH_CUSTOMERS = gql`
-  query SearchCustomers($search: String, $cursor: String, $limit: Int) {
-    searchCustomers(search: $search, cursor: $cursor, limit: $limit) {
+  query SearchCustomers($args: SearchCustomersInput!) {
+    searchCustomers(args: $args) {
       data {
         id
         firstName
         lastName
         phone
         email
-        customerType
       }
       meta {
         nextCursor
@@ -113,6 +116,9 @@ export const SEARCH_CUSTOMERS = gql`
 
 /**
  * Full sale detail query for the Sale View Page.
+ * The cashier relation is `author` (not `user`).
+ * Sale items are under `saleItems` (not `items`), and product details
+ * come from the nested `product` relation on each SaleItem.
  */
 export const GET_SALE = gql`
   query GetSale($saleId: ID!) {
@@ -129,23 +135,24 @@ export const GET_SALE = gql`
         email
         phone
       }
-      user {
+      author {
         id
         firstName
         lastName
         role
         email
       }
-      items {
+      saleItems {
         id
         productId
-        sku
-        name
         quantity
         unitPrice
-        totalPrice
+        product {
+          id
+          sku
+          name
+        }
       }
     }
   }
 `;
-

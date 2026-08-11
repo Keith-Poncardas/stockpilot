@@ -1,5 +1,4 @@
 import { ApprovalStatus, AVAILABLE_STATUSES, UserRole, UserStatus, USER_STATUS_ACTION_LABELS } from "@/features/user/user.constants";
-import type { UserRowInfoCellProps } from "../../user.types";
 import { useOptimisticMutation } from "@/hooks/useOptimisticMutation";
 import { CHANGE_USER_STATUS, GET_USER_METRICS } from "../../operations";
 import { getOptions } from "../../user.utils";
@@ -7,6 +6,7 @@ import { getStatusColor } from "@/lib/utils";
 import ActionPopover from "@/components/ActionPopover";
 import { ActionCellContent } from "./ActionCellContent";
 import { useAuthStore } from "@/store";
+import type { UserRowInfoCellProps } from "../../types";
 
 export function StatusCell({ row }: UserRowInfoCellProps) {
     const { user } = useAuthStore();

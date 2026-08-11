@@ -9,8 +9,8 @@ interface PerformedByProps {
 }
 
 export function PerformedBy({ movement, isLoading }: PerformedByProps) {
-    const { user, createdAt } = movement;
-    const fullName = `${user.firstName} ${user.lastName}`;
+    const { author, createdAt } = movement;
+    const fullName = `${author.firstName} ${author.lastName}`;
 
     const performedAt = new Date(Number(createdAt));
 
@@ -34,8 +34,8 @@ export function PerformedBy({ movement, isLoading }: PerformedByProps) {
         >
             <UserIdentityRow
                 name={fullName}
-                fallback={{ firstName: user.firstName, lastName: user.lastName }}
-                role={user.role}
+                fallback={{ firstName: author.firstName, lastName: author.lastName }}
+                role={author.role}
                 performedAt={performedAt}
             />
         </FormSection>

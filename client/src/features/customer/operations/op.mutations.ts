@@ -1,5 +1,10 @@
 import { gql } from '@apollo/client';
 
+/**
+ * Creates a new customer.
+ * The Customer type does not have city, province, totalOrders, totalSpent,
+ * or lastPurchase as flat fields — those are computed via purchaseSummary.
+ */
 export const CREATE_CUSTOMER = gql`
   mutation CreateCustomer($input: CreateCustomerInput!) {
     createCustomer(input: $input) {
@@ -8,11 +13,10 @@ export const CREATE_CUSTOMER = gql`
       lastName
       phone
       email
-      city
-      province
-      totalOrders
-      totalSpent
-      lastPurchase
+      provinceCode
+      cityCode
+      postalCode
+      country
       createdAt
       updatedAt
     }

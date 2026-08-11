@@ -1,5 +1,5 @@
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-import { SEARCH_INVENTORY_PRODUCTS } from "../operations";
+import { SEARCH_PRODUCTS_INFINITE } from "../operations";
 
 export interface ProductSearchItem {
     id: string;
@@ -9,11 +9,10 @@ export interface ProductSearchItem {
     unitPrice: number;
     costPrice: number | null;
     status: string;
-    isAddedInventory: boolean;
 }
 
-interface SearchInventoryProductsData {
-    searchInventoryProducts: {
+interface SearchProductsInfiniteData {
+    searchProductsInfinite: {
         data: ProductSearchItem[];
         meta: { nextCursor: string | null; hasNextPage: boolean };
     };
@@ -21,13 +20,20 @@ interface SearchInventoryProductsData {
 
 /**
  * Thin domain wrapper around the generic `useInfiniteScroll` hook.
- * Binds `SEARCH_INVENTORY_PRODUCTS` and the result extractor so that
+ * Binds `SEARCH_PRODUCTS_INFINITE` and the result extractor so that
  * consuming components stay free of query / shape details.
+ *
+ * Uses the correct backend signature:
+ *   searchProductsInfinite(input: SearchProductsInfiniteInput!)
+ * where pagination fields are wrapped in an `input` object.
  */
 export function useInfiniteProductSearch(search: string) {
-    return useInfiniteScroll<SearchInventoryProductsData, ProductSearchItem>({
-        query: SEARCH_INVENTORY_PRODUCTS,
+    return useInfiniteScroll<SearchProductsInfiniteData, ProductSearchItem>({
+        query: SEARCH_PRODUCTS_INFINITE,
         search,
-        getResult: (data) => data.searchInventoryProducts,
+        getResult: (data) => data.searchProductsInfinite,
+        buildVariables: (search, cursor, limit) => ({
+            input: { search, cursor, limit },
+        }),
     });
 }

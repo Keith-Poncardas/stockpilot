@@ -8,7 +8,7 @@ import {
     CreateInventoryInput,
     PaginatedInventoriesInput,
 } from "./types";
-import { StockStatus } from "@/enums";
+import { InventoryOrderBy, OrderDirectionLower, StockStatus } from "@/enums";
 import {
     resolveStockStatus,
     mapInventoriesWithStatus,
@@ -44,7 +44,11 @@ export class InventoryService {
      * @throws {Prisma.PrismaClientKnownRequestError} If the inventory record does not exist.
      */
     async getInventory(where: Prisma.InventoryWhereUniqueInput) {
-        return await prisma.inventory.findUniqueOrThrow({ where });
+        const inventory = await prisma.inventory.findUniqueOrThrow({ where });
+        return {
+            ...inventory,
+            stockStatus: resolveStockStatus(inventory.quantityOnHand, inventory.reorderLevel)
+        };
     }
 
     /**
@@ -169,8 +173,8 @@ export class InventoryService {
             maxQty,
             minReorderLevel,
             maxReorderLevel,
-            orderBy,
-            orderDirection
+            orderBy = InventoryOrderBy.UPDATED_AT,
+            orderDirection = OrderDirectionLower.DESC
         } = filter;
 
         const stockStatusIds = await this.getStockStatusIds(stockStatus);

@@ -1,49 +1,65 @@
 import { gql } from "@apollo/client";
 
 /**
- * Fetches all dashboard data in a single query.
- * `timeRange` controls the Sales Overview chart grouping (daily | weekly | monthly).
+ * Fetches all dashboard data in a single combined query since the backend
+ * broke them out into separate queries on the root Query type.
  */
 export const GET_DASHBOARD_DATA = gql`
-    query GetDashboardData($timeRange: DashboardTimeRange) {
-        getDashboardData(timeRange: $timeRange) {
-            metrics {
-                totalSales
-                totalProducts
-                totalCustomers
-                totalUnitsInStock
-            }
-            salesChart {
-                label
-                value
-            }
-            topProducts {
+    query GetDashboardData(
+        $period: SalesOverviewPeriod!
+        $locationInput: GetSalesByLocationInput!
+        $productSort: SortOrder!
+    ) {
+        dashboardMetrics {
+            totalSales
+            totalProducts
+            totalCustomers
+            totalUnitsInStock
+        }
+        getSalesOverview(period: $period) {
+            label
+            date
+            sales
+            isActive
+        }
+        getSalesByLocation(input: $locationInput) {
+            cityCode
+            name
+            revenue
+            percentage
+            rank
+        }
+        getTopSellingProducts(sort: $productSort) {
+            id
+            name
+            quantitySold
+            percentage
+            rank
+        }
+        recentSales {
+            data {
                 id
-                name
-                revenue
-                percentage
-            }
-            topLocations {
-                id
-                name
-                revenue
-                percentage
-            }
-            recentSales {
-                id
-                customer
-                product
-                quantity
-                amount
+                saleDate
+                totalAmount
+                paymentMethod
                 status
+                customer {
+                    firstName
+                    lastName
+                }
             }
-            lowStockAlerts {
+        }
+        lowStockAlerts {
+            data {
                 id
-                productName
-                sku
+                productId
                 quantityOnHand
                 reorderLevel
                 stockStatus
+                product {
+                    name
+                    sku
+                }
             }
         }
     }

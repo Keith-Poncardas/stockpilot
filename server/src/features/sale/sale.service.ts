@@ -35,7 +35,7 @@ import {
 } from "./sale.utils";
 import { UUIDInput } from "@/schemas";
 import { customerService } from "../customer";
-import { SortOrder } from "@/enums";
+import { SortOrder, SaleOrderBy, OrderDirectionLower } from "@/enums";
 import { getSalesByLocationInput, productService } from "../product";
 import { inventoryService } from "../inventory";
 import { stockMovementsService } from "../stockMovements";
@@ -406,8 +406,8 @@ export class SaleService {
             paymentMethod,
             dateFrom,
             dateTo,
-            orderBy,
-            orderDirection,
+            orderBy = SaleOrderBy.SALE_DATE,
+            orderDirection = OrderDirectionLower.DESC,
         } = filter;
 
         const where: Prisma.SaleWhereInput = {

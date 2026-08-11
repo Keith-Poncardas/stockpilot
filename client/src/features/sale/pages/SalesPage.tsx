@@ -93,12 +93,6 @@ export function SalesPage() {
 
     // ── 5. KPI metrics query (independent — loads regardless of table state) ──
     const { data: metricsData, loading: metricsLoading } = useQuery(GET_SALE_METRICS, {
-        variables: {
-            filter: {
-                dateFrom: dateError ? undefined : (dateFrom || undefined),
-                dateTo: dateError ? undefined : (dateTo || undefined),
-            },
-        },
         fetchPolicy: 'cache-and-network',
         notifyOnNetworkStatusChange: true,
     });
@@ -193,11 +187,11 @@ export function SalesPage() {
                         />
                         <MetricCard
                             value={
-                                metrics?.averageOrderValue !== undefined
-                                    ? formatCurrency(metrics.averageOrderValue)
+                                metrics?.completedSales !== undefined
+                                    ? metrics.completedSales.toLocaleString()
                                     : '—'
                             }
-                            label="Avg. Order Value"
+                            label="Completed Sales"
                             icon={<BarChart2 className="w-5 h-5" />}
                             iconContainerClass="bg-violet-50 text-violet-600"
                         />

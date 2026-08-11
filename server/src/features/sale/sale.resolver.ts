@@ -50,7 +50,7 @@ export const saleResolver = {
          */
         getSales: composeResolvers(
             validate(paginatedSalesSchema)
-        )(async (_: unknown, args: PaginatedSalesInput) => {
+        )(async (_: unknown, { args }: { args: PaginatedSalesInput }) => {
             return saleService.getSales(args);
         }),
 

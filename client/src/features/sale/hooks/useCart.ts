@@ -15,7 +15,6 @@ export interface SelectedCustomer {
   lastName?: string | null;
   phone?: string | null;
   email?: string | null;
-  customerType: string;
 }
 
 const STORAGE_KEY = "stockpilot_pos_cart";

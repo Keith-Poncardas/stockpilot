@@ -33,11 +33,11 @@ Represents a complete sale record including customer and item details.
 """
 type Sale {
     id: ID!
-    customerId: ID!
+    customerId: ID
     userId: ID!
     status: SaleStatus!
     totalAmount: Float!
-    paymentMethod: PaymentMethod!
+    paymentMethod: PaymentMethod
     saleDate: String!
     createdAt: String!
     updatedAt: String!

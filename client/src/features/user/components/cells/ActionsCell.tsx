@@ -2,8 +2,8 @@ import { ActionCell } from "@/components/ui/action-cell"
 import { PopoverClose } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { Eye } from "lucide-react"
-import type { UserRowInfoCellProps } from "../../user.types"
 import { useNavigate } from "react-router-dom"
+import type { UserRowInfoCellProps } from "../../types"
 
 export function ActionsCell({ row }: UserRowInfoCellProps) {
     const navigate = useNavigate();

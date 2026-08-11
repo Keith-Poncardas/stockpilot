@@ -20,36 +20,51 @@ export interface SalesChartPoint {
 }
 
 export interface DashboardDataResponse {
-    getDashboardData: {
-        metrics: DashboardMetrics;
-        salesChart: SalesChartPoint[];
-        topProducts: {
+    dashboardMetrics: DashboardMetrics;
+    getSalesOverview: {
+        label: string;
+        date: string;
+        sales: number;
+        isActive: boolean;
+    }[];
+    getSalesByLocation: {
+        cityCode: string;
+        name: string;
+        revenue: number;
+        percentage: number;
+        rank: number;
+    }[];
+    getTopSellingProducts: {
+        id: string;
+        name: string;
+        quantitySold: number;
+        percentage: number;
+        rank: number;
+    }[];
+    recentSales: {
+        data: {
             id: string;
-            name: string;
-            revenue: number;
-            percentage: number;
-        }[];
-        topLocations: {
-            id: string;
-            name: string;
-            revenue: number;
-            percentage: number;
-        }[];
-        recentSales: {
-            id: string;
-            customer: string;
-            product?: string;
-            quantity: number;
-            amount: number;
+            saleDate: string;
+            totalAmount: number;
+            paymentMethod: string | null;
             status: string;
+            customer: {
+                firstName: string | null;
+                lastName: string | null;
+            } | null;
         }[];
-        lowStockAlerts: {
+    };
+    lowStockAlerts: {
+        data: {
             id: string;
-            productName: string;
-            sku?: string;
+            productId: string;
             quantityOnHand: number;
             reorderLevel: number;
             stockStatus: string;
+            product: {
+                name: string;
+                sku: string;
+            };
         }[];
     };
 }
@@ -60,50 +75,66 @@ export function useDashboardData(initialTimeRange: TimeRange = "daily") {
     const { data, loading, error, refetch } = useQuery<DashboardDataResponse>(
         GET_DASHBOARD_DATA,
         {
-            variables: { timeRange },
+            variables: {
+                period: timeRange.toUpperCase(),
+                locationInput: {
+                    sort: "HIGH",
+                    limit: 5,
+                },
+                productSort: "HIGH",
+            },
             notifyOnNetworkStatusChange: true,
         }
     );
 
-    const raw = data?.getDashboardData;
-
-    const metrics: DashboardMetrics = raw?.metrics ?? {
+    const metrics: DashboardMetrics = data?.dashboardMetrics ?? {
         totalSales: 0,
         totalProducts: 0,
         totalCustomers: 0,
         totalUnitsInStock: 0,
     };
 
-    const salesChart = raw?.salesChart ?? [];
+    // The frontend chart expects { label, value } instead of { label, date, sales, isActive }
+    const salesChart: SalesChartPoint[] = (data?.getSalesOverview ?? []).map((point) => ({
+        label: point.label,
+        value: point.sales,
+    }));
 
-    const topProducts: TopProductItem[] = (raw?.topProducts ?? []).map((p) => ({
+    // The backend uses quantitySold for products instead of revenue
+    const topProducts: TopProductItem[] = (data?.getTopSellingProducts ?? []).map((p) => ({
         id: p.id,
         name: p.name,
-        revenue: p.revenue,
+        revenue: p.quantitySold, // Note: frontend component says "revenue" but it's quantitySold in backend
         percentage: p.percentage,
     }));
 
-    const topLocations: TopLocationItem[] = (raw?.topLocations ?? []).map((l) => ({
-        id: l.id,
+    const topLocations: TopLocationItem[] = (data?.getSalesByLocation ?? []).map((l) => ({
+        id: l.cityCode,
         name: l.name,
         revenue: l.revenue,
         rawValue: l.revenue,
         percentage: l.percentage,
     }));
 
-    const recentSales: RecentSaleItem[] = (raw?.recentSales ?? []).map((s) => ({
-        id: s.id,
-        customer: s.customer,
-        product: s.product,
-        quantity: s.quantity,
-        amount: s.amount,
-        status: s.status,
-    }));
+    // Format recent sales
+    const recentSales: RecentSaleItem[] = (data?.recentSales?.data ?? []).map((s) => {
+        const customerName = s.customer
+            ? `${s.customer.firstName ?? ""} ${s.customer.lastName ?? ""}`.trim()
+            : "Walk-in Customer";
 
-    const lowStockAlerts: LowStockAlertItem[] = (raw?.lowStockAlerts ?? []).map((a) => ({
+        return {
+            id: s.id,
+            customer: customerName || "Walk-in Customer",
+            quantity: 0, // Backend doesn't return total quantity in sale list by default, keep 0 or compute if added later
+            amount: s.totalAmount,
+            status: s.status,
+        };
+    });
+
+    const lowStockAlerts: LowStockAlertItem[] = (data?.lowStockAlerts?.data ?? []).map((a) => ({
         id: a.id,
-        productName: a.productName,
-        sku: a.sku,
+        productName: a.product.name,
+        sku: a.product.sku,
         quantityOnHand: a.quantityOnHand,
         reorderLevel: a.reorderLevel,
         stockStatus: a.stockStatus,

@@ -18,6 +18,9 @@ export interface UseInfiniteScrollOptions<TData, TItem> {
     /**
      * A cursor-paginated GraphQL query that accepts at minimum:
      *   $search: String, $cursor: String, $limit: Int
+     *
+     * Or a query that wraps these in an `input` or `args` object —
+     * use `buildVariables` to control the variable structure.
      */
     query: DocumentNode;
 
@@ -38,6 +41,30 @@ export interface UseInfiniteScrollOptions<TData, TItem> {
      * { search, cursor, limit } set. Useful when a query requires extra filters.
      */
     extraVariables?: Record<string, unknown>;
+
+    /**
+     * Optional: override how variables are built for each query call.
+     * Use this when the GraphQL query wraps cursor-pagination fields in an
+     * `input` or `args` object instead of accepting them as flat top-level variables.
+     *
+     * @param search - The current search string
+     * @param cursor - The current cursor (null for the first page)
+     * @param limit  - The page size
+     * @returns The variables object to pass to Apollo
+     *
+     * @example
+     *   // For: searchProductsInfinite(input: SearchProductsInfiniteInput!)
+     *   buildVariables: (search, cursor, limit) => ({ input: { search, cursor, limit } })
+     *
+     * @example
+     *   // For: searchCustomers(args: SearchCustomersInput!)
+     *   buildVariables: (search, cursor, limit) => ({ args: { search, cursor, limit } })
+     */
+    buildVariables?: (
+        search: string,
+        cursor: string | null,
+        limit: number
+    ) => Record<string, unknown>;
 }
 
 // ─── Return type ──────────────────────────────────────────────────────────────
@@ -62,13 +89,24 @@ export interface UseInfiniteScrollResult<TItem> {
  * - Pair with `@tanstack/react-virtual` in the consuming component so only
  *   visible rows are ever mounted in the DOM.
  *
- * ### Usage
+ * ### Usage (flat variables)
  * ```tsx
  * const { items, loading, isFetchingMore, hasNextPage, loadMore } =
  *     useInfiniteScroll({
  *         query: MY_PAGINATED_QUERY,
  *         search: debouncedSearch,
  *         getResult: (data) => data.myQueryField,
+ *     });
+ * ```
+ *
+ * ### Usage (wrapped input/args)
+ * ```tsx
+ * const { items, loading, hasNextPage, loadMore } =
+ *     useInfiniteScroll({
+ *         query: SEARCH_PRODUCTS_INFINITE,
+ *         search: debouncedSearch,
+ *         getResult: (data) => data.searchProductsInfinite,
+ *         buildVariables: (search, cursor, limit) => ({ input: { search, cursor, limit } }),
  *     });
  * ```
  */
@@ -78,6 +116,7 @@ export function useInfiniteScroll<TData, TItem>({
     getResult,
     pageSize = 20,
     extraVariables,
+    buildVariables,
 }: UseInfiniteScrollOptions<TData, TItem>): UseInfiniteScrollResult<TItem> {
     const client = useApolloClient();
 
@@ -89,6 +128,18 @@ export function useInfiniteScroll<TData, TItem>({
 
     /** Incremented on every search reset; stale responses check against this. */
     const requestIdRef = useRef(0);
+
+    /** Builds the variables for a given cursor. */
+    const makeVariables = useCallback(
+        (cursor: string | null) => {
+            if (buildVariables) {
+                return buildVariables(search ?? "", cursor, pageSize);
+            }
+            return { ...extraVariables, search: search ?? "", cursor, limit: pageSize };
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [search, pageSize, buildVariables]
+    );
 
     // ─── Initial fetch / search reset ─────────────────────────────────────────
     useEffect(() => {
@@ -102,7 +153,7 @@ export function useInfiniteScroll<TData, TItem>({
         client
             .query<TData>({
                 query,
-                variables: { ...extraVariables, search: search ?? "", cursor: null, limit: pageSize },
+                variables: makeVariables(null),
                 fetchPolicy: "network-only",
             })
             .then(({ data }) => {
@@ -119,10 +170,10 @@ export function useInfiniteScroll<TData, TItem>({
             .finally(() => {
                 if (requestId === requestIdRef.current) setLoading(false);
             });
-        // NOTE: extraVariables is intentionally excluded from deps.
-        // Callers should memoize it or pass a stable object to avoid re-fetches.
+        // NOTE: extraVariables and buildVariables are intentionally excluded from deps.
+        // Callers should memoize them or pass stable references to avoid re-fetches.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [search, query, pageSize, client]);
+    }, [search, query, pageSize, client, makeVariables]);
 
     // ─── Load next page ───────────────────────────────────────────────────────
     const loadMore = useCallback(async () => {
@@ -132,7 +183,7 @@ export function useInfiniteScroll<TData, TItem>({
         try {
             const { data } = await client.query<TData>({
                 query,
-                variables: { ...extraVariables, search: search ?? "", cursor: nextCursor, limit: pageSize },
+                variables: makeVariables(nextCursor),
                 fetchPolicy: "network-only",
             });
 
@@ -146,7 +197,7 @@ export function useInfiniteScroll<TData, TItem>({
             setIsFetchingMore(false);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [hasNextPage, isFetchingMore, nextCursor, client, search, query, pageSize]);
+    }, [hasNextPage, isFetchingMore, nextCursor, client, query, makeVariables]);
 
     return { items, loading, isFetchingMore, hasNextPage, loadMore };
 }

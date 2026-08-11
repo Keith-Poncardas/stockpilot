@@ -23,15 +23,15 @@ export function PurchasedItemsSection({
     const columns = useMemo<ColumnDef<ISaleDetailItem>[]>(
         () => [
             {
-                accessorKey: "name",
+                id: "name",
                 header: "Item",
                 cell: ({ row }) => (
                     <div>
                         <div className="font-semibold text-gray-900 dark:text-gray-100">
-                            {row.original.name}
+                            {row.original.product.name}
                         </div>
                         <div className="text-xs text-gray-400 font-mono mt-0.5">
-                            {row.original.sku}
+                            {row.original.product.sku}
                         </div>
                     </div>
                 ),
@@ -58,11 +58,11 @@ export function PurchasedItemsSection({
                 size: 80,
             },
             {
-                accessorKey: "totalPrice",
+                id: "totalPrice",
                 header: () => <div className="text-left">Total</div>,
                 cell: ({ row }) => (
                     <div className="text-left font-mono font-semibold text-gray-900 dark:text-gray-100">
-                        {formatCurrency(row.original.totalPrice)}
+                        {formatCurrency(row.original.quantity * row.original.unitPrice)}
                     </div>
                 ),
                 size: 130,

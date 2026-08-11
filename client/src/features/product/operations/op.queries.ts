@@ -1,54 +1,33 @@
 import { gql } from '@apollo/client';
 
+/**
+ * Fetch a single product by ID.
+ * Returns the flat Product fields plus the nested inventory relation
+ * (quantityOnHand, reorderLevel, maxStock) which maps to the backend
+ * Product.inventory resolver.
+ */
 export const GET_PRODUCT = gql`
   query GetProduct($productId: ID!) {
     getProduct(productId: $productId) {
-      productInfo {
-        id
-        sku
-        name
-        description
-        unitPrice
-        costPrice
-        grossMargin
-        status
-        createdAt
-        updatedAt
-      }
-      inventoryStatus {
+      id
+      sku
+      name
+      description
+      unitPrice
+      costPrice
+      status
+      createdAt
+      updatedAt
+      inventory {
         id
         quantityOnHand
         reorderLevel
         maxStock
-        lastRestockDate
-        estimatedDaysOfStock
-      }
-      salesSummary {
-        unitsSoldMonth
-        revenueMonth
-        avgSalePerDay
-        transactions
-        avgPerSale
-        sellThroughRate
-      }
-      salesTrend {
-        date
-        label
-        unitsSold
-        isToday
-      }
-      stockMovementLedger {
-        id
-        type
-        description
-        reference
-        date
-        quantity
+        updatedAt
       }
     }
   }
 `;
-
 
 export const GET_PRODUCTS = gql`
   query GetProducts($args: PaginatedProductsInput!) {
@@ -114,8 +93,6 @@ export const CREATE_PRODUCT = gql`
     }
 `;
 
-
-
 export const EDIT_PRODUCT = gql`
     mutation EditProduct($input: EditProductInput!) {
         editProduct(input: $input) {
@@ -123,6 +100,30 @@ export const EDIT_PRODUCT = gql`
             name
             sku
             status
+        }
+    }
+`;
+
+/**
+ * Cursor-based infinite scroll search across all products.
+ * Corresponds to the backend `searchProductsInfinite` query.
+ */
+export const SEARCH_PRODUCTS_INFINITE = gql`
+    query SearchProductsInfinite($input: SearchProductsInfiniteInput!) {
+        searchProductsInfinite(input: $input) {
+            data {
+                id
+                sku
+                name
+                description
+                unitPrice
+                costPrice
+                status
+            }
+            meta {
+                nextCursor
+                hasNextPage
+            }
         }
     }
 `;

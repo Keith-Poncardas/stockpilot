@@ -1,5 +1,11 @@
 import { gql } from '@apollo/client';
 
+/**
+ * Fetches the paginated customer list.
+ * The Customer type has `provinceCode` and `cityCode` (not `city`/`province`).
+ * Fields like `totalOrders`, `totalSpent`, `lastPurchase` do not exist on Customer —
+ * purchase data lives in `purchaseSummary` (a resolver field).
+ */
 export const GET_CUSTOMERS = gql`
   query GetCustomers($args: PaginatedCustomersInput!) {
     getCustomers(args: $args) {
@@ -9,13 +15,15 @@ export const GET_CUSTOMERS = gql`
         lastName
         phone
         email
-        city
-        province
-        totalOrders
-        totalSpent
-        lastPurchase
+        provinceCode
+        cityCode
         createdAt
         updatedAt
+        purchaseSummary {
+          totalOrders
+          totalSpent
+          lastPurchase
+        }
       }
       meta {
         page
@@ -31,6 +39,14 @@ export const GET_CUSTOMERS = gql`
   }
 `;
 
+/**
+ * Fetches a single customer with full detail.
+ * Uses `purchaseSummary` for purchase metrics and
+ * `purchaseHistory` (a paginated resolver) for recent transactions.
+ * Non-existent fields (`city`, `province`, `totalOrders`, `totalSpent`,
+ * `customerType`, `averageOrderValue`, `firstPurchase`, `lastPurchase`,
+ * `recentSales`, `sales`) have been removed.
+ */
 export const GET_CUSTOMER = gql`
   query GetCustomer($id: ID!) {
     getCustomer(id: $id) {
@@ -41,16 +57,12 @@ export const GET_CUSTOMER = gql`
       email
       addressLine1
       addressLine2
-      city
-      province
+      provinceCode
+      cityCode
       postalCode
       country
-      totalOrders
-      totalSpent
-      customerType
-      averageOrderValue
-      firstPurchase
-      lastPurchase
+      createdAt
+      updatedAt
       purchaseSummary {
         totalOrders
         totalSpent
@@ -58,22 +70,6 @@ export const GET_CUSTOMER = gql`
         firstPurchase
         lastPurchase
       }
-      recentSales {
-        id
-        totalAmount
-        status
-        saleDate
-        paymentMethod
-      }
-      sales {
-        id
-        totalAmount
-        status
-        saleDate
-        paymentMethod
-      }
-      createdAt
-      updatedAt
     }
   }
 `;
