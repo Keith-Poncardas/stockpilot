@@ -1,5 +1,5 @@
 import type { Row } from "@tanstack/react-table";
-import type { UserRole } from "../user";
+import type { UserRoleType } from "../user";
 
 // ─── Sale list row (index table) ──────────────────────────────────────────────
 
@@ -12,7 +12,7 @@ export interface ISaleCashier {
     id: string;
     firstName: string;
     lastName: string;
-    role: UserRole;
+    role: UserRoleType;
 }
 
 /**
@@ -85,7 +85,7 @@ export interface ISaleDetailAuthor {
     id: string;
     firstName: string;
     lastName: string;
-    role: UserRole;
+    role: UserRoleType;
     email: string;
 }
 

@@ -64,17 +64,22 @@ function SkeletonCell({
   )
 }
 
+const shimmerStyle = (
+  <style>{`
+    @keyframes shimmer {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(200%); }
+    }
+  `}</style>
+);
+
 export function DataTable<TData>({ table, isLoading }: DataTableProps<TData>) {
   const columnCount = table.getAllColumns().length
+  const rows = table.getRowModel().rows
 
   return (
     <>
-      <style>{`
-        @keyframes shimmer {
-          0%   { transform: translateX(-100%); }
-          100% { transform: translateX(200%); }
-        }
-      `}</style>
+      {shimmerStyle}
 
       <div className="overflow-hidden border-b border-gray-100 dark:border-zinc-800">
         <Table>
@@ -103,29 +108,24 @@ export function DataTable<TData>({ table, isLoading }: DataTableProps<TData>) {
 
           <TableBody>
             {isLoading ? (
-              Array.from({ length: 8 }).map((_, rowIndex) => {
-                const pattern =
-                  SKELETON_WIDTH_PATTERNS[rowIndex % SKELETON_WIDTH_PATTERNS.length]
-
-                return (
-                  <TableRow
-                    key={rowIndex}
-                    className="border-b border-gray-100/70 hover:bg-transparent dark:border-zinc-800/70"
-                    style={{ opacity: Math.max(0.35, 1 - rowIndex * 0.08) }}
-                  >
-                    {Array.from({ length: columnCount }).map((_, cellIndex) => (
-                      <SkeletonCell
-                        key={cellIndex}
-                        size={pattern[cellIndex % pattern.length]}
-                        rowIndex={rowIndex}
-                        cellIndex={cellIndex}
-                      />
-                    ))}
-                  </TableRow>
-                )
-              })
-            ) : table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              SKELETON_WIDTH_PATTERNS.map((pattern, rowIndex) => (
+                <TableRow
+                  key={rowIndex}
+                  className="border-b border-gray-100/70 hover:bg-transparent dark:border-zinc-800/70"
+                  style={{ opacity: Math.max(0.35, 1 - rowIndex * 0.08) }}
+                >
+                  {Array.from({ length: columnCount }).map((_, cellIndex) => (
+                    <SkeletonCell
+                      key={cellIndex}
+                      size={pattern[cellIndex % pattern.length]}
+                      rowIndex={rowIndex}
+                      cellIndex={cellIndex}
+                    />
+                  ))}
+                </TableRow>
+              ))
+            ) : rows?.length ? (
+              rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
@@ -133,10 +133,10 @@ export function DataTable<TData>({ table, isLoading }: DataTableProps<TData>) {
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as any;
-                    const cellClass = typeof meta?.cellClassName === 'function' 
-                      ? meta.cellClassName(row.original) 
+                    const cellClass = typeof meta?.cellClassName === 'function'
+                      ? meta.cellClassName(row.original)
                       : meta?.cellClassName;
-                      
+
                     return (
                       <TableCell
                         key={cell.id}

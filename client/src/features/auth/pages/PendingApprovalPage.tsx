@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw, UserCheck } from "lucide-react";
 import { useApolloClient, useLazyQuery } from "@apollo/client";
 import { ME_QUERY } from "../operations";
-import { UserRole, UserStatus } from "@/features/user/user.constants";
 import { useEffect } from "react";
+import { UserRole, UserStatus } from "@/features/user";
 
 export function PendingApprovalPage() {
     const navigate = useNavigate();

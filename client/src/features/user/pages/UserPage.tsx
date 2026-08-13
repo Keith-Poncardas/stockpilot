@@ -1,227 +1,195 @@
 import * as React from 'react'
 import { useQuery } from '@apollo/client'
-import { Filter, Calendar, Users, CheckCircle, Clock } from 'lucide-react'
+import { Users } from 'lucide-react'
 import { columns } from '../user.columns'
 import { GET_USERS, GET_USER_METRICS } from '../operations/op.queries'
 import { useDebounce } from '@/hooks/useDebounce'
-import { useDataTable } from '@/hooks/useDataTable'
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery'
+import { useDateRangeValidation } from '@/hooks/useDateRangeValidation'
+
 import { DataTableLayout } from '@/components/ui/data-table-layout'
-import { DataTableToolbar } from '@/components/ui/data-table-toolbar'
-import { SelectFilter } from '@/components/ui/select-filter'
-import { DatePicker } from '@/components/ui/date-picker'
 import SectionHeader from '@/components/SectionHeader'
-import { FilterPopover } from '@/components/FilterPopover'
+import { UserTableToolbar } from '../components/UserTableToolbar'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ServerCrash } from 'lucide-react';
 import { MetricCard } from '@/components/MetricCard'
+import {
+    getFilterOptions,
+    getMetricsCards,
+    buildUserQueryFilter
+} from '../options'
+import type { UserFilters } from '../types'
 
-const roleOptions = [
-    { value: 'all', label: 'All Roles' },
-    { value: 'SUPER_ADMIN', label: 'Super Admin' },
-    { value: 'ADMIN', label: 'Admin' },
-    { value: 'MANAGER', label: 'Manager' },
-    { value: 'CASHIER', label: 'Cashier' },
-    { value: 'UNASSIGNED', label: 'Unassigned' }
-]
-
-const statusOptions = [
-    { value: 'all', label: 'All Statuses' },
-    { value: 'ACTIVE', label: 'Active' },
-    { value: 'SUSPENDED', label: 'Suspended' },
-    { value: 'TERMINATED', label: 'Terminated' },
-]
-
-const approvalStatusOptions = [
-    { value: 'all', label: 'All Approval Statuses' },
-    { value: 'PENDING', label: 'Pending' },
-    { value: 'APPROVED', label: 'Approved' },
-    { value: 'REJECTED', label: 'Rejected' },
-]
-
-const acsDescOptions = [
-    { value: 'desc', label: 'Latest' },
-    { value: 'asc', label: 'Oldest' }
-]
-
+/**
+ * Renders the main user management page.
+ *
+ * This component acts as the orchestrator for the user management feature.
+ * It integrates the paginated data table, search and filtering toolbar,
+ * and key performance indicator (KPI) metric cards. It manages the state
+ * for user queries and handles the fetching logic using Apollo Client.
+ *
+ * @returns The rendered UserPage component.
+ */
 export function UserPage() {
-    // 1. Search state
-    const [globalFilter, setGlobalFilter] = React.useState('')
-    const debouncedSearch = useDebounce(globalFilter, 500)
+    const [search, setSearch] = React.useState('')
+    const debouncedSearch = useDebounce(search, 500)
 
-    // 2. Filter states
-    const [roleFilter, setRoleFilter] = React.useState<string>('')
-    const [statusFilter, setStatusFilter] = React.useState<string>('')
-    const [dateFrom, setDateFrom] = React.useState<string>('')
-    const [dateTo, setDateTo] = React.useState<string>('')
-    const [acsDescFilter, setAcsDescFilter] = React.useState<string>('')
-    const [approvalStatusFilter, setApprovalStatusFilter] = React.useState<string>('')
+    /**
+     * Local state for managing active filters on the user table.
+     */
+    const [filters, setFilters] = React.useState<UserFilters>({
+        role: '',
+        status: '',
+        approvalStatus: '',
+        dateFrom: '',
+        dateTo: '',
+        acsDesc: '',
+    })
 
-    const dateError = dateFrom && dateTo && new Date(dateFrom) > new Date(dateTo)
-        ? "Start Date must be before or equal to End Date"
-        : null;
+    /**
+     * Validates the date range and returns the validated dates.
+     */
+    const {
+        dateError,
+        dateFrom,
+        dateTo
+    } = useDateRangeValidation(filters.dateFrom, filters.dateTo);
 
-    // 3. Extract query parameters from our generic hook
-    const { table, queryParams, setQueryData, setPagination } = useDataTable({
+    /**
+     * Hooks into the usePaginatedQuery hook to fetch paginated data from the API.
+     */
+    const {
+        table,
+        loading,
+        error,
+        refetch,
+        isEmpty,
+    } = usePaginatedQuery({
+        query: GET_USERS,
         columns,
         initialPageSize: 10,
-    })
-
-    // Reset pagination when filters change
-    React.useEffect(() => {
-        setPagination(prev => ({ ...prev, pageIndex: 0 }))
-    }, [debouncedSearch, roleFilter, statusFilter, dateFrom, dateTo, acsDescFilter, setPagination])
-
-    // 4. API Request using the extracted queryParams
-    const { loading, error, refetch, data } = useQuery(GET_USERS, {
-        variables: {
-            args: {
-                page: queryParams.page,
-                limit: queryParams.limit,
-                filter: {
-                    search: debouncedSearch || undefined,
-                    role: roleFilter || undefined,
-                    status: statusFilter || undefined,
-                    dateFrom: dateError ? undefined : (dateFrom || undefined),
-                    dateTo: dateError ? undefined : (dateTo || undefined),
-                    orderBy: acsDescFilter ? 'createdAt' : (queryParams.orderBy || 'createdAt'),
-                    orderDirection: acsDescFilter ? (acsDescFilter as any) : (queryParams.orderDirection || 'desc'),
-                    approvalStatus: approvalStatusFilter || undefined,
-                }
-            }
+        filters: {
+            search: debouncedSearch,
+            ...filters,
         },
-        fetchPolicy: 'cache-first',
-        notifyOnNetworkStatusChange: true,
-    })
+        buildVariables: React
+            .useCallback(({ queryParams, filters }) => ({
+                args: {
+                    page: queryParams.page,
+                    limit: queryParams.limit,
+                    filter: buildUserQueryFilter(
+                        filters,
+                        queryParams,
+                        dateFrom,
+                        dateTo
+                    )
+                }
+            }), [dateFrom, dateTo]),
+    });
 
-    const { data: userMetricsData, refetch: refetchUserMetrics } = useQuery(GET_USER_METRICS, {
+    /**
+     * Hooks into the useQuery hook to fetch (KPI's / Metrics) data from the API.
+     */
+    const {
+        data: userMetricsData,
+        refetch: refetchUserMetrics,
+        loading: isMetricsLoading,
+    } = useQuery(GET_USER_METRICS, {
         variables: {},
         fetchPolicy: 'cache-first',
         notifyOnNetworkStatusChange: true,
     });
 
-    React.useEffect(() => {
-        if (data?.getUsers) {
-            setQueryData({
-                data: data.getUsers.data,
-                meta: data.getUsers.meta,
-            });
-        }
-    }, [data, setQueryData])
-
-    const isEmpty = !loading && !error && table.getRowModel().rows?.length === 0;
-
-    const filters = [
-        { value: roleFilter, onChange: setRoleFilter, options: roleOptions },
-        { value: statusFilter, onChange: setStatusFilter, options: statusOptions },
-        { value: approvalStatusFilter, onChange: setApprovalStatusFilter, options: approvalStatusOptions },
-        { value: acsDescFilter, onChange: setAcsDescFilter, options: acsDescOptions, defaultValue: "desc" },
-    ];
-
-    function refresh() {
+    /**
+     * Refreshes the data in the table.
+     */
+    const refresh = React.useCallback(() => {
         refetchUserMetrics();
         refetch();
-        setGlobalFilter('');
-    }
+        setSearch('');
+    }, [refetchUserMetrics, refetch]);
 
-    function handleReset() {
-        setRoleFilter('')
-        setStatusFilter('')
-        setDateFrom('')
-        setDateTo('')
-        setAcsDescFilter('')
-        setApprovalStatusFilter('')
-        setGlobalFilter('')
-    }
+    /**
+     * Resets the filters to their default values.
+     */
+    const handleReset = React.useCallback(() => {
+        setFilters({
+            role: '',
+            status: '',
+            approvalStatus: '',
+            dateFrom: '',
+            dateTo: '',
+            acsDesc: '',
+        })
+        setSearch('')
+    }, []);
+
+    /**
+     * Generates the filter options configuration for the DataTableToolbar.
+     */
+    const filterOptions = React.useMemo(() => getFilterOptions(
+        filters,
+        setFilters
+    ), [filters, setFilters]);
+
+    /**
+     * Generates the metrics cards configuration for the MetricCard component.
+     */
+    const metrics = React.useMemo(() => getMetricsCards(
+        userMetricsData
+    ), [userMetricsData]);
 
     return (
         <>
+            {/* Header section displaying page title and description */}
             <SectionHeader
                 title="Users"
                 subtitle="Manage your team members, roles, and access control"
                 icon={Users}
             />
 
-            {/* Metrics */}
+            {/* Metrics cards displaying total, active, and pending users */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <MetricCard
-                    value={userMetricsData?.getUserMetrics?.total?.toLocaleString() ?? '-'}
-                    label="Total Users"
-                    icon={<Users className="w-5 h-5" />}
-                    iconContainerClass="bg-blue-50 text-blue-600"
-                />
-                <MetricCard
-                    value={userMetricsData?.getUserMetrics?.active?.toLocaleString() ?? '-'}
-                    label="Active Users"
-                    icon={<CheckCircle className="w-5 h-5" />}
-                    iconContainerClass="bg-green-50 text-green-600"
-                />
-                <MetricCard
-                    value={userMetricsData?.getUserMetrics?.pendingApproval?.toLocaleString() ?? '-'}
-                    label="Pending Approval"
-                    icon={<Clock className="w-5 h-5" />}
-                    iconContainerClass="bg-amber-50 text-amber-600"
-                />
+                {!isMetricsLoading ? metrics.map((metric, idx) => (
+                    <MetricCard
+                        key={idx}
+                        value={metric.value}
+                        label={metric.label}
+                        icon={metric.icon}
+                        iconContainerClass="bg-amber-50 text-amber-600"
+                    />
+                )) :
+                    metrics.map((_, idx) => (
+                        <MetricCard.Skeleton key={idx} />
+                    ))
+                }
             </div>
 
-            {/* filters */}
-            <DataTableToolbar
-                searchQuery={globalFilter}
-                setSearchQuery={setGlobalFilter}
-                searchPlaceholder="Search users..."
+            {/* User table toolbar for filtering and searching users */}
+            <UserTableToolbar
+                search={search}
+                setSearch={setSearch}
+                filters={filters}
+                setFilters={setFilters}
+                filterOptions={filterOptions}
+                dateError={dateError}
                 onRefresh={refresh}
-                hasActiveFilters={!!(roleFilter || statusFilter || dateFrom || dateTo || acsDescFilter || approvalStatusFilter || globalFilter)}
                 onResetFilters={handleReset}
-            >
-                <FilterPopover
-                    title="Role & Status"
-                    description="Filter users by role and status."
-                    icon={Filter}
-                    contentClassName="w-96 p-4"
-                >
-                    <div className="grid grid-cols-2 gap-3">
-                        {filters.map((filter, idx) => (
-                            <SelectFilter
-                                key={idx}
-                                value={filter.value}
-                                onChange={filter.onChange}
-                                options={filter.options}
-                                defaultValue={filter.defaultValue}
-                                className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
-                            />
-                        ))}
-                    </div>
-                </FilterPopover>
+            />
 
-                <FilterPopover
-                    title="Date Range"
-                    description="Filter users by creation date."
-                    icon={Calendar}
-                    contentClassName="w-80 p-4"
-                >
-                    <div className="grid grid-cols-2 gap-2 items-center">
-                        <DatePicker
-                            value={dateFrom}
-                            onChange={setDateFrom}
-                            placeholder="Start Date"
-                            className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
-                        />
-                        <DatePicker
-                            value={dateTo}
-                            onChange={setDateTo}
-                            placeholder="Oldest"
-                            className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
-                        />
-                    </div>
-                    {dateError && <p className="text-xs text-red-500 font-medium">{dateError}</p>}
-                </FilterPopover>
-            </DataTableToolbar>
-
+            {/* Data table layout containing the data table */}
             <DataTableLayout
                 table={table}
                 isLoading={loading}
                 error={error}
                 isEmpty={isEmpty}
-                errorState={<EmptyState title='Something went wrong' description="Failed to load users" icon={ServerCrash} />}
+                errorState={
+                    <EmptyState
+                        title='Something went wrong'
+                        description="Failed to load users"
+                        icon={ServerCrash}
+                    />
+                }
             />
         </>
     )

@@ -17,7 +17,7 @@ export interface EmptyStateProps {
   iconWrapperClassName?: string;
   /** Custom class names for the icon itself */
   iconClassName?: string;
-  /** Whether to show dashed border (default: true) */
+  /** Whether to show dashed border (default: false) */
   bordered?: boolean;
   /** Whether to display a back button */
   showBackButton?: boolean;
@@ -32,7 +32,7 @@ export function EmptyState({
   className,
   iconWrapperClassName,
   iconClassName,
-  bordered = true,
+  bordered = false,
   showBackButton = false,
   action,
 }: EmptyStateProps) {
@@ -48,7 +48,7 @@ export function EmptyState({
     >
       <div
         className={cn(
-          "flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500",
+          "flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-600",
           iconWrapperClassName
         )}
       >

@@ -132,7 +132,6 @@ export function SalesOverviewChart({
             title="Sales Overview"
             description={description ?? getDefaultDescription(currentRange)}
             icon={<BarChart3 className="w-5 h-5" />}
-            iconWrapperClassName="bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400"
             actions={
                 <SelectFilter
                     value={currentRange}

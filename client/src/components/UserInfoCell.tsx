@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Link } from "react-router-dom";
 import UserAvatar from "@/components/UserAvatar";
 import { useAuthStore } from "@/store";
@@ -44,7 +45,7 @@ export interface UserInfoCellProps {
     fallbackText?: string;
 }
 
-export function UserInfoCell({
+export const UserInfoCell = React.memo(function UserInfoCell({
     user: userProp,
     row,
     id: idProp,
@@ -122,6 +123,6 @@ export function UserInfoCell({
             {content}
         </div>
     );
-}
+});
 
 export default UserInfoCell;

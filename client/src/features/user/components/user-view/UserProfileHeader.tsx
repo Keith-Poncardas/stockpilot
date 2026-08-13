@@ -2,14 +2,9 @@ import { Button } from '@/components/ui/button'
 import { Plus, PenSquare, MoreHorizontal } from 'lucide-react'
 import UserAvatar from '@/components/UserAvatar'
 import { ProfileStamp } from '@/components/ProfileViewLayout'
-import type { IUserDetail } from '../../user.types'
+import type { IUserProps } from '../../types'
 
-interface UserProfileHeaderProps {
-    user?: IUserDetail
-    isLoading?: boolean
-}
-
-export function UserProfileHeader({ user, isLoading }: UserProfileHeaderProps) {
+export function UserProfileHeader({ user, isLoading }: IUserProps) {
     if (isLoading) {
         return (
             <>
@@ -61,6 +56,7 @@ export function UserProfileHeader({ user, isLoading }: UserProfileHeaderProps) {
         <>
             {/* Avatar and Name */}
             <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6 relative z-10">
+
                 <UserAvatar
                     fallback={user}
                     role={user?.role}

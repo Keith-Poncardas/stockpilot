@@ -51,3 +51,14 @@ export function InfoRow({
         </div>
     );
 }
+
+function InfoRowSkeleton() {
+    return (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 border-b border-[#F0EEE9] dark:border-zinc-800/60 last:border-0 gap-1 sm:gap-4">
+            <span className="h-4 w-20 bg-slate-100 animate-pulse rounded-md"></span>
+            <span className="h-4 w-24 bg-slate-200 animate-pulse rounded-md"></span>
+        </div>
+    );
+}
+
+InfoRow.Skeleton = InfoRowSkeleton;

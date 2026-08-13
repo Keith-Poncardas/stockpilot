@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 interface MetricCardProps {
-    value: string | number;
+    value?: string | number | null;
     label: string;
     icon: React.ReactNode;
     iconContainerClass?: string;
@@ -18,6 +18,9 @@ export function MetricCard({
     valueClass = 'text-gray-900',
     className = ''
 }: MetricCardProps) {
+    const safeValue = value ?? '-';
+    const displayValue = typeof safeValue === 'number' ? safeValue.toLocaleString() : safeValue;
+
     return (
         <div className={cn(
             "bg-white rounded-2xl border border-[#E3E1DC] p-5 flex items-center justify-between",
@@ -26,7 +29,7 @@ export function MetricCard({
             <div className="flex flex-col gap-1">
                 <span className="text-xs uppercase tracking-wide text-[#9C9A91] font-semibold">{label}</span>
                 <span className={cn("font-display text-2xl font-semibold", valueClass)}>
-                    {value}
+                    {displayValue}
                 </span>
             </div>
             <div className={cn(

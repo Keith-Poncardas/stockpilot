@@ -8,21 +8,21 @@ import {
 /**
  * Type representing the possible user roles in the system.
  */
-export type UserRole = (
+export type UserRoleType = (
     typeof UserRoleConst
 )[keyof typeof UserRoleConst];
 
 /**
  * Type representing the possible account statuses a user can have.
  */
-export type UserStatus = (
+export type UserStatusType = (
     typeof UserStatusConst
 )[keyof typeof UserStatusConst];
 
 /**
  * Type representing the approval lifecycle status of a user's account.
  */
-export type UserApprovalStatus = (
+export type UserApprovalStatusType = (
     typeof UserApprovalStatusConst
 )[keyof typeof UserApprovalStatusConst];
 
@@ -34,9 +34,9 @@ export interface IUser {
     firstName: string;
     lastName: string;
     email: string;
-    role: UserRole;
-    status: UserStatus;
-    approvalStatus: UserApprovalStatus;
+    role: UserRoleType;
+    status: UserStatusType;
+    approvalStatus: UserApprovalStatusType;
     createdAt: string;
     updatedAt: string;
 }
@@ -47,6 +47,14 @@ export interface IUser {
 export interface IUserWithInfo extends IUser {
     salesCount?: number;
     stockMovementsCount?: number;
+}
+
+/**
+ * Type representing the props for the user about card.
+ */
+export interface IUserProps {
+    user?: IUserWithInfo | null;
+    isLoading?: boolean;
 }
 
 /**
@@ -63,5 +71,34 @@ export interface UserMetrics {
  */
 export interface UserRowInfoCellProps {
     row: Row<IUser>;
+}
+
+/**
+ * Type representing an option in a dropdown or selection menu.
+ */
+export type Option = {
+    id: string;
+    label: string;
+    colorClassName?: string;
+    onClick: () => void;
+};
+
+/**
+ * Type representing filters used for building user query filters.
+ */
+export interface UserQueryFilters extends UserFilters {
+    search?: string;
+}
+
+/**
+ * Type representing the filters for user queries.
+ */
+export interface UserFilters {
+    role: string;
+    status: string;
+    approvalStatus: string;
+    dateFrom: string;
+    dateTo: string;
+    acsDesc: string;
 }
 

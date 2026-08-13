@@ -1,4 +1,4 @@
-import type { UserRole } from "@/features/user/user.constants";
+import type { UserRoleType } from "@/features/user/user.constants";
 
 export type ProductStatus = 'ACTIVE' | 'INACTIVE' | 'DISCONTINUED' | 'DRAFT' | 'ARCHIVED';
 
@@ -34,7 +34,7 @@ export interface IStockMovementUser {
     id: string;
     firstName: string;
     lastName: string;
-    role: UserRole;
+    role: UserRoleType;
 }
 
 export type MovementReason =

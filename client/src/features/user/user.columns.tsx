@@ -1,43 +1,25 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { getRoleColor, getStatusColor, getApprovalStatusColor, cn, formatDate } from "@/lib/utils"
-import { Checkbox } from "@/components/ui/checkbox"
-import { StatusCell, UserInfoCell, RoleCell, ApprovalStatusCell, ActionsCell } from "./components/cells"
-import type { IUser } from "./user.types"
+import {
+  getRoleColor,
+  getStatusColor,
+  getApprovalStatusColor,
+  cn,
+  formatDate
+} from "@/lib/utils"
+import {
+  StatusCell,
+  UserInfoCell,
+  RoleCell,
+  ApprovalStatusCell,
+  ActionsCell
+} from "./components/cells"
+import type { IUser } from "./types";
 
-// --- Columns Definition ---
+const badgeCellClass = "p-0 text-center text-xs font-semibold tracking-wide h-[1px]";
 
 export const columns: ColumnDef<IUser>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        className="rounded-none border-gray-400"
-        checked={
-          table.getIsAllPageRowsSelected()
-            ? true
-            : table.getIsSomePageRowsSelected()
-              ? "indeterminate"
-              : false
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        className="rounded-none border-gray-400"
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        disabled={row.original.status === 'TERMINATED'}
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-    size: 48,
-  },
-  {
-    accessorKey: "name",
+    id: "name",
     header: "Name",
     cell: ({ row }) => <UserInfoCell row={row} />,
     size: 280,
@@ -56,10 +38,7 @@ export const columns: ColumnDef<IUser>[] = [
     accessorKey: "role",
     header: () => <div className="text-center">Role</div>,
     meta: {
-      cellClassName: (row: IUser) => cn(
-        "p-0 text-center text-xs font-semibold tracking-wide h-[1px]",
-        getRoleColor(row.role)
-      ),
+      cellClassName: (row: IUser) => cn(badgeCellClass, getRoleColor(row.role)),
     },
     cell: ({ row }) => <RoleCell row={row} />,
     size: 130,
@@ -68,19 +47,16 @@ export const columns: ColumnDef<IUser>[] = [
     accessorKey: "status",
     header: () => <div className="text-center">Status</div>,
     meta: {
-      cellClassName: (row: IUser) => cn(
-        "p-0 text-center text-xs font-semibold tracking-wide h-[1px]",
-        getStatusColor(row.status)
-      ),
+      cellClassName: (row: IUser) => cn(badgeCellClass, getStatusColor(row.status)),
     },
     cell: ({ row }) => <StatusCell row={row} />,
     size: 130,
   },
   {
-    accessorKey: "approval-status",
+    accessorKey: "approvalStatus",
     header: () => <div className="text-center">Approval Status</div>,
     meta: {
-      cellClassName: (row: IUser) => cn("p-0 text-center text-xs font-semibold tracking-wide h-[1px]", getApprovalStatusColor(row.approvalStatus)),
+      cellClassName: (row: IUser) => cn(badgeCellClass, getApprovalStatusColor(row.approvalStatus)),
     },
     cell: ({ row }) => <ApprovalStatusCell row={row} />,
     size: 130,

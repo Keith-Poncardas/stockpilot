@@ -81,3 +81,13 @@ export function handleGraphQLError(err: any): string {
 
   return err?.message || "An unexpected error occurred.";
 }
+
+export function cleanObject<T extends Record<string, any>>(obj: T): Partial<T> {
+  const cleaned: Partial<T> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined && value !== null && value !== '') {
+      cleaned[key as keyof T] = value;
+    }
+  }
+  return cleaned;
+}

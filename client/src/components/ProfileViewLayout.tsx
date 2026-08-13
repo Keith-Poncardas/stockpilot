@@ -97,7 +97,7 @@ export function ProfileViewLayout({
 
     return (
         <div className="w-full min-h-[calc(100vh-4rem)]">
-            {/* ── Cover Photo Banner ────────────────────────────────────────── */}
+
             <div
                 className={cn(
                     'h-48 md:h-52 w-full relative flex justify-center items-end rounded-b-xl border-b border-gray-200 bg-linear-to-r from-slate-800 via-indigo-950 to-slate-800',
@@ -168,7 +168,6 @@ export function ProfileViewLayout({
                         )}
                     </div>
 
-                    {/* ── Tabs Navigation ─────────────────────────────────────── */}
                     {isLoading ? (
                         <div className="flex flex-row items-center gap-4 pt-4 pb-2 overflow-x-auto no-scrollbar">
                             {[20, 20, 24].map((w, i) => (
@@ -205,7 +204,6 @@ export function ProfileViewLayout({
                 </div>
             </div>
 
-            {/* ── Main Content Area ─────────────────────────────────────────── */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 {children}
             </div>

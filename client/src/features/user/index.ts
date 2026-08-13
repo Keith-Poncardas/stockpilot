@@ -1,4 +1,4 @@
 export * from "./layouts";
 export * from "./pages";
-export * from "./user.types";
-export * from "./user.constants";
+export * from "./contants";
+export * from "./types";
