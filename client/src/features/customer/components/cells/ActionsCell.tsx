@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import type { CustomerRowProps } from "../../customer.types";
 import { useNavigate } from "react-router-dom";
+import { useCallback } from "react";
+import { PATHS } from "@/routes";
 
 export function ActionsCell({ row }: CustomerRowProps) {
     const navigate = useNavigate();
 
-    function handleViewClick() {
-        navigate(`/customers/${row.original.id}/view`);
-    }
+    const handleViewClick = useCallback(() => {
+        navigate(PATHS.customers.view(row.original.id));
+    }, [navigate, row.original.id]);
 
     return (
         <div className="flex justify-center">

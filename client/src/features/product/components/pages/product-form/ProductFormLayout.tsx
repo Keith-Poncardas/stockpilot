@@ -1,7 +1,7 @@
 import { useFormState, useWatch } from "react-hook-form";
 import { Button, ButtonLoading } from "@/components/ui/button";
 import { MobileActionBar } from "@/components/ui/mobile-action-bar";
-import { Header } from "../../Header";
+import { Header } from "@/components/Header";
 import { BasicDetails, Pricing, InventorySetup } from "../create-product-page";
 import Alert from "@/components/ui/alert";
 import { ProductPreview } from "@/components/ProductPreview";

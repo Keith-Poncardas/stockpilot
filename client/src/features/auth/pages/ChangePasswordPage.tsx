@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
+import { PATHS } from "@/routes";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Check } from "lucide-react";
@@ -51,7 +52,7 @@ export function ChangePasswordPage() {
             setSuccess(true);
             setTimeout(() => {
                 sessionStorage.removeItem("auth_email_change-password");
-                navigate("/login", { replace: true });
+                navigate(PATHS.auth.login, { replace: true });
             }, 3000);
         } catch (err: any) {
             setError(handleGraphQLError(err));

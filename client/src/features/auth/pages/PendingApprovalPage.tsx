@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { PATHS } from "@/routes";
 import { useAuthStore } from "@/store";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ export function PendingApprovalPage() {
 
     useEffect(() => {
         if (user?.status === UserStatus.ACTIVE && user?.role !== UserRole.UNASSIGNED) {
-            navigate("/", { replace: true });
+            navigate(PATHS.dashboard.root, { replace: true });
         }
     }, [user, navigate]);
 
@@ -39,7 +40,7 @@ export function PendingApprovalPage() {
     const handleLogout = () => {
         logout();
         client.clearStore();
-        navigate("/login", { replace: true });
+        navigate(PATHS.auth.login, { replace: true });
     };
 
     return (

@@ -12,6 +12,7 @@ import { useMutation } from "@apollo/client";
 import { SIGN_UP } from "../operations";
 
 import { useNavigate } from "react-router-dom";
+import { PATHS } from "@/routes";
 import { handleGraphQLError } from "@/lib/utils";
 
 export function SignupPage() {
@@ -37,7 +38,7 @@ export function SignupPage() {
             await signUp({ variables: { input } });
             sessionStorage.setItem("auth_email_otp", data.email);
             sessionStorage.setItem("auth_mode_otp", "signup");
-            navigate(`/otp?email=${encodeURIComponent(data.email)}`);
+            navigate(`${PATHS.auth.otp}?email=${encodeURIComponent(data.email)}`);
         } catch (err: any) {
             setError(handleGraphQLError(err));
         }

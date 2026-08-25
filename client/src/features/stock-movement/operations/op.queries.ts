@@ -44,6 +44,12 @@ export const GET_ALL_STOCK_MOVEMENTS = gql`
     }
 `;
 
+
+/**
+ * GraphQL query to fetch dashboard metrics related to stock movements.
+ * Retrieves aggregate totals for stock in, stock out, stock adjustments,
+ * and the count of low stock products.
+ */
 export const GET_STOCK_MOVEMENT_DASHBOARD_METRICS = gql`
     query GetStockMovementDashboardMetrics {
         getStockMovementDashboardMetrics {

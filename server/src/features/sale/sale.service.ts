@@ -90,93 +90,7 @@ export class SaleService {
      * @param saleItems - Sale items containing the products and quantities sold.
      * @param userId - ID of the user performing the status change.
      */
-    private async processDeductionOnCompletion(
-        tx: Prisma.TransactionClient,
-        saleWasCompleted: boolean,
-        newStatusIsCompleted: boolean,
-        saleItems: SaleItemData[],
-        userId: UUIDInput
-    ) {
-        const isCompletedSaleTransition =
-            !saleWasCompleted &&
-            newStatusIsCompleted;
 
-        if (!isCompletedSaleTransition) return;
-
-        await this.deduction(
-            tx,
-            saleItems,
-            userId,
-            (ref) => `Sold in POS sale #${ref} (Status updated to COMPLETED)`
-        );
-    }
-
-    /**
-     * Processes inventory changes for a cancelled or refunded sale by restocking the
-     * sold quantity to each product's inventory and recording the corresponding IN stock movements.
-     *
-     * @param tx - Prisma transaction client used to execute inventory updates atomically.
-     * @param items - Sale items containing the products and quantities to be restocked.
-     * @param userId - ID of the user performing the restock.
-     * @param status - The sale status that triggered the restock (e.g., REFUNDED or VOIDED).
-     */
-    private async restock(
-        tx: Prisma.TransactionClient,
-        items: SaleItemData[],
-        userId: UUIDInput,
-        status: SaleStatus
-    ) {
-        const { inventoryUpdateInternal } = inventoryService;
-        const { recordStockMovement } = stockMovementsService;
-
-        const isRefunded = status === SaleStatus.REFUNDED;
-
-        const reason = isRefunded ?
-            MovementReason.RETURN :
-            MovementReason.ADJUSTMENT;
-
-        for (const item of items) {
-            await inventoryUpdateInternal(tx, item.productId, {
-                quantityOnHand: {
-                    increment: item.quantity,
-                },
-            });
-
-            await recordStockMovement(tx, "SALE", (ref) => ({
-                productId: item.productId,
-                userId,
-                type: MovementType.IN,
-                quantity: item.quantity,
-                reason,
-                notes: `Restocked from ${status.toLowerCase()} sale #${ref}`,
-            }));
-        }
-    }
-
-    /**
-     * Conditionally processes inventory restocking when a sale's status changes.
-     * Restocking only occurs if the sale was previously completed and is now being refunded or voided.
-     *
-     * @param tx - Prisma transaction client used to execute inventory updates atomically.
-     * @param saleWasCompleted - Flag indicating whether the sale was previously in a completed state.
-     * @param status - The new status being applied to the sale.
-     * @param saleItems - Sale items containing the products and quantities to be restocked.
-     * @param userId - ID of the user performing the status change.
-     */
-    private async processRestock(
-        tx: Prisma.TransactionClient,
-        saleWasCompleted: boolean,
-        status: SaleStatus,
-        saleItems: SaleItemData[],
-        userId: UUIDInput
-    ) {
-        const isVoided = status === SaleStatus.VOIDED;
-        const isRefunded = status === SaleStatus.REFUNDED;
-        const isRefundedOrVoided = isRefunded || isVoided;
-
-        if (!saleWasCompleted || !isRefundedOrVoided) return;
-        await this.restock(tx, saleItems, userId, status);
-    }
 
     /**
      * Retrieves summary metrics for sales.
@@ -234,7 +148,7 @@ export class SaleService {
             where: {
                 id: { in: productIds },
             },
-            include: { inventory: { select: { quantityOnHand: true } } },
+            include: { inventory: { select: { quantityOnHand: true, quantityReserved: true } } },
         });
 
         const productMap = new Map(products.map((p) => [p.id, p]));
@@ -283,24 +197,187 @@ export class SaleService {
     }
 
     /**
-     * Conditionally processes inventory deductions during sale creation.
-     * Deductions are only applied if the sale is marked as completed.
-     *
-     * @param tx - Prisma transaction client used to execute inventory updates atomically.
-     * @param isCompleted - Flag indicating whether the sale is completed.
-     * @param items - Sale items containing the products and quantities sold.
-     * @param userId - ID of the user creating the sale.
+     * Processes initial inventory allocation on sale creation.
      */
-    private async processDeductionOnCreation(
+    private async processInventoryOnCreation(
         tx: Prisma.TransactionClient,
-        isCompleted: boolean,
+        status: SaleStatus,
         items: SaleItemData[],
         userId: UUIDInput
     ) {
-        if (!isCompleted) return;
-        await this.deduction(tx, items, userId);
+        if (status === SaleStatus.COMPLETED) {
+            await this.deduction(tx, items, userId);
+        } else if (status === SaleStatus.PENDING) {
+            await this.reserve(tx, items);
+        }
     }
 
+    /**
+     * Reserves stock for a list of items by incrementing the quantityReserved.
+     */
+    private async reserve(
+        tx: Prisma.TransactionClient,
+        items: SaleItemData[]
+    ) {
+        const { inventoryUpdateInternal } = inventoryService;
+        for (const item of items) {
+            await inventoryUpdateInternal(tx, item.productId, {
+                quantityReserved: {
+                    increment: item.quantity,
+                },
+            });
+        }
+    }
+
+    /**
+     * Consumes stock from reserved quantity and reduces physical inventory.
+     */
+    private async consumeReservedStock(
+        tx: Prisma.TransactionClient,
+        items: SaleItemData[],
+        userId: UUIDInput,
+        saleId: string
+    ) {
+        const { inventoryUpdateInternal } = inventoryService;
+        const { recordStockMovement } = stockMovementsService;
+
+        for (const item of items) {
+            await inventoryUpdateInternal(tx, item.productId, {
+                quantityOnHand: {
+                    decrement: item.quantity,
+                },
+                quantityReserved: {
+                    decrement: item.quantity,
+                },
+            });
+
+            await recordStockMovement(tx, "SALE", () => ({
+                productId: item.productId,
+                userId,
+                type: MovementType.OUT,
+                quantity: item.quantity,
+                reason: MovementReason.SALE,
+                notes: `Sold in POS sale #${saleId} (Status updated from PENDING to COMPLETED)`,
+            }));
+        }
+    }
+
+    /**
+     * Releases reserved stock without any physical stock movement.
+     */
+    private async releaseReservation(
+        tx: Prisma.TransactionClient,
+        items: SaleItemData[]
+    ) {
+        const { inventoryUpdateInternal } = inventoryService;
+        for (const item of items) {
+            await inventoryUpdateInternal(tx, item.productId, {
+                quantityReserved: {
+                    decrement: item.quantity,
+                },
+            });
+        }
+    }
+
+    /**
+     * Restocks completed items back to physical inventory and logs an IN movement.
+     */
+    private async restock(
+        tx: Prisma.TransactionClient,
+        items: SaleItemData[],
+        userId: UUIDInput,
+        saleId: string,
+        status: SaleStatus
+    ) {
+        const { inventoryUpdateInternal } = inventoryService;
+        const { recordStockMovement } = stockMovementsService;
+
+        const isRefunded = status === SaleStatus.REFUNDED;
+        const reason = isRefunded ? MovementReason.RETURN : MovementReason.ADJUSTMENT;
+
+        for (const item of items) {
+            await inventoryUpdateInternal(tx, item.productId, {
+                quantityOnHand: {
+                    increment: item.quantity,
+                },
+            });
+
+            await recordStockMovement(tx, "SALE", () => ({
+                productId: item.productId,
+                userId,
+                type: MovementType.IN,
+                quantity: item.quantity,
+                reason,
+                notes: `Restocked from ${status.toLowerCase()} sale #${saleId}`,
+            }));
+        }
+    }
+
+    /**
+     * Puts a completed sale back to pending state by physically restocking it and reserving it again.
+     */
+    private async returnCompletedToPending(
+        tx: Prisma.TransactionClient,
+        items: SaleItemData[],
+        userId: UUIDInput,
+        saleId: string
+    ) {
+        const { inventoryUpdateInternal } = inventoryService;
+        const { recordStockMovement } = stockMovementsService;
+
+        for (const item of items) {
+            await inventoryUpdateInternal(tx, item.productId, {
+                quantityOnHand: {
+                    increment: item.quantity,
+                },
+                quantityReserved: {
+                    increment: item.quantity,
+                },
+            });
+
+            await recordStockMovement(tx, "SALE", () => ({
+                productId: item.productId,
+                userId,
+                type: MovementType.IN,
+                quantity: item.quantity,
+                reason: MovementReason.ADJUSTMENT,
+                notes: `Returned to pending state from completed sale #${saleId}`,
+            }));
+        }
+    }
+
+    /**
+     * Processes inventory alterations when transitioning sale statuses.
+     */
+    private async processInventoryOnStatusChange(
+        tx: Prisma.TransactionClient,
+        oldStatus: SaleStatus,
+        newStatus: SaleStatus,
+        items: SaleItemData[],
+        userId: UUIDInput,
+        saleId: string
+    ) {
+        const saleWasCompleted = oldStatus === SaleStatus.COMPLETED;
+        const saleWasPending = oldStatus === SaleStatus.PENDING;
+        const newStatusIsCompleted = newStatus === SaleStatus.COMPLETED;
+        const newStatusIsPending = newStatus === SaleStatus.PENDING;
+        const newStatusIsVoided = newStatus === SaleStatus.VOIDED;
+        const newStatusIsRefunded = newStatus === SaleStatus.REFUNDED;
+        const newStatusIsVoidedOrRefunded = newStatusIsVoided || newStatusIsRefunded;
+
+        if (saleWasPending && newStatusIsCompleted) {
+            await this.consumeReservedStock(tx, items, userId, saleId);
+        }
+        else if (saleWasPending && newStatusIsVoidedOrRefunded) {
+            await this.releaseReservation(tx, items);
+        }
+        else if (saleWasCompleted && newStatusIsVoidedOrRefunded) {
+            await this.restock(tx, items, userId, saleId, newStatus);
+        }
+        else if (saleWasCompleted && newStatusIsPending) {
+            await this.returnCompletedToPending(tx, items, userId, saleId);
+        }
+    }
     /**
      * Executes a raw SQL query to aggregate sales data over a specified time range.
      * 
@@ -386,6 +463,16 @@ export class SaleService {
      */
     async saleCount(where?: Prisma.SaleWhereInput) {
         return await prisma.sale.count({ where })
+    }
+
+    /**
+     * Counts the total number of sale items matching the given criteria.
+     *
+     * @param where - Optional Prisma filter conditions.
+     * @returns The total count of matching sale items.
+     */
+    async saleItemCount(where?: Prisma.SaleItemWhereInput) {
+        return await prisma.saleItem.count({ where });
     }
 
     /**
@@ -602,7 +689,6 @@ export class SaleService {
         await this.ensureSaleItemProductExist(items, status);
 
         const totalAmount = calculateTotalAmount(items);
-        const statusCompleted = status === SaleStatus.COMPLETED;
         const customerId = customerIdUnsafe ?? null;
         const saleItems = { create: formatSaleItems(items) };
 
@@ -619,12 +705,7 @@ export class SaleService {
                 },
             });
 
-            await this.processDeductionOnCreation(
-                tx,
-                statusCompleted,
-                items,
-                userId
-            );
+            await this.processInventoryOnCreation(tx, status, items, userId);
 
             return sale;
         });
@@ -634,16 +715,9 @@ export class SaleService {
     /**
      * Changes the status of an existing sale.
      * 
-     * This method handles the full lifecycle of a sale status change, including:
-     * - Validating that the current status is mutable (not VOIDED or REFUNDED).
-     * - Validating that all sale items correspond to existing products if completing the sale.
-     * - Managing inventory deductions when transitioning to a COMPLETED status.
-     * - Managing inventory restocking when transitioning from COMPLETED to REFUNDED or VOIDED.
-     *
      * @param userId - ID of the user initiating the status change.
      * @param input - Contains the sale ID and the new status to apply.
      * @returns The updated sale record.
-     * @throws {Error} If the sale doesn't exist, is in an immutable state, or validation fails.
      */
     async changeSaleStatus(userId: UUIDInput, input: ChangeSaleStatusInput) {
         const { saleId, status } = input;
@@ -672,26 +746,18 @@ export class SaleService {
                 data: { status }
             });
 
-            await this.processDeductionOnCompletion(
+            await this.processInventoryOnStatusChange(
                 tx,
-                saleWasCompleted,
-                newStatusIsCompleted,
-                sale.saleItems,
-                userId
-            );
-
-            await this.processRestock(
-                tx,
-                saleWasCompleted,
+                sale.status,
                 status,
                 sale.saleItems,
-                userId
+                userId,
+                saleId
             );
 
             return updated;
         });
     }
-
 }
 
 export const saleService = new SaleService();

@@ -1,2 +1,2 @@
-export * from "./StockMovementPage";
-export * from "./StockMovementDetailsPage";
+export * from "./stock-movement-page/StockMovementPage";
+export * from "./stock-movement-details-page/StockMovementDetailsPage";

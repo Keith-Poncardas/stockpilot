@@ -1,5 +1,6 @@
 import { useState, type SyntheticEvent } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
+import { PATHS } from "@/routes";
 import { ButtonLoading } from "@/components/ui/button";
 import { AuthHeading } from "../components";
 import Alert from "@/components/ui/alert";
@@ -87,7 +88,7 @@ export function OTPPage() {
                 // Seed the change-password session before navigating.
                 // OTP keys are cleared by ChangePasswordPage on mount.
                 sessionStorage.setItem("auth_email_change-password", email || "");
-                navigate(`/change-password?email=${email}`, {
+                navigate(`${PATHS.auth.changePassword}?email=${email}`, {
                     replace: true,
                     state: {
                         otpVerified: true,

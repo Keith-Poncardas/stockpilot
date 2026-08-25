@@ -5,17 +5,19 @@ import { Button } from '@/components/ui/button'
 import { Eye, SlidersHorizontal } from 'lucide-react'
 import type { InventoryRowProps } from '../inventory.types'
 import { useNavigate } from 'react-router-dom'
+import { useCallback } from 'react'
+import { PATHS } from '@/routes'
 
 export function InventoryActionsCell({ row }: InventoryRowProps) {
     const navigate = useNavigate();
 
-    function handleAdjustClick() {
-        navigate(`/inventory/${row.original.id}/adjust`);
-    }
+    const handleAdjustClick = useCallback(() => {
+        navigate(PATHS.inventory.adjust(row.original.id));
+    }, [navigate, row.original.id]);
 
-    function handleViewProductClick() {
-        navigate(`/products/${row.original.product.id}/view`);
-    }
+    const handleViewProductClick = useCallback(() => {
+        navigate(PATHS.products.view(row.original.product.id));
+    }, [navigate, row.original.product.id]);
 
     return (
         <div className="flex justify-center">

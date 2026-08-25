@@ -328,7 +328,6 @@ export class InventoryService {
         return tx.inventory.create({ data: inventoryData });
     }
 
-
     /**
      * Ensures that a product with the given ID exists.
      *

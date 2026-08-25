@@ -4,7 +4,7 @@ import { CHANGE_PRODUCT_STATUS, GET_PRODUCT_METRICS } from "../../operations";
 import { getOptions } from "@/features/user/user.utils";
 import { getProductStatusColor } from "../../product.utils";
 import ActionPopover from "@/components/ActionPopover";
-import { ActionCellContent } from "@/features/user/components/cells/ActionCellContent";
+import { ActionCellContent } from "@/components/common/action-cell-content/ActionCellContent";
 
 import type { ProductRowInfoCellProps } from "../../product.types";
 

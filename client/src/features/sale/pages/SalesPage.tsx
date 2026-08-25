@@ -1,149 +1,114 @@
 import * as React from 'react';
 import { useQuery } from '@apollo/client';
-import {
-    ShoppingCart,
-    TrendingUp,
-    BarChart2,
-    RefreshCcw,
-    Filter,
-    SlidersHorizontal,
-    ServerCrash,
-    Plus,
-} from 'lucide-react';
-import { columns } from '../sale.columns';
-import { GET_SALES, GET_SALE_METRICS } from '../operations';
+import { ShoppingCart, ServerCrash, Plus } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useDataTable } from '@/hooks/useDataTable';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import { useDateRangeValidation } from '@/hooks/useDateRangeValidation';
 import { DataTableLayout } from '@/components/ui/data-table-layout';
-import { DataTableToolbar } from '@/components/ui/data-table-toolbar';
-import { SelectFilter } from '@/components/ui/select-filter';
-import { DatePicker } from '@/components/ui/date-picker';
-import { MetricCard } from '@/components/MetricCard';
-import { FilterPopover } from '@/components/FilterPopover';
-import { EmptyState } from '@/components/ui/empty-state';
 import SectionHeader from '@/components/SectionHeader';
+import { EmptyState } from '@/components/ui/empty-state';
+import { MetricCard } from '@/components/MetricCard';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
-import {
-    saleStatusOptions,
-    saleOrderByOptions,
-    saleOrderDirectionOptions,
-} from '../sale.constants';
 import { useNavigate } from 'react-router-dom';
+import { PATHS } from '@/routes';
 
+import { columns } from '../sale.columns';
+import { GET_SALES, GET_SALE_METRICS } from '../operations';
+import { SaleTableToolbar } from '../components';
+import { getFilterOptions, getMetricsCards, buildSaleQueryFilter } from '../sale.options';
+import type { ISaleFilters } from '../types';
+
+/**
+ * Renders the main sales page with metric cards, search toolbar, and a paginated table.
+ *
+ * This component acts as the orchestrator for the sales log feature, integrating
+ * metrics visualization, advanced search, state filters, andTanStack table results.
+ *
+ * @returns {JSX.Element} The rendered SalesPage component.
+ */
 export function SalesPage() {
+    const [search, setSearch] = React.useState('');
+    const debouncedSearch = useDebounce(search, 500);
 
-    // ── 1. Search state ────────────────────────────────────────────────────────
-    const [globalFilter, setGlobalFilter] = React.useState('');
-    const debouncedSearch = useDebounce(globalFilter, 500);
-
-    // ── 2. Filter states ───────────────────────────────────────────────────────
-    const [statusFilter, setStatusFilter] = React.useState('');
-    const [paymentMethodFilter, setPaymentMethodFilter] = React.useState('');
-    const [orderByFilter, setOrderByFilter] = React.useState('');
-    const [orderDirectionFilter, setOrderDirectionFilter] = React.useState('');
-    const [dateFrom, setDateFrom] = React.useState('');
-    const [dateTo, setDateTo] = React.useState('');
-
-    const dateError =
-        dateFrom && dateTo && new Date(dateFrom) > new Date(dateTo)
-            ? 'Start Date must be before or equal to End Date'
-            : null;
-
-    // ── 3. Data table hook ─────────────────────────────────────────────────────
-    const { table, queryParams, setQueryData, setPagination } = useDataTable({
-        columns,
-        initialPageSize: 20,
+    const [filters, setFilters] = React.useState<ISaleFilters>({
+        status: '',
+        paymentMethod: '',
+        orderBy: '',
+        orderDirection: '',
+        dateFrom: '',
+        dateTo: '',
     });
 
-    // Reset to page 1 whenever any filter changes
-    React.useEffect(() => {
-        setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-    }, [
-        debouncedSearch,
-        statusFilter,
-        paymentMethodFilter,
+    const {
+        dateError,
         dateFrom,
-        dateTo,
-        orderByFilter,
-        orderDirectionFilter,
-        setPagination,
-    ]);
+        dateTo
+    } = useDateRangeValidation(filters.dateFrom, filters.dateTo);
 
-    // ── 4. Sales list query (paginated) ────────────────────────────────────────
-    const { loading, error, refetch, data } = useQuery(GET_SALES, {
-        variables: {
+    const {
+        table,
+        loading,
+        error,
+        refetch,
+        isEmpty,
+    } = usePaginatedQuery({
+        query: GET_SALES,
+        columns,
+        initialPageSize: 10,
+        filters: {
+            search: debouncedSearch,
+            ...filters,
+        },
+        buildVariables: React.useCallback(({ queryParams, filters }) => ({
             args: {
                 page: queryParams.page,
                 limit: queryParams.limit,
-                filter: {
-                    search: debouncedSearch || undefined,
-                    status: statusFilter || undefined,
-                    paymentMethod: paymentMethodFilter || undefined,
-                    dateFrom: dateError ? undefined : (dateFrom || undefined),
-                    dateTo: dateError ? undefined : (dateTo || undefined),
-                    orderBy: orderByFilter || (queryParams.orderBy || 'saleDate'),
-                    orderDirection: orderDirectionFilter || (queryParams.orderDirection || 'desc'),
-                },
-            },
-        },
+                filter: buildSaleQueryFilter(
+                    filters,
+                    queryParams,
+                    dateFrom,
+                    dateTo
+                ),
+            }
+        }), [dateFrom, dateTo]),
+    });
+
+    const {
+        data: metricsData,
+        loading: isMetricsLoading
+    } = useQuery(GET_SALE_METRICS, {
         fetchPolicy: 'cache-and-network',
         notifyOnNetworkStatusChange: true,
     });
 
-    // ── 5. KPI metrics query (independent — loads regardless of table state) ──
-    const { data: metricsData, loading: metricsLoading } = useQuery(GET_SALE_METRICS, {
-        fetchPolicy: 'cache-and-network',
-        notifyOnNetworkStatusChange: true,
-    });
-
-    // ── 6. Push API data into the table ───────────────────────────────────────
-    React.useEffect(() => {
-        if (data?.getSales) {
-            setQueryData({
-                data: data.getSales.data,
-                meta: data.getSales.meta,
-            });
-        }
-    }, [data, setQueryData]);
-
-    // ── 7. Derived state ──────────────────────────────────────────────────────
-    const isEmpty = !loading && !error && table.getRowModel().rows?.length === 0;
-    const metrics = metricsData?.getSalesMetrics;
-
-    const hasActiveFilters = !!(
-        globalFilter ||
-        statusFilter ||
-        paymentMethodFilter ||
-        dateFrom ||
-        dateTo ||
-        orderByFilter ||
-        orderDirectionFilter
-    );
-
-    // ── 8. Handlers ───────────────────────────────────────────────────────────
-    function refresh() {
+    const refresh = React.useCallback(() => {
         refetch();
-        setGlobalFilter('');
-    }
+        setSearch('');
+    }, [refetch]);
 
-    function resetFilters() {
-        setStatusFilter('');
-        setPaymentMethodFilter('');
-        setOrderByFilter('');
-        setOrderDirectionFilter('');
-        setDateFrom('');
-        setDateTo('');
-        setGlobalFilter('');
-    }
+    const handleReset = React.useCallback(() => {
+        setFilters({
+            status: '',
+            paymentMethod: '',
+            orderBy: '',
+            orderDirection: '',
+            dateFrom: '',
+            dateTo: '',
+        });
+        setSearch('');
+    }, []);
+
+    const filterOptions = React.useMemo(() => getFilterOptions(filters, setFilters), [filters, setFilters]);
+
+    const metrics = React.useMemo(() => getMetricsCards(metricsData, formatCurrency), [metricsData]);
 
     const navigate = useNavigate();
 
-    function handleNewSale() {
-        navigate("/sales/pos");
-    }
+    const handleNewSale = React.useCallback(() => {
+        navigate(PATHS.sales.pos);
+    }, [navigate]);
 
-    // ── Render ────────────────────────────────────────────────────────────────
     return (
         <>
             <SectionHeader
@@ -151,133 +116,40 @@ export function SalesPage() {
                 subtitle="Track transactions, monitor revenue, and review sales performance"
                 icon={ShoppingCart}
                 actions={
-                    <Button size='lg' onClick={handleNewSale}>
-                        <Plus />
+                    <Button size="lg" onClick={handleNewSale}>
+                        <Plus className="w-4 h-4 mr-2" />
                         New Sale
                     </Button>
                 }
             />
 
-            {/* ── KPI Cards ──────────────────────────────────────────────────── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {metricsLoading ? (
-                    <>
-                        <MetricCard.Skeleton />
-                        <MetricCard.Skeleton />
-                        <MetricCard.Skeleton />
-                        <MetricCard.Skeleton />
-                    </>
-                ) : (
-                    <>
-                        <MetricCard
-                            value={
-                                metrics?.totalRevenue !== undefined
-                                    ? formatCurrency(metrics.totalRevenue)
-                                    : '—'
-                            }
-                            label="Total Revenue"
-                            icon={<TrendingUp className="w-5 h-5" />}
-                            iconContainerClass="bg-emerald-50 text-emerald-600"
-                        />
-                        <MetricCard
-                            value={metrics?.totalTransactions?.toLocaleString() ?? '—'}
-                            label="Total Transactions"
-                            icon={<ShoppingCart className="w-5 h-5" />}
-                            iconContainerClass="bg-blue-50 text-blue-600"
-                        />
-                        <MetricCard
-                            value={
-                                metrics?.completedSales !== undefined
-                                    ? metrics.completedSales.toLocaleString()
-                                    : '—'
-                            }
-                            label="Completed Sales"
-                            icon={<BarChart2 className="w-5 h-5" />}
-                            iconContainerClass="bg-violet-50 text-violet-600"
-                        />
-                        <MetricCard
-                            value={metrics?.refundedOrVoidedCount?.toLocaleString() ?? '—'}
-                            label="Refunded / Voided"
-                            icon={<RefreshCcw className="w-5 h-5" />}
-                            iconContainerClass="bg-amber-50 text-amber-600"
-                        />
-                    </>
-                )}
+                {!isMetricsLoading ? metrics.map((metric, idx) => (
+                    <MetricCard
+                        key={idx}
+                        value={metric.value}
+                        label={metric.label}
+                        icon={metric.icon}
+                        iconContainerClass={metric.iconContainerClass}
+                    />
+                )) :
+                    metrics.map((_, idx) => (
+                        <MetricCard.Skeleton key={idx} />
+                    ))
+                }
             </div>
 
-            {/* ── Toolbar ────────────────────────────────────────────────────── */}
-            <DataTableToolbar
-                searchQuery={globalFilter}
-                setSearchQuery={setGlobalFilter}
-                searchPlaceholder="Search by customer or cashier…"
+            <SaleTableToolbar
+                search={search}
+                setSearch={setSearch}
+                filters={filters}
+                setFilters={setFilters}
+                filterOptions={filterOptions}
+                dateError={dateError}
                 onRefresh={refresh}
-                hasActiveFilters={hasActiveFilters}
-                onResetFilters={resetFilters}
-            >
-                {/* Status & Sort popover */}
-                <FilterPopover
-                    title="Status & Sort"
-                    description="Filter sales by status and sort order."
-                    icon={Filter}
-                    contentClassName="w-96 p-4"
-                >
-                    <div className="grid grid-cols-2 gap-3">
-                        <SelectFilter
-                            value={statusFilter}
-                            onChange={setStatusFilter}
-                            options={saleStatusOptions}
-                            className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
-                        />
-                        <SelectFilter
-                            value={orderByFilter}
-                            onChange={setOrderByFilter}
-                            options={saleOrderByOptions}
-                            defaultValue="saleDate"
-                            className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
-                        />
-                        <SelectFilter
-                            value={orderDirectionFilter}
-                            onChange={setOrderDirectionFilter}
-                            options={saleOrderDirectionOptions}
-                            defaultValue="desc"
-                            className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200 col-span-2"
-                        />
-                    </div>
-                </FilterPopover>
+                onResetFilters={handleReset}
+            />
 
-                {/* Date range popover */}
-                <FilterPopover
-                    title="Date Range"
-                    description="Filter sales by transaction date."
-                    icon={SlidersHorizontal}
-                    contentClassName="w-80 p-4"
-                >
-                    <div className="flex flex-col gap-1.5">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                            Sale Date
-                        </p>
-                        <div className="grid grid-cols-2 gap-2">
-                            <DatePicker
-                                value={dateFrom}
-                                onChange={setDateFrom}
-                                placeholder="Start Date"
-                                className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
-                            />
-                            <DatePicker
-                                value={dateTo}
-                                onChange={setDateTo}
-                                placeholder="End Date"
-                                className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
-                            />
-                        </div>
-                        {dateError && (
-                            <p className="text-xs text-red-500 font-medium">{dateError}</p>
-                        )}
-                    </div>
-                </FilterPopover>
-            </DataTableToolbar>
-
-            {/* ── Table ──────────────────────────────────────────────────────── */}
             <DataTableLayout
                 table={table}
                 isLoading={loading}

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PATHS } from '@/routes';
 import { useQuery } from '@apollo/client';
 import { Button } from '@/components/ui/button';
 import { Users, UserPlus, TrendingUp, Repeat2, Filter, SlidersHorizontal, ServerCrash } from 'lucide-react';
@@ -114,7 +115,7 @@ export function CustomerPage() {
     const navigate = useNavigate();
 
     function handleAddCustomer() {
-        navigate('/customers/new');
+        navigate(PATHS.customers.new);
     }
 
     return (

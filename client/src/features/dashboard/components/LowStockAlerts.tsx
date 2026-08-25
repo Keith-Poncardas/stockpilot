@@ -10,7 +10,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { ActionCellContent } from "@/features/user/components/cells/ActionCellContent";
+import { PATHS } from "@/routes";
+import { ActionCellContent } from "@/components/common/action-cell-content/ActionCellContent";
 import {
     getStockStatusColor,
     getStockStatusLabel,
@@ -90,7 +91,7 @@ export function LowStockAlerts({
         if (onReviewAll) {
             onReviewAll();
         } else {
-            navigate("/inventory");
+            navigate(PATHS.inventory.root);
         }
     };
 

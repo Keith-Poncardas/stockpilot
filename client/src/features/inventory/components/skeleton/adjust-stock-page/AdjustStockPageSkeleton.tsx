@@ -1,4 +1,4 @@
-import { Header } from "@/features/product/components";
+import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { SlidersHorizontal } from "lucide-react";
 import type { Control } from "react-hook-form";

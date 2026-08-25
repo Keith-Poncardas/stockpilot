@@ -141,6 +141,8 @@ model Inventory {
     productId      String   @unique @map("product_id") @db.Uuid
     userId         String   @map("user_id") @db.Uuid
     quantityOnHand Int      @default(0) @map("quantity_on_hand")
+    quantityReserved Int    @default(0) @map("quantity_reserved")
+
     reorderLevel   Int      @default(10) @map("reorder_level")
     maxStock       Int      @default(100) @map("max_stock")
     updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamp(6)

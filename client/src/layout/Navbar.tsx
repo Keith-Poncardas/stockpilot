@@ -6,6 +6,7 @@ import { FilterPopover } from '@/components/FilterPopover'
 import { useAuthStore, useUIStore } from '@/store'
 import IconInput from '@/components/IconInput'
 import { useNavigate } from 'react-router-dom'
+import { PATHS } from '@/routes'
 import { useState, forwardRef } from 'react'
 
 const UserMenuTrigger = forwardRef<HTMLDivElement, { user: any }>(({ user, ...props }, ref) => {
@@ -47,7 +48,7 @@ function Navbar() {
             icon: User,
             onClick: () => {
                 setIsPopoverOpen(false)
-                navigate(`/users/${user?.id}/view`)
+                if (user?.id) navigate(PATHS.users.view(user.id))
             },
             className: "text-gray-600 hover:text-gray-900"
         },

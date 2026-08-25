@@ -10,7 +10,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Receipt, ShoppingCart } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { ActionCellContent } from "@/features/user/components/cells/ActionCellContent";
+import { PATHS } from "@/routes";
+import { ActionCellContent } from "@/components/common/action-cell-content/ActionCellContent";
 import { getSaleStatusColor } from "@/features/sale/sale.utils";
 
 export type SaleStatus = "COMPLETED" | "PENDING" | "REFUNDED" | "VOIDED" | string;
@@ -94,7 +95,7 @@ export function RecentSales({
         if (onViewAll) {
             onViewAll();
         } else {
-            navigate("/sales");
+            navigate(PATHS.sales.root);
         }
     };
 

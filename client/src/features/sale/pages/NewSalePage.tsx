@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { Link } from "react-router-dom";
+import { PATHS } from "@/routes";
 import { CREATE_SALE } from "../operations/op.mutations";
 import { useCart } from "../hooks/useCart";
 import {
@@ -183,7 +184,7 @@ export function NewSalePage() {
               asChild
               className="rounded-xl border-emerald-300 text-emerald-800 hover:bg-emerald-100/50 px-4 py-2.5"
             >
-              <Link to="/sales">
+              <Link to={PATHS.sales.root}>
                 View Sales
                 <ArrowRight className="h-4 w-4" />
               </Link>

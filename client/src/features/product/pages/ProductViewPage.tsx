@@ -1,6 +1,8 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { PATHS } from '@/routes';
 import { useQuery } from '@apollo/client';
-import { Header, ProductOverview, PerformanceMetrics, ProductBarcode, SalesTrendChart, ProductRecordDetails, ProductViewPageSkeleton } from '../components';
+import { Header } from "@/components/Header";
+import { ProductOverview, PerformanceMetrics, ProductBarcode, SalesTrendChart, ProductRecordDetails, ProductViewPageSkeleton } from '../components';
 import { InventoryHealth } from '@/components/InventoryHealth';
 import { GET_PRODUCT } from '../operations';
 import { AlertTriangle } from 'lucide-react';
@@ -36,10 +38,10 @@ export function ProductViewPage() {
     function handleEditPage(routeTo: string, id: string) {
         switch (routeTo) {
             case 'product':
-                navigate(`/products/${id}/edit`);
+                navigate(PATHS.products.edit(id));
                 break;
             case 'adjust-stock':
-                navigate(`/inventory/${id}/adjust`);
+                navigate(PATHS.inventory.adjust(id));
                 break;
             default:
                 break;

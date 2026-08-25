@@ -46,6 +46,8 @@ type Sale {
     saleItems: [SaleItem!]!
     customer: Customer
     author: User!
+
+    itemsCount: Int!
 }
 
 """

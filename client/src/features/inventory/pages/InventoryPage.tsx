@@ -24,6 +24,7 @@ import { MetricCard } from '@/components/MetricCard'
 import type { IInventory } from '../inventory.types'
 import { Button } from '@/components/ui/button'
 import { useNavigate } from 'react-router-dom'
+import { PATHS } from '@/routes'
 
 const stockStatusOptions = [
     { value: 'all', label: 'All Statuses' },
@@ -141,11 +142,11 @@ export function InventoryPage() {
     const navigate = useNavigate();
 
     function handleRecordInventory() {
-        navigate('/inventory/record')
+        navigate(PATHS.inventory.record)
     }
 
     function handleStockMovementLog() {
-        navigate('/stock-movement')
+        navigate(PATHS.stockMovement.root)
     }
 
     return (

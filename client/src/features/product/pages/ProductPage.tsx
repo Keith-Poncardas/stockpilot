@@ -15,6 +15,7 @@ import { FilterPopover } from '@/components/FilterPopover'
 import { EmptyState } from '@/components/ui/empty-state'
 import { MetricCard } from '@/components/MetricCard'
 import { useNavigate } from 'react-router-dom'
+import { PATHS } from '@/routes'
 
 const statusOptions = [
     { value: 'all', label: 'All Statuses' },
@@ -131,7 +132,7 @@ export function ProductPage() {
     const navigate = useNavigate();
 
     function handleAddProduct() {
-        navigate('/products/new');
+        navigate(PATHS.products.new);
     }
 
     return (

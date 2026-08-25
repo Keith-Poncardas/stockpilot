@@ -1,6 +1,7 @@
 import { Mail } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { PATHS } from "@/routes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forgotPasswordSchema, type ForgotPasswordInput } from "../auth.validation";
 import { AuthHeading, AuthFooter } from "../components";
@@ -37,7 +38,7 @@ export function ForgotPasswordPage() {
             });
             sessionStorage.setItem("auth_email_otp", data.email);
             sessionStorage.setItem("auth_mode_otp", "forgot-password");
-            navigate(`/otp?email=${data.email}&mode=forgot-password`);
+            navigate(`${PATHS.auth.otp}?email=${data.email}&mode=forgot-password`);
         } catch (err: any) {
             setError(handleGraphQLError(err));
         }

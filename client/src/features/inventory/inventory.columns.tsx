@@ -4,7 +4,7 @@ import { cn, formatDate } from '@/lib/utils'
 import type { IInventory } from './inventory.types'
 import { getStockStatusColor, getStockStatusLabel, getQtyClass } from './inventory.utils'
 import { InventoryActionsCell } from './components'
-import { ActionCellContent } from '@/features/user/components/cells/ActionCellContent'
+import { ActionCellContent } from '@/components/common/action-cell-content/ActionCellContent'
 
 export const columns: ColumnDef<IInventory>[] = [
     {

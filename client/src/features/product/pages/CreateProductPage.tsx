@@ -2,6 +2,7 @@ import { ProductFormLayout } from "../components";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
+import { PATHS } from "@/routes";
 import { useMutation } from "@apollo/client";
 import { CREATE_PRODUCT } from "../operations";
 import { productSchema, type ProductFormValues } from "../validation";
@@ -12,7 +13,7 @@ export function CreateProductPage() {
     const [createProduct, { loading }] = useMutation(CREATE_PRODUCT, {
         refetchQueries: ["GetProducts"],
         awaitRefetchQueries: true,
-        onCompleted: () => navigate(-1)
+        onCompleted: () => navigate(PATHS.products.root)
     });
 
     const [error, setError] = useState<string | null>(null);
@@ -60,7 +61,7 @@ export function CreateProductPage() {
     };
 
     function handleCancel() {
-        navigate(-1);
+        navigate(PATHS.products.root);
     }
 
     return (

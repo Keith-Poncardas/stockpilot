@@ -2,6 +2,7 @@ import { EditProductPageSkeleton, ProductFormLayout } from "../components";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams } from "react-router-dom";
+import { PATHS } from "@/routes";
 import { useMutation, useQuery } from "@apollo/client";
 import { GET_PRODUCT, EDIT_PRODUCT } from "../operations/op.queries";
 import { useState } from "react";
@@ -23,7 +24,7 @@ export function EditProductPage() {
     const [editProduct, { loading: mutationLoading }] = useMutation(EDIT_PRODUCT, {
         refetchQueries: ["GetProducts", "GetProduct", "GetProductForEdit", "GetProductMetrics", "GetTotalProductsCount"],
         awaitRefetchQueries: true,
-        onCompleted: () => navigate(-1)
+        onCompleted: () => navigate(PATHS.products.root)
     });
 
     const [formError, setFormError] = useState<string | null>(null);
@@ -84,7 +85,7 @@ export function EditProductPage() {
     };
 
     function handleCancel() {
-        navigate(-1);
+        navigate(PATHS.products.root);
     }
 
     if (queryLoading) return (

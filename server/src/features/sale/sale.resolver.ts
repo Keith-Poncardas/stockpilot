@@ -99,6 +99,16 @@ export const saleResolver = {
             return userService.getUser({ id: sale.userId });
         },
 
+        /**
+         * Resolves the count of items in the sale.
+         *
+         * @param sale - The parent sale record.
+         * @returns The count of items in the sale.
+         */
+        itemsCount: async (sale: Sale) => {
+            return saleService.saleItemCount({ saleId: sale.id });
+        },
+
     }),
 
     Mutation: composeResolvers(

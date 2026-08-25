@@ -1,7 +1,8 @@
-import { Header } from "@/features/product/components";
+import { Header } from "@/components/Header";
 import { Button, ButtonLoading } from "@/components/ui/button";
 import { useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { PATHS } from "@/routes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@apollo/client";
 import { ProductSearchSection } from "../components/pages/inventory-record-page";
@@ -24,7 +25,7 @@ export function InventoryRecordPage() {
     const [createInventory, { loading: mutationLoading }] = useMutation(CREATE_INVENTORY, {
         refetchQueries: ["GetInventories", "GetInventoryStatuses"],
         awaitRefetchQueries: true,
-        onCompleted: () => navigate(-1),
+        onCompleted: () => navigate(PATHS.inventory.root),
     });
 
     const { control, handleSubmit } = useForm<InventoryRecordFormInput, any, InventoryRecordFormValues>({
@@ -90,7 +91,7 @@ export function InventoryRecordPage() {
                             type="button"
                             variant="glass"
                             size="lg"
-                            onClick={() => navigate(-1)}
+                            onClick={() => navigate(PATHS.inventory.root)}
                         >
                             Cancel
                         </Button>
@@ -171,7 +172,7 @@ export function InventoryRecordPage() {
             </main>
 
             <MobileActionBar>
-                <MobileActionBar.Secondary type="button" onClick={() => navigate(-1)}>
+                <MobileActionBar.Secondary type="button" onClick={() => navigate(PATHS.inventory.root)}>
                     Cancel
                 </MobileActionBar.Secondary>
                 <MobileActionBar.Primary type="submit" form="inventory-form" disabled={mutationLoading || !productId}>

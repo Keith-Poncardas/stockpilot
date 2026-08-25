@@ -78,8 +78,10 @@ export const ensureSufficientStock = (
     item: SaleItemData,
     status: SaleStatus
 ) => {
-    if (status === SaleStatus.COMPLETED) {
-        const available = product.inventory?.quantityOnHand ?? 0;
+    if (status === SaleStatus.COMPLETED || status === SaleStatus.PENDING) {
+        const quantityOnHand = product.inventory?.quantityOnHand ?? 0;
+        const quantityReserved = product.inventory?.quantityReserved ?? 0;
+        const available = quantityOnHand - quantityReserved;
 
         if (item.quantity > available) {
             throwConflict(

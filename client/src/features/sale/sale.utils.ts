@@ -1,3 +1,5 @@
+import { SALE_STATUS_COLORS } from "./sale.config";
+
 /**
  * Generates a human-readable Sale ID from the internal UUID.
  * Uses the last 6 characters of the UUID to keep it short and unique enough
@@ -38,13 +40,7 @@ export function formatCustomerDisplayName(
 /**
  * Returns color classes for Sale status badge/cell.
  */
-export function getSaleStatusColor(status: string) {
-    switch (status) {
-        case 'COMPLETED': return 'bg-emerald-50 text-emerald-700';
-        case 'PENDING': return 'bg-amber-50 text-amber-600';
-        case 'REFUNDED': return 'bg-purple-50 text-purple-700';
-        case 'VOIDED': return 'bg-rose-50 text-rose-600';
-        default: return 'bg-gray-100 text-gray-500';
-    }
+export function getSaleStatusColor(status: string): string {
+    return SALE_STATUS_COLORS[status] || SALE_STATUS_COLORS.DEFAULT;
 }
 

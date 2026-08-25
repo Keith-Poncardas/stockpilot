@@ -1,4 +1,4 @@
-import { Header } from "../Header";
+import { Header } from "@/components/Header";
 import { BasicDetails, InventorySetup, Pricing } from "../pages";
 import { ProductPreview } from "@/components/ProductPreview";
 

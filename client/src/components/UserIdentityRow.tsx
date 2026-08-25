@@ -1,4 +1,5 @@
 import { UserAvatar } from '@/components/UserAvatar';
+import { formatDateTime } from '@/lib/utils';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -13,10 +14,10 @@ export interface UserIdentityRowProps {
     role?: string;
     /**
      * Timestamp to display beneath the name/role.
-     * Pass a `Date` and it will be formatted with the user's locale,
+     * Pass a `Date` or numeric timestamp and it will be formatted with the user's locale,
      * or pass a pre-formatted string to bypass formatting.
      */
-    performedAt?: Date | string;
+    performedAt?: Date | string | number;
     /**
      * Optional id for the live-region paragraph rendered below the timestamp
      * (used for ARIA live announcements). Omit to skip rendering the element.
@@ -26,15 +27,12 @@ export interface UserIdentityRowProps {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatTimestamp(value: Date | string): string {
-    if (typeof value === 'string') return value;
-    return value.toLocaleString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-    });
+function formatTimestamp(value: Date | string | number): string {
+    try {
+        return formatDateTime(value);
+    } catch {
+        return String(value);
+    }
 }
 
 /** Converts a SCREAMING_SNAKE role key to a readable label (e.g. "SUPER_ADMIN" → "Super Admin"). */

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { useQuery } from '@apollo/client'
 import { Users } from 'lucide-react'
-import { columns } from '../user.columns'
 import { GET_USERS, GET_USER_METRICS } from '../operations/op.queries'
 import { useDebounce } from '@/hooks/useDebounce'
 import { usePaginatedQuery } from '@/hooks/usePaginatedQuery'
@@ -9,7 +8,6 @@ import { useDateRangeValidation } from '@/hooks/useDateRangeValidation'
 
 import { DataTableLayout } from '@/components/ui/data-table-layout'
 import SectionHeader from '@/components/SectionHeader'
-import { UserTableToolbar } from '../components/UserTableToolbar'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ServerCrash } from 'lucide-react';
 import { MetricCard } from '@/components/MetricCard'
@@ -17,8 +15,10 @@ import {
     getFilterOptions,
     getMetricsCards,
     buildUserQueryFilter
-} from '../options'
+} from '../user.options'
 import type { UserFilters } from '../types'
+import { columns } from '../user.columns'
+import { UserTableToolbar } from '../components'
 
 /**
  * Renders the main user management page.
@@ -32,7 +32,7 @@ import type { UserFilters } from '../types'
  */
 export function UserPage() {
     const [search, setSearch] = React.useState('')
-    const debouncedSearch = useDebounce(search, 500)
+    const debouncedSearch = useDebounce(search, 500);
 
     /**
      * Local state for managing active filters on the user table.
@@ -44,7 +44,7 @@ export function UserPage() {
         dateFrom: '',
         dateTo: '',
         acsDesc: '',
-    })
+    });
 
     /**
      * Validates the date range and returns the validated dates.
@@ -92,7 +92,6 @@ export function UserPage() {
      */
     const {
         data: userMetricsData,
-        refetch: refetchUserMetrics,
         loading: isMetricsLoading,
     } = useQuery(GET_USER_METRICS, {
         variables: {},
@@ -104,10 +103,9 @@ export function UserPage() {
      * Refreshes the data in the table.
      */
     const refresh = React.useCallback(() => {
-        refetchUserMetrics();
         refetch();
         setSearch('');
-    }, [refetchUserMetrics, refetch]);
+    }, [refetch]);
 
     /**
      * Resets the filters to their default values.
@@ -193,4 +191,4 @@ export function UserPage() {
             />
         </>
     )
-}
+};

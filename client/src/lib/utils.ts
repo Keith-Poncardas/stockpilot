@@ -24,10 +24,7 @@ export function formatCurrency(
   }).format(value);
 }
 
-export function formatDate(
-  date: string | number | Date,
-  locale: string = "en-US"
-): string {
+export function parseDate(date: string | number | Date): Date {
   let parsedDate: Date;
   if (date instanceof Date) {
     parsedDate = date;
@@ -44,28 +41,47 @@ export function formatDate(
     throw new Error("Invalid date");
   }
 
+  return parsedDate;
+}
+
+export function formatDate(
+  date: string | number | Date,
+  locale: string = "en-US"
+): string {
   return new Intl.DateTimeFormat(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(parsedDate);
+  }).format(parseDate(date));
 }
 
-import { STATUS_COLORS, APPROVAL_STATUS_COLORS, ROLE_COLORS } from "@/config/colors"
-
-export function getStatusColor(status?: string) {
-  const upperStatus = status?.toUpperCase() || '';
-  return STATUS_COLORS[upperStatus] || STATUS_COLORS.DEFAULT;
+export function formatDateTime(
+  date: string | number | Date,
+  locale: string = "en-US",
+  monthFormat: "short" | "long" | "numeric" | "2-digit" | "narrow" = "short"
+): string {
+  return new Intl.DateTimeFormat(locale, {
+    month: monthFormat,
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(parseDate(date));
 }
 
-export function getApprovalStatusColor(status?: string) {
-  const upperStatus = status?.toUpperCase() || '';
-  return APPROVAL_STATUS_COLORS[upperStatus] || APPROVAL_STATUS_COLORS.DEFAULT;
+export function formatTime(
+  date: string | number | Date,
+  locale: string = "en-US"
+): string {
+  return new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(parseDate(date));
 }
 
-export function getRoleColor(role?: string) {
-  const upperRole = role?.toUpperCase() || '';
-  return ROLE_COLORS[upperRole] || ROLE_COLORS.DEFAULT;
+export function getConfigColor(config: Record<string, string>, value?: string) {
+  const upperValue = value?.toUpperCase() || '';
+  return config[upperValue] || config.DEFAULT;
 }
 
 import { ErrorCode } from "@/constants";

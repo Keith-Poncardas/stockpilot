@@ -4,11 +4,11 @@ import { useQuery } from '@apollo/client'
 import { GET_USER } from '../operations/op.queries'
 
 import {
-    UserViewLayout,
     UserProfileHeader,
     UserAboutCard,
     UserActivityCard
 } from '../components/user-view'
+import { UserViewLayout } from '../layouts/UserViewLayout'
 
 /**
  * Renders the user profile view page.
@@ -27,19 +27,18 @@ export function UserViewPage() {
         skip: !userId,
     })
 
-    // Handle error navigation within useEffect to prevent side-effects during render
     useEffect(() => {
         if (error) {
             navigate(-1);
         }
     }, [error, navigate]);
 
-    const user = data?.getUser
+    const user = data?.getUser;
 
     return (
         <UserViewLayout
             isLoading={loading}
-            header={<UserProfileHeader user={user} isLoading={loading} />}
+            header={<UserProfileHeader user={user} />}
         >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-1 space-y-4">

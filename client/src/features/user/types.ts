@@ -3,7 +3,7 @@ import {
     UserRole as UserRoleConst,
     UserStatus as UserStatusConst,
     UserApprovalStatus as UserApprovalStatusConst
-} from "./contants";
+} from "./user.constants";
 
 /**
  * Type representing the possible user roles in the system.

@@ -1,4 +1,3 @@
-export * from './UserViewLayout'
-export * from './UserProfileHeader'
-export * from './UserAboutCard'
-export * from './UserActivityCard'
+export * from './profile-header/UserProfileHeader'
+export * from './about-card/UserAboutCard'
+export * from './activity-card/UserActivityCard'

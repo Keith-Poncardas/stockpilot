@@ -17,6 +17,7 @@ export type ProductWithInventory = {
     status: ProductStatus;
     inventory?: {
         quantityOnHand: number;
+        quantityReserved: number;
     } | null;
 };
 

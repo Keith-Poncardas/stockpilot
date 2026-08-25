@@ -2,6 +2,7 @@ import { Mail, Lock } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
+import { PATHS } from "@/routes";
 import { ButtonLoading } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { FormField } from "@/components/ui/form-field";
@@ -106,7 +107,7 @@ export function LoginPage() {
                             disabled={loadingLogin}
                         />
                         <Link
-                            to="/forgot-password"
+                            to={PATHS.auth.forgotPassword}
                             className="text-amber-600 font-semibold hover:underline transition-colors"
                         >
                             Forgot password?
@@ -129,7 +130,7 @@ export function LoginPage() {
             <AuthFooter
                 text="Don't have an account?"
                 linkText="Create one"
-                linkTo="/signup"
+                linkTo={PATHS.auth.signup}
             />
         </>
     );

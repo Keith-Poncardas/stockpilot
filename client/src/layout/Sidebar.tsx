@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge'
 import { useAuthStore, useUIStore } from '@/store'
 import { cn } from '@/lib/utils'
 import { Link, useLocation } from 'react-router-dom'
+import { PATHS } from '@/routes'
 
 interface NavItemConfig {
     label: string
@@ -39,30 +40,30 @@ const NAV_SECTIONS: NavSectionConfig[] = [
             {
                 label: 'Dashboard',
                 icon: <LayoutDashboard size={16} />,
-                route: "/"
+                route: PATHS.dashboard.root
             },
         ],
     },
     {
         section: 'Operations',
         items: [
-            { label: 'Sales', icon: <ShoppingCart size={16} />, route: "/sales" },
-            { label: 'Customers', icon: <Users size={16} />, route: "/customers" },
+            { label: 'Sales', icon: <ShoppingCart size={16} />, route: PATHS.sales.root },
+            { label: 'Customers', icon: <Users size={16} />, route: PATHS.customers.root },
             // { label: 'Sales Heatmap', icon: <MapPin size={16} />, route: "/sales-heatmap" },
         ],
     },
     {
         section: 'Inventory',
         items: [
-            { label: 'Products', icon: <Box size={16} />, route: "/products" },
-            { label: 'Inventory', icon: <Warehouse size={16} />, badgeDanger: true, route: "/inventory" },
-            { label: 'Stock Movements', icon: <ArrowUpDown size={16} />, route: "/stock-movement" },
+            { label: 'Products', icon: <Box size={16} />, route: PATHS.products.root },
+            { label: 'Inventory', icon: <Warehouse size={16} />, badgeDanger: true, route: PATHS.inventory.root },
+            { label: 'Stock Movements', icon: <ArrowUpDown size={16} />, route: PATHS.stockMovement.root },
         ],
     },
     {
         section: 'Administration',
         items: [
-            { label: 'Users', icon: <UserCircle size={16} />, active: true, route: '/users' },
+            { label: 'Users', icon: <UserCircle size={16} />, active: true, route: PATHS.users.root },
         ],
     },
 ]
@@ -173,7 +174,7 @@ function Sidebar() {
 
                 {/* User Card — pinned to bottom */}
                 <div className="shrink-0 px-2 py-2 border-t border-gray-800">
-                    <Link to={`/users/${user?.id}/view`} className="flex items-center gap-3 hover:bg-white/5 rounded-lg p-3" onClick={closeSidebarDrawer}>
+                    <Link to={PATHS.users.view(user?.id || '')} className="flex items-center gap-3 hover:bg-white/5 rounded-lg p-3" onClick={closeSidebarDrawer}>
                         <UserProfileDetails
                             user={user}
                             avatarSize="lg"

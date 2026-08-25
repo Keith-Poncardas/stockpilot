@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import UserAvatar from "@/components/UserAvatar";
 import { useAuthStore } from "@/store";
 import { cn } from "@/lib/utils";
+import { CUSTOMER_AVATAR_COLORS, CUSTOMER_TEXT_COLORS } from "@/features/customer/customer.config";
 
 export interface UserInfoCellUser {
     id?: string;
@@ -43,6 +44,8 @@ export interface UserInfoCellProps {
     className?: string;
     /** Text to display when user data is missing. Default: "—" */
     fallbackText?: string;
+    /** Type of the entity. Defaults to 'user'. If 'customer', handles customer styling. */
+    type?: 'user' | 'customer';
 }
 
 export const UserInfoCell = React.memo(function UserInfoCell({
@@ -61,11 +64,15 @@ export const UserInfoCell = React.memo(function UserInfoCell({
     avatarClassName = 'w-7 h-7',
     className,
     fallbackText = "—",
+    type = 'user',
 }: UserInfoCellProps) {
     const { user: authUser } = useAuthStore();
 
-    // Determine target user object (priority: user prop > row.original.user > row.original)
-    const targetUser = userProp ?? row?.original?.user ?? row?.original ?? null;
+    // Determine target user object (priority: user prop > row.original.user/customer > row.original)
+    const targetUser = userProp ?? 
+        (type === 'customer' ? row?.original?.customer : row?.original?.user) ?? 
+        row?.original ?? 
+        null;
 
     const id = idProp ?? targetUser?.id;
     const firstName = firstNameProp ?? targetUser?.firstName ?? '';
@@ -76,6 +83,9 @@ export const UserInfoCell = React.memo(function UserInfoCell({
     if (!displayName && (firstName || lastName)) {
         displayName = `${firstName} ${lastName}`.trim();
     }
+    if (type === 'customer' && !displayName) {
+        displayName = 'Walk-in';
+    }
 
     // If no user info is available at all, return fallback text
     if (!displayName && !id && !targetUser) {
@@ -84,19 +94,36 @@ export const UserInfoCell = React.memo(function UserInfoCell({
 
     const isCurrentUser = isCurrentUserProp ?? targetUser?.isCurrentUser ?? (Boolean(id) && authUser?.id === id);
 
-    const linkPath = to || (id ? `/users/${id}/view` : undefined);
+    const linkPath = to || (type === 'user' && id ? `/users/${id}/view` : undefined);
     const shouldLink = isLink && Boolean(linkPath);
+
+    const isWalkIn = type === 'customer' && displayName === 'Walk-in';
+
+    // Resolve custom classes for customer layout
+    let finalAvatarClassName = avatarClassName;
+    let customFallbackClassName = "";
+    if (type === 'customer') {
+        const colorKey = isWalkIn ? 'WALK_IN' : 'CUSTOMER';
+        customFallbackClassName = CUSTOMER_AVATAR_COLORS[colorKey];
+    }
+
+    let nameTextClass = "font-semibold text-sm text-gray-900 truncate";
+    if (type === 'customer') {
+        const colorKey = isWalkIn ? 'WALK_IN' : 'CUSTOMER';
+        nameTextClass = cn("text-sm truncate", CUSTOMER_TEXT_COLORS[colorKey]);
+    }
 
     const content = (
         <>
             <UserAvatar
-                fallback={targetUser || displayName || 'U'}
+                fallback={isWalkIn ? 'W' : (targetUser || displayName || 'U')}
                 role={role}
                 size={avatarSize}
-                className={avatarClassName}
+                className={finalAvatarClassName}
+                fallbackClassName={customFallbackClassName}
             />
             <div className="flex flex-inline items-center gap-1.5 min-w-0">
-                <span className="font-semibold text-sm text-gray-900 truncate">
+                <span className={nameTextClass}>
                     {displayName || "Unknown User"}
                 </span>
                 {showYouTag && isCurrentUser && (

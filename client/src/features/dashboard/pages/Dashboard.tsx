@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store";
 import { Box, DollarSign, Package, Plus, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { PATHS } from "@/routes";
 import { LowStockAlerts, RecentSales, SalesOverviewChart, TopLocations, TopProducts } from "../components";
 import { useDashboardData } from "../hooks";
 import { formatCurrency, formatNumber } from "@/lib/utils";
@@ -33,7 +34,7 @@ export function Dashboard() {
     }, []);
 
     function handleNewSalePage() {
-        navigate('/sales/pos');
+        navigate(PATHS.sales.pos);
     }
 
     return (

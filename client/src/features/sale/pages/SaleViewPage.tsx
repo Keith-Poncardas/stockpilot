@@ -1,15 +1,16 @@
 import { useParams } from "react-router-dom";
+import { useCallback, useMemo } from "react";
+import { SALE_STATUS_COLORS, SALE_STATUS_LABELS } from "../sale.config";
 import { useQuery } from "@apollo/client";
 import { AlertTriangle, Receipt } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
-import { Header } from "@/features/product/components/Header";
+import { Header } from "@/components/Header";
 import ActionPopover from "@/components/ActionPopover";
 import { formatDate, handleGraphQLError } from "@/lib/utils";
 import { useOptimisticMutation } from "@/hooks/useOptimisticMutation";
 import { GET_SALE, CHANGE_SALE_STATUS, GET_SALE_METRICS } from "../operations";
 import { AVAILABLE_STATUSES, SaleStatus } from "../sale.constants";
-import { getSaleStatusColor } from "../sale.utils";
 import { getOptions } from "@/features/user/user.utils";
 import {
     PurchasedItemsSection,
@@ -60,7 +61,7 @@ export function SaleViewPage() {
     const sale = data.getSale;
     const isStatusDisabled = sale.status === SaleStatus.VOIDED.a || sale.status === SaleStatus.REFUNDED.a;
 
-    const handleUpdateStatus = async (newStatus: string) => {
+    const handleUpdateStatus = useCallback(async (newStatus: string) => {
         await mutate({
             mutation: CHANGE_SALE_STATUS,
             typename: "SaleDetail",
@@ -73,16 +74,16 @@ export function SaleViewPage() {
             }),
             refetchQueries: [GET_SALE_METRICS],
         });
-    };
+    }, [mutate, sale.id]);
 
-    const statusOptions = getOptions({
+    const statusOptions = useMemo(() => getOptions({
         items: AVAILABLE_STATUSES,
         currentValue: sale.status,
         getValue: (s) => s.a,
-        getLabel: (s) => s.b,
-        getColor: (s) => getSaleStatusColor(s.a),
+        labelConfig: SALE_STATUS_LABELS,
+        colorConfig: SALE_STATUS_COLORS,
         onUpdate: handleUpdateStatus as (value: string) => void,
-    });
+    }), [sale.status, handleUpdateStatus]);
 
     return (
         <>

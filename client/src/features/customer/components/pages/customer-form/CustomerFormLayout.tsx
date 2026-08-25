@@ -1,7 +1,7 @@
 import { useFormState } from "react-hook-form";
 import { Button, ButtonLoading } from "@/components/ui/button";
 import { MobileActionBar } from "@/components/ui/mobile-action-bar";
-import { Header } from "@/features/product/components/Header";
+import { Header } from "@/components/Header";
 import { PersonalInfo } from "./PersonalInfo";
 import { AddressInfo } from "./AddressInfo";
 import Alert from "@/components/ui/alert";

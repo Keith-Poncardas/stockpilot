@@ -4,18 +4,20 @@ import { Button } from "@/components/ui/button"
 import { Eye, SquarePen } from "lucide-react"
 import type { ProductRowInfoCellProps } from "../../product.types"
 import { useNavigate } from "react-router-dom"
+import { useCallback } from "react"
+import { PATHS } from "@/routes"
 import { ProductStatus } from "../../product.constants"
 
 export function ActionsCell({ row }: ProductRowInfoCellProps) {
     const navigate = useNavigate();
 
-    function handleViewClick() {
-        navigate(`/products/${row.original.id}/view`);
-    }
+    const handleViewClick = useCallback(() => {
+        navigate(PATHS.products.view(row.original.id));
+    }, [navigate, row.original.id]);
 
-    function handleEditClick() {
-        navigate(`/products/${row.original.id}/edit`);
-    }
+    const handleEditClick = useCallback(() => {
+        navigate(PATHS.products.edit(row.original.id));
+    }, [navigate, row.original.id]);
 
     const isNotEditable = row.original.status === ProductStatus.DISCONTINUED.a;
 

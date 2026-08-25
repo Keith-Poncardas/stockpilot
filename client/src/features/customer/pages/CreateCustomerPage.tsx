@@ -2,6 +2,7 @@ import { CustomerFormLayout } from "../components";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
+import { PATHS } from "@/routes";
 import { useMutation } from "@apollo/client";
 import { CREATE_CUSTOMER } from "../operations";
 import { customerSchema, type CustomerFormValues } from "../validation";
@@ -13,7 +14,7 @@ export function CreateCustomerPage() {
     const [createCustomer, { loading }] = useMutation(CREATE_CUSTOMER, {
         refetchQueries: ["GetCustomers", "GetCustomerMetrics"],
         awaitRefetchQueries: true,
-        onCompleted: () => navigate(-1)
+        onCompleted: () => navigate(PATHS.customers.root)
     });
 
     const [error, setError] = useState<string | null>(null);
@@ -46,7 +47,7 @@ export function CreateCustomerPage() {
     };
 
     function handleCancel() {
-        navigate(-1);
+        navigate(PATHS.customers.root);
     }
 
     return (

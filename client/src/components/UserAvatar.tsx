@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { cn, getRoleColor } from '@/lib/utils'
+import { cn, getConfigColor } from '@/lib/utils'
+import { ROLE_COLORS } from '@/features/user/user.config'
 
 interface UserAvatarProps {
     /** Initials string or User object to extract initials from */
@@ -24,7 +25,7 @@ export function UserAvatar({
     className,
     fallbackClassName,
 }: UserAvatarProps) {
-    const roleColor = getRoleColor(role);
+    const roleColor = getConfigColor(ROLE_COLORS, role);
 
     let fallbackText = "U";
     if (typeof fallback === 'string') {

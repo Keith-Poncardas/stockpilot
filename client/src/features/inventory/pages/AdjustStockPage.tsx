@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
+import { PATHS } from "@/routes";
 import { useMutation, useQuery } from "@apollo/client";
-import { Header } from "@/features/product/components";
+import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { SlidersHorizontal, AlertTriangle } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -42,7 +43,7 @@ export function AdjustStockPage() {
     const [adjustStock, { loading: mutationLoading }] = useMutation(ADJUST_STOCK, {
         refetchQueries: ["GetInventory", "GetInventories", "GetInventoryStatuses"],
         awaitRefetchQueries: true,
-        onCompleted: () => navigate(-1),
+        onCompleted: () => navigate(PATHS.inventory.root),
     });
 
     const onSubmit = async (formData: AdjustStockFormValues) => {
@@ -73,7 +74,7 @@ export function AdjustStockPage() {
     };
 
     function handleCancel() {
-        navigate(-1);
+        navigate(PATHS.inventory.root);
     }
 
     if (loading) {
@@ -173,7 +174,7 @@ export function AdjustStockPage() {
             </div>
 
             <MobileActionBar>
-                <MobileActionBar.Secondary type="button" onClick={() => navigate(-1)}>
+                <MobileActionBar.Secondary type="button" onClick={() => navigate(PATHS.inventory.root)}>
                     Cancel
                 </MobileActionBar.Secondary>
                 <MobileActionBar.Primary type="submit" form="adjust-form" disabled={mutationLoading}>
