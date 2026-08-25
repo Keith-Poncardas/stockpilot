@@ -14,6 +14,7 @@ interface DataTableLayoutProps<TData> {
     emptyState?: React.ReactNode
     errorState?: React.ReactNode
     className?: string
+    onRowClick?: (row: any) => void
 }
 
 export function DataTableLayout<TData>({
@@ -24,10 +25,11 @@ export function DataTableLayout<TData>({
     emptyState = <EmptyState />,
     errorState = <EmptyState title='Something went wrong' description="Failed to load data" icon={ServerCrash} />,
     className,
+    onRowClick,
 }: DataTableLayoutProps<TData>) {
     return (
         <div className={cn('bg-white rounded-2xl border border-[#E3E1DC] overflow-hidden', className)}>
-            {!error && !isEmpty && <DataTable table={table} isLoading={isLoading} />}
+            {!error && !isEmpty && <DataTable table={table} isLoading={isLoading} onRowClick={onRowClick} />}
 
             {isEmpty && emptyState}
 

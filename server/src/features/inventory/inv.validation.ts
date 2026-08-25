@@ -8,7 +8,7 @@ import {
 } from "@/schemas";
 import { InventoryOrderBy, OrderDirectionLower, StockStatus } from "@/enums";
 import { createMinMaxRefine, minMaxRefineMessage } from "@/utils";
-import { baseMovementSchema } from "../stockMovements";
+import { baseMovementSchema } from "../stockMovements/stockMovements.validation";
 
 /**
  * Validates the stock status filter for inventory queries.

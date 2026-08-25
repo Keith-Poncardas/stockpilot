@@ -5,7 +5,7 @@ import {
     SaleStatus,
     MovementType,
     MovementReason
-} from "@prisma/client";
+} from '@/generated/client.js';
 import {
     PaginatedSalesInput,
     CreateSaleInput,

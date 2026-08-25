@@ -6,7 +6,7 @@ import {
     getCurrentMonthMetrics,
     throwConflict
 } from "@/utils";
-import { Prisma } from "@prisma/client";
+import { Prisma } from '@/generated/client.js';
 import {
     PaginatedCustomersInput,
     CreateCustomerInput,

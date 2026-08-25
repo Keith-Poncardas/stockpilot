@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from '@/generated/client.js';
 import { GraphQLError } from "graphql/error/GraphQLError";
 import { throwConflict, throwGraphQLError, throwNotFound } from "@/utils";
 

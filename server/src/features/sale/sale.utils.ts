@@ -1,4 +1,4 @@
-import { Prisma, SaleStatus, ProductStatus } from "@prisma/client";
+import { Prisma, SaleStatus, ProductStatus } from '@/generated/client.js';
 import { throwNotFound, throwConflict } from "@/utils";
 import { SortOrder } from "@/enums";
 import { ProductWithInventory, SaleItemData, SalesAggregationRow, SalesOverviewItem, SalesLocationRow } from "./types";

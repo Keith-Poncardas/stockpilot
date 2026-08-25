@@ -12,3 +12,15 @@ export const CHANGE_SALE_STATUS = gql`
     }
   }
 `;
+
+export const CREATE_POS_SALE = gql`
+  mutation CreatePosSale($input: CreateSaleInput!) {
+    createSale(input: $input) {
+      id
+      saleDate
+      totalAmount
+      paymentMethod
+      status
+    }
+  }
+`;

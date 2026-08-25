@@ -1,5 +1,5 @@
 import { StockStatus } from "@/enums";
-import { MovementType } from "@prisma/client";
+import { MovementType } from '@/generated/client.js';
 
 /**
  * Resolves stock status based on quantity on hand and reorder level.

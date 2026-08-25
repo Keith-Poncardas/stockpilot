@@ -1,6 +1,6 @@
 import { UUIDInput } from "@/schemas";
 import { throwConflict } from "@/utils";
-import { UserApprovalStatus, UserRole, UserStatus } from "@prisma/client";
+import { UserApprovalStatus, UserRole, UserStatus } from '@/generated/client.js';
 import { UserTransitionInput, UserTransitionResult } from "./types";
 
 /**

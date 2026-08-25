@@ -16,7 +16,7 @@ import {
     CreateInventoryInput,
     PaginatedInventoriesInput
 } from "./types";
-import { Inventory } from "@prisma/client";
+import { Inventory } from '@/generated/client.js';
 import { productService } from "../product";
 import { userService } from "../user";
 import { GraphQLContext } from "@/types";

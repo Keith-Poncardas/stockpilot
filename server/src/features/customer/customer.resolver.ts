@@ -17,7 +17,7 @@ import {
     searchCustomersInfiniteSchema
 } from "./customer.validation";
 import { PaginatedSalesInput, saleService } from "../sale";
-import { Customer } from "@prisma/client";
+import { Customer } from '@/generated/client.js';
 
 export const customerResolver = {
 

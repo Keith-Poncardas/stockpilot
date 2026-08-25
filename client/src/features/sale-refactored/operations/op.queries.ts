@@ -129,3 +129,24 @@ export const GET_SALE = gql`
     }
   }
 `;
+
+
+
+export const SEARCH_POS_CUSTOMERS = gql`
+  query SearchPosCustomers($args: SearchCustomersInput!) {
+    searchCustomers(args: $args) {
+      data {
+        id
+        firstName
+        lastName
+        phone
+        email
+        customerType
+      }
+      meta {
+        nextCursor
+        hasNextPage
+      }
+    }
+  }
+`;

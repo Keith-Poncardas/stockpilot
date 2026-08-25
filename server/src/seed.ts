@@ -1,9 +1,13 @@
-import { PrismaClient, UserApprovalStatus, UserRole, UserStatus } from "@prisma/client";
+import { PrismaClient, UserApprovalStatus, UserRole, UserStatus } from "./generated/client.js";
 import argon2 from "argon2";
-import dummyUsers from "./dummy-users.json";
-import dummyProducts from "./dummy-products.json";
+import dummyUsers from "./dummy-users.json" with { type: "json" };
+import dummyProducts from "./dummy-products.json" with { type: "json" };
+import pg from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prisma = new PrismaClient();
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
     const email = "poncardask03@gmail.com";

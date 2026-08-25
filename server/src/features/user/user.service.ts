@@ -7,7 +7,7 @@ import {
     type Prisma,
     UserApprovalStatus,
     UserStatus
-} from "@prisma/client";
+} from '@/generated/client.js';
 import { UUIDInput } from "@/schemas";
 import { ensureApprovedUser, ensureNotSelfAction, ensureNotSuperAdmin, ensureNotTerminated, ensurePendingApprovalStatus, ensureRoleChanged, getUserTransition } from "./user.utils";
 import { AssignRoleInput, ChangeUserApprovalStatusInput, PaginatedUsersInput, UpdateUserStatusInput } from "./types";

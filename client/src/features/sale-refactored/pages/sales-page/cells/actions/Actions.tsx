@@ -2,24 +2,28 @@ import { ActionCell } from "@/components/ui/action-cell";
 import { PopoverClose } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import type { SaleCellProps } from "../cells.types";
-import { useNavigate } from "react-router-dom";
+import { useSheet } from "@/providers";
 import { useCallback, useMemo } from "react";
-import { PATHS } from "@/routes";
 import { getActionOptions } from "./options";
+import { ViewSaleDetails } from "../../../../components";
 
 /**
  * Component that renders the action menu cell for a specific sale row.
  * Offers quick actions such as viewing the sale details or downloading the sale receipt.
  */
 export function ActionsCell({ row }: SaleCellProps) {
-    const navigate = useNavigate();
+    const { openSheet } = useSheet();
 
     /**
-     * Navigates to the sale details view.
+     * Navigates to the sale details view by opening the slide-over sheet.
      */
     const handleViewClick = useCallback(() => {
-        navigate(PATHS.sales.view(row.original.id));
-    }, [navigate, row.original.id]);
+        openSheet({
+            title: "Sale Details",
+            description: `Viewing details for sale ID: ${row.original.id}`,
+            content: <ViewSaleDetails saleId={row.original.id} />,
+        });
+    }, [openSheet, row.original.id]);
 
     /**
      * Initiates the receipt download process for the sale.

@@ -2,7 +2,7 @@ import { prisma } from "@/lib";
 import {
     createPaginator
 } from "@/utils";
-import { MovementReason, MovementType, Prisma } from "@prisma/client";
+import { MovementReason, MovementType, Prisma } from '@/generated/client.js';
 import {
     AdjustStockInput,
     CreateInventoryInput,

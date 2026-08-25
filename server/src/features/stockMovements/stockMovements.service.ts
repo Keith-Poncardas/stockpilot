@@ -1,6 +1,6 @@
 import { prisma } from "@/lib";
 import { buildSearchQuery, createPaginator, generateReference } from "@/utils";
-import { MovementType, Prisma } from "@prisma/client";
+import { MovementType, Prisma } from '@/generated/client.js';
 import { inventoryService } from "../inventory";
 import { PaginatedStockMovementsInput } from "./types";
 

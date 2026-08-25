@@ -7,7 +7,7 @@ import {
     omit
 } from "@/utils";
 import * as argon2 from "argon2";
-import { Prisma } from "@prisma/client";
+import { Prisma } from '@/generated/client.js';
 import {
     sendOtpEmail,
     checkOtpRateLimit,
@@ -50,7 +50,7 @@ export class AuthService {
      * @async
      * @param {string} email - The email address of the user.
      * @param {string} password - The plain text password of the user.
-     * @returns {Promise<import("@prisma/client").User>} The validated user record.
+     * @returns {Promise<import('@/generated/client.js').User>} The validated user record.
      * @throws {Error} If the user is not found, password is invalid, or access is denied.
      */
     private async ensureUserIsValid(email: string, password: string) {
@@ -100,7 +100,7 @@ export class AuthService {
      *
      * @async
      * @param {string} email - The email address associated with the pending registration.
-     * @returns {Promise<import("@prisma/client").PendingRegistration>} The pending registration record.
+     * @returns {Promise<import('@/generated/client.js').PendingRegistration>} The pending registration record.
      * @throws {Error} If no pending registration is found for the email.
      */
     private async ensurePendingRegistrationExists(email: string) {
@@ -123,7 +123,7 @@ export class AuthService {
      *
      * @async
      * @param {string} email - The email address associated with the password reset request.
-     * @returns {Promise<import("@prisma/client").PasswordReset>} The password reset record.
+     * @returns {Promise<import('@/generated/client.js').PasswordReset>} The password reset record.
      * @throws {Error} If no password reset request is found for the email.
      */
     private async ensurePasswordResetRecordExists(email: string) {
@@ -146,7 +146,7 @@ export class AuthService {
      *
      * @async
      * @param {string} email - The email address of the user to retrieve.
-     * @returns {Promise<import("@prisma/client").User>} The user record.
+     * @returns {Promise<import('@/generated/client.js').User>} The user record.
      * @throws {Error} If no user is found for the email.
      */
     private async ensureUserExists(email: string) {
@@ -197,7 +197,7 @@ export class AuthService {
      *
      * @async
      * @param {LoginInput} input - The login credentials (email and password).
-     * @returns {Promise<{user: Partial<import("@prisma/client").User>, token: string}>} The authenticated user object and access token.
+     * @returns {Promise<{user: Partial<import('@/generated/client.js').User>, token: string}>} The authenticated user object and access token.
      * @throws {Error} If authentication fails.
      */
     async login(input: LoginInput) {
@@ -233,7 +233,7 @@ export class AuthService {
      *
      * @async
      * @param {SignUpInput} input - The user's sign-up details.
-     * @returns {Promise<import("@prisma/client").PendingRegistration>} The created or updated pending registration record.
+     * @returns {Promise<import('@/generated/client.js').PendingRegistration>} The created or updated pending registration record.
      * @throws {Error} If the email is already registered or other errors occur during the process.
      */
     async signup(input: SignUpInput) {
@@ -293,7 +293,7 @@ export class AuthService {
      *
      * @async
      * @param {VerifyOtpRegistrationInput} input - The email and OTP for verification.
-     * @returns {Promise<{user: Partial<import("@prisma/client").User>, token: string}>} The newly created user object and access token.
+     * @returns {Promise<{user: Partial<import('@/generated/client.js').User>, token: string}>} The newly created user object and access token.
      * @throws {Error} If the pending registration is not found, or the OTP is invalid/expired.
      */
     async verifyOtpRegistration(input: VerifyOtpRegistrationInput) {
@@ -485,7 +485,7 @@ export class AuthService {
      *
      * @async
      * @param {ChangePasswordInput} input - The email and new password.
-     * @returns {Promise<Partial<import("@prisma/client").User>>} The updated user record with selected fields.
+     * @returns {Promise<Partial<import('@/generated/client.js').User>>} The updated user record with selected fields.
      * @throws {Error} If the user is not found or the new password is the same as the old one.
      */
     async changePassword(input: ChangePasswordInput) {

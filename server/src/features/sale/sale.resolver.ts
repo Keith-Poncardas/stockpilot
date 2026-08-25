@@ -16,9 +16,10 @@ import {
     CreateSaleInput,
     PaginatedSalesInput
 } from "./types";
-import { Sale } from "@prisma/client";
+import { Sale } from '@/generated/client.js';
 import { customerService } from "../customer";
 import { userService } from "../user";
+import { productService } from "../product";
 import { GraphQLContext } from "@/types";
 
 export const saleResolver = {
@@ -107,6 +108,20 @@ export const saleResolver = {
          */
         itemsCount: async (sale: Sale) => {
             return saleService.saleItemCount({ saleId: sale.id });
+        },
+
+    }),
+
+    SaleItem: applyErrorHandling({
+
+        /**
+         * Resolves the product associated with a given sale item.
+         *
+         * @param saleItem - The parent sale item record.
+         * @returns The product record.
+         */
+        product: async (saleItem: any) => {
+            return productService.getProduct({ id: saleItem.productId });
         },
 
     }),

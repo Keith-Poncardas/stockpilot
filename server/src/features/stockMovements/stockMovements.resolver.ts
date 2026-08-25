@@ -8,7 +8,7 @@ import {
 } from "@/graphql/helpers";
 import { paginatedStockMovementsSchema } from "./stockMovements.validation";
 import { PaginatedStockMovementsInput } from "./types";
-import { StockMovement } from "@prisma/client";
+import { StockMovement } from '@/generated/client.js';
 import { userService } from "../user";
 import { inventoryService } from "../inventory";
 import { productService } from "../product";

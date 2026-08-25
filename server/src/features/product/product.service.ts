@@ -1,6 +1,6 @@
 import { prisma } from "@/lib";
 import { buildSearchQuery, createInfiniteScroller, createPaginator, throwConflict } from "@/utils";
-import { MovementType, Prisma, SaleStatus } from "@prisma/client";
+import { MovementType, Prisma, SaleStatus } from '@/generated/client.js';
 import { ProductStatus, SortOrder } from "@/enums";
 import { ensureNotDiscontinued, calculateRankedProducts } from "./product.util";
 import {

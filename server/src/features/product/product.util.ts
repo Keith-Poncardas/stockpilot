@@ -1,4 +1,4 @@
-import { ProductStatus } from "@prisma/client";
+import { ProductStatus } from '@/generated/client.js';
 import { throwConflict } from "@/utils";
 import { SortOrder } from "@/enums";
 import { ProductSalesRanking, ProductWithSaleItems } from "./types";

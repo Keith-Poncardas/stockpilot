@@ -1,6 +1,28 @@
 import type { IUserWithInfo } from "@/features/user";
 import type { SalePaymentMethod, SaleStatus } from "./union.types";
 
+export interface ISaleProduct {
+    id: string;
+    sku: string;
+    name: string;
+    unitPrice: number;
+    status: string;
+}
+
+export interface ISaleCustomer {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    cityCode?: string;
+    provinceCode?: string;
+    postalCode?: string;
+    country?: string;
+}
+
 /**
  * Represents the base structure of a sale record.
  */
@@ -25,7 +47,7 @@ export interface SaleItem {
     productId: string;
     quantity: number;
     unitPrice: number;
-    product: any;
+    product: ISaleProduct;
 };
 
 /**
@@ -34,6 +56,6 @@ export interface SaleItem {
 export interface ISaleDetails extends ISale {
     itemsCount: number;
     saleItems: SaleItem[];
-    customer: any;
+    customer: ISaleCustomer | null;
     author: IUserWithInfo;
 };

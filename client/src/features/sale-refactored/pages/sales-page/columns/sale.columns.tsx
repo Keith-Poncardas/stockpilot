@@ -8,9 +8,9 @@ import {
     StatusCell,
     PaymentMethodCell,
     SaleDateCell,
-    ItemCountCell,
     TotalAmountCell
 } from "../cells";
+import { ItemCount } from "@/features/sale-refactored/components/common";
 import type { ISale, ISaleDetails } from "@/features/sale-refactored/types";
 import { formatCashierName, formatCustomerDisplayName } from "./sale.utils";
 
@@ -47,7 +47,7 @@ export const columns: ColumnDef<ISaleDetails>[] = [
     {
         id: "itemCount",
         header: () => <div className="text-center">Items</div>,
-        cell: ({ row }) => <ItemCountCell row={row} />,
+        cell: ({ row }) => <ItemCount count={row.original.itemsCount} />,
         size: 70,
     },
     {

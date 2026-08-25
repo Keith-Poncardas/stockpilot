@@ -13,7 +13,7 @@ import path from "path";
  */
 export const typeDefs = mergeTypeDefs(
     loadFilesSync([
-        path.join(__dirname, "../config/**/*.gql"),
-        path.join(__dirname, "../../features/**/*.gql"),
+        path.join(import.meta.dirname, "../config/**/*.gql"),
+        path.join(import.meta.dirname, "../../features/**/*.gql"),
     ])
 );

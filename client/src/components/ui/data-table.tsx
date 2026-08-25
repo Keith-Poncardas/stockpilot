@@ -1,4 +1,4 @@
-import type { Table as TableType } from "@tanstack/react-table"
+import type { Table as TableType, Row } from "@tanstack/react-table"
 import { flexRender } from "@tanstack/react-table"
 import { cn } from "@/lib/utils"
 
@@ -14,6 +14,7 @@ import {
 interface DataTableProps<TData> {
   table: TableType<TData>
   isLoading?: boolean
+  onRowClick?: (row: Row<TData>) => void
 }
 
 // Fixed pixel widths — never shrink below a readable size on mobile/tablet.
@@ -73,7 +74,7 @@ const shimmerStyle = (
   `}</style>
 );
 
-export function DataTable<TData>({ table, isLoading }: DataTableProps<TData>) {
+export function DataTable<TData>({ table, isLoading, onRowClick }: DataTableProps<TData>) {
   const columnCount = table.getAllColumns().length
   const rows = table.getRowModel().rows
 
@@ -129,7 +130,16 @@ export function DataTable<TData>({ table, isLoading }: DataTableProps<TData>) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="border-b border-gray-100 hover:bg-gray-50/50 dark:border-zinc-800 dark:hover:bg-zinc-900/50 data-[state=selected]:bg-amber-50/20"
+                  className={cn(
+                    "border-b border-gray-100 hover:bg-gray-50/50 dark:border-zinc-800 dark:hover:bg-zinc-900/50 data-[state=selected]:bg-amber-50/20",
+                    onRowClick && "cursor-pointer"
+                  )}
+                  onClick={(e) => {
+                    if (!onRowClick) return;
+                    const isInteractive = (e.target as HTMLElement).closest('button, a, input, [role="button"], [role="menuitem"], [data-prevent-row-click]');
+                    if (isInteractive) return;
+                    onRowClick(row);
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as any;

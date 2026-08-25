@@ -1,12 +1,13 @@
 import { cn } from "@/lib/utils";
-import type { SaleCellProps } from "../cells.types";
+
+interface ItemCountProps {
+    count: number;
+}
 
 /**
- * Renders the total number of items associated with a sale.
+ * Renders the total number of items as a pill badge.
  */
-export function ItemCountCell({ row }: SaleCellProps) {
-    const count = row.original.itemsCount;
-
+export function ItemCount({ count }: ItemCountProps) {
     return (
         <div className="flex justify-center">
             <span className={cn(
@@ -17,4 +18,4 @@ export function ItemCountCell({ row }: SaleCellProps) {
             </span>
         </div>
     );
-};
+}

@@ -1,5 +1,5 @@
 import z from "zod";
-import { PaymentMethod, SaleStatus } from "@prisma/client";
+import { PaymentMethod, SaleStatus } from '@/generated/client.js';
 import { OrderDirectionLower, SaleOrderBy } from "@/enums";
 import {
     dateRangeSchema,

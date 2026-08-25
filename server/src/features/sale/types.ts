@@ -1,4 +1,4 @@
-import { ProductStatus, SaleItem, Prisma } from "@prisma/client";
+import { ProductStatus, SaleItem, Prisma } from '@/generated/client.js';
 import z from "zod";
 import {
     paginatedSalesSchema,

@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from '@/generated/client.js';
 import { prisma as globalPrisma } from "@/lib";
 
 /**

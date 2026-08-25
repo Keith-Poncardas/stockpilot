@@ -13,7 +13,7 @@ import {
     validate
 } from "@/graphql/helpers";
 import { GraphQLContext } from "@/types";
-import { User } from "@prisma/client";
+import { User } from '@/generated/client.js';
 import { stockMovementsService } from "../stockMovements";
 import { saleService } from "../sale";
 import {

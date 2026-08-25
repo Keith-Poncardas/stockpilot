@@ -1,5 +1,5 @@
 import { excludeEnumValue } from "@/utils";
-import { UserApprovalStatus, UserRole, UserStatus } from "@prisma/client";
+import { UserApprovalStatus, UserRole, UserStatus } from '@/generated/client.js';
 import z from "zod";
 import { dateRangeRefine, dateRangeRefineMessage, dateRangeSchema, orderDirectionLowerSchema, paginationSchema, searchSchema, uuidSchema } from "@/schemas";
 import { OrderDirectionLower, UserOrderBy } from "@/enums";

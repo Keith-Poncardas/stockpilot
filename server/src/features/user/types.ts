@@ -1,4 +1,4 @@
-import { UserApprovalStatus, UserRole, UserStatus } from "@prisma/client";
+import { UserApprovalStatus, UserRole, UserStatus } from '@/generated/client.js';
 import {
     assignRoleSchema,
     changeUserApprovalStatusSchema,

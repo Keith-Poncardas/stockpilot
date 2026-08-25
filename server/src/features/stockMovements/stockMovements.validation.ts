@@ -1,4 +1,4 @@
-import { MovementReason, MovementType } from "@prisma/client";
+import { MovementReason, MovementType } from '@/generated/client.js';
 import z from "zod";
 import { dateRangeRefine, dateRangeRefineMessage, dateRangeSchema, searchSchema, uuidSchema } from "@/schemas";
 import { OrderDirectionLower, StockMovementOrderBy } from "@/enums";

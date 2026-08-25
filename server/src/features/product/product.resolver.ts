@@ -19,7 +19,7 @@ import {
     PaginatedProductsInput
 } from "./types";
 import { GraphQLContext } from "@/types";
-import { Product } from "@prisma/client";
+import { Product } from '@/generated/client.js';
 import { stockMovementsService } from "../stockMovements";
 import { inventoryService } from "../inventory";
 

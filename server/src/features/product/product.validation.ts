@@ -12,10 +12,10 @@ import {
     excludeEnumValue,
     minMaxRefineMessage
 } from "@/utils";
-import { ProductStatus } from "@prisma/client";
+import { ProductStatus } from '@/generated/client.js';
 import z from "zod";
 import { refineProductSchema } from "./product.util";
-import { inventorySchemaObject } from "../inventory";
+import { inventorySchemaObject } from "../inventory/inv.validation";
 
 /**
  * Validates the status filter for product-related operations.

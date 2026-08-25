@@ -21,6 +21,8 @@ interface FormSectionProps extends React.ComponentProps<"section"> {
   link?: FormSectionLink;
   /** Optional custom actions or badges rendered at the trailing end of the header row */
   actions?: React.ReactNode;
+  /** If true, removes horizontal padding from the content area so children sit flush with edges */
+  flushContent?: boolean;
 }
 
 export function FormSection({
@@ -32,6 +34,7 @@ export function FormSection({
   className,
   link,
   actions,
+  flushContent,
   ...props
 }: FormSectionProps) {
   const linkLabel = link?.linkText ?? "View details →";
@@ -55,7 +58,7 @@ export function FormSection({
   ) : null;
 
   return (
-    <section className={cn("bg-white rounded-2xl border border-[#E3E1DC] flex flex-col", className)} {...props}>
+    <section className={cn("bg-white rounded-2xl border border-[#E3E1DC] flex flex-col overflow-hidden", className)} {...props}>
       <div className="flex items-center gap-3 px-5 sm:px-6 pt-5 sm:pt-6 pb-4">
         <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0", iconWrapperClassName)}>
           {icon}
@@ -75,7 +78,7 @@ export function FormSection({
           </div>
         )}
       </div>
-      <div className="px-5 sm:px-6 pb-6 flex-1 flex flex-col">
+      <div className={cn("flex-1 flex flex-col", !flushContent && "px-5 sm:px-6 pb-6")}>
         {children}
       </div>
     </section>
