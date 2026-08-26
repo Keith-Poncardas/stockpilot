@@ -5,7 +5,7 @@
     "main": "dist/server.js",
     "type": "module",
     "scripts": {
-        "dev": "nodemon --exec tsx src/server.ts",
+        "dev": "nodemon -e ts,gql,json --exec tsx src/server.ts",
         "build": "tsc",
         "start": "node dist/server.js",
         "seed": "tsx src/seed.ts",

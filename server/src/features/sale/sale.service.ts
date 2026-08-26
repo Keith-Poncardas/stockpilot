@@ -123,7 +123,7 @@ export class SaleService {
  * @returns The customer record if found.
  * @throws {CustomerNotFoundException} If the customer does not exist.
  */
-    private async ensureCustomerExist(customerId?: UUIDInput) {
+    private async ensureCustomerExist(customerId?: UUIDInput | null) {
         if (!customerId) return;
         await customerService.getCustomer({ id: customerId });
     }

@@ -1,11 +1,41 @@
 import { Route, Routes } from 'react-router-dom'
 import { ProtectedRoute, PublicRoute } from './routes'
-import { LoginPage, OTPPage, SignupPage, UserLayout, UserPage, UserViewPage, PendingApprovalPage, ForgotPasswordPage, ChangePasswordPage, AuthLayout, ProductLayout, ProductPage, ProductViewPage, CreateProductPage, EditProductPage, InventoryLayout, InventoryPage, AdjustStockPage, InventoryRecordPage, StockMovementLayout, StockMovementPage, StockMovementDetailsPage, CustomerLayout, CustomerPage, CustomerViewPage, CreateCustomerPage, SaleLayout, Dashboard, SalesPage } from './features'
+import {
+  LoginPage,
+  OTPPage,
+  SignupPage,
+  UserLayout,
+  UserPage,
+  UserViewPage,
+  PendingApprovalPage,
+  ForgotPasswordPage,
+  ChangePasswordPage,
+  AuthLayout,
+  ProductLayout,
+  ProductPage,
+  ProductViewPage,
+  CreateProductPage,
+  EditProductPage,
+  InventoryLayout,
+  InventoryPage,
+  AdjustStockPage,
+  InventoryRecordPage,
+  StockMovementLayout,
+  StockMovementPage,
+  StockMovementDetailsPage,
+  CustomerLayout,
+  CustomersPage,
+  CreateCustomerSheet,
+  ViewCustomerSheet,
+  SaleLayout,
+  Dashboard,
+  SalesPage,
+} from './features'
 import MainLayout from './layout/MainLayout'
 import { EmptyState } from './components/ui/empty-state'
 import { SheetProvider } from './providers'
-import { ViewSaleSheet } from './features/sale-refactored/components/view-sale-sheet'
-import { PointOfSaleSheet } from './features/sale-refactored/components/pos-sheet'
+import { ViewSaleSheet } from './features/sale/components/view-sale-sheet'
+import { PointOfSaleSheet } from './features/sale/components/pos-sheet'
 import { Toaster } from './components/ui/sonner'
 
 function App() {
@@ -14,6 +44,8 @@ function App() {
       <Toaster position="top-center" />
       <ViewSaleSheet />
       <PointOfSaleSheet />
+      <CreateCustomerSheet />
+      <ViewCustomerSheet />
       <Routes>
 
         <Route element={<PublicRoute />}>
@@ -60,9 +92,7 @@ function App() {
             </Route>
 
             <Route path="/customers" element={<CustomerLayout />}>
-              <Route index element={<CustomerPage />} />
-              <Route path="new" element={<CreateCustomerPage />} />
-              <Route path=":customerId/view" element={<CustomerViewPage />} />
+              <Route index element={<CustomersPage />} />
             </Route>
 
             <Route path="/sales" element={<SaleLayout />}>
@@ -86,3 +116,4 @@ function App() {
 }
 
 export default App
+

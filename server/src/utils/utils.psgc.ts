@@ -5,30 +5,53 @@ import {
 } from "@jobuntux/psgc";
 
 /**
+ * Normalizes PSGC code to 10-digit format if given in 9-digit format (e.g. from ph-locations).
+ */
+function normalizePsgcCode(code: string): string {
+    const clean = code.trim();
+    if (clean.length === 9) {
+        return clean.slice(0, 2) + clean.slice(2, 4).padStart(3, '0') + clean.slice(4);
+    }
+    return clean;
+}
+
+/**
  * Validates that a province code exists within the PSGC dataset.
- * Region is not exposed — Philippines is always the country context.
+ * Accepts standard PSGC codes and 9-digit ph-locations codes.
  *
- * @param provinceCode - The 4-digit PSGC province code (e.g. "0421" for Cavite)
+ * @param provinceCode - PSGC province code
  */
 export function isValidProvince(provinceCode: string): boolean {
-    // listProvinces() with no args returns ALL provinces across all regions
+    if (!provinceCode) return false;
+    const norm = normalizePsgcCode(provinceCode);
+    const clean = provinceCode.trim();
     return listProvinces().some(
-        (province) => province.provCode === provinceCode
+        (province) =>
+            province.provCode === clean ||
+            province.psgcCode === clean ||
+            province.psgcCode === norm
     );
 }
 
 /**
  * Validates that a city/municipality code exists under the given province.
+ * Accepts standard PSGC codes and 9-digit ph-locations codes.
  *
- * @param provinceCode - The 4-digit PSGC province code (e.g. "0421")
- * @param cityCode     - The 6-digit PSGC city/municipality code (e.g. "042108")
+ * @param provinceCode - PSGC province code
+ * @param cityCode     - PSGC city/municipality code
  */
 export function isValidCityOrMunicipality(
     provinceCode: string,
     cityCode: string
 ): boolean {
-    return listMuncities(provinceCode).some(
-        (city) => city.munCityCode === cityCode
+    if (!cityCode) return false;
+    const normCity = normalizePsgcCode(cityCode);
+    const cleanCity = cityCode.trim();
+    return listMuncities().some(
+        (city) =>
+            city.munCityCode === cleanCity ||
+            city.psgcCode === cleanCity ||
+            city.psgcCode === normCity
     );
 }
 

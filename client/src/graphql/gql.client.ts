@@ -36,7 +36,30 @@ const errorLink = onError((errorResponse) => {
 
 export const client = new ApolloClient({
     link: errorLink.concat(authLink.concat(httpLink)),
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({
+        typePolicies: {
+            CustomerPurchaseSummary: {
+                keyFields: false,
+            },
+            CustomerPurchaseHistory: {
+                keyFields: false,
+            },
+            Customer: {
+                fields: {
+                    purchaseSummary: {
+                        merge(_existing, incoming) {
+                            return incoming;
+                        },
+                    },
+                    purchaseHistory: {
+                        merge(_existing, incoming) {
+                            return incoming;
+                        },
+                    },
+                },
+            },
+        },
+    }),
     defaultOptions: {
         watchQuery: { fetchPolicy: "cache-and-network" },
         query: { fetchPolicy: "network-only" },

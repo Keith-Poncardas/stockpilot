@@ -1,34 +1,46 @@
 import { gql } from '@apollo/client';
 
 /**
- * Paginated sales list for the Sales Index table.
- * Returns only what the table renders — no product/inventory data.
- * The cashier relation is `author` (not `user`) per the backend schema.
+ * GraphQL Query to retrieve a paginated list of sales based on filter criteria.
+ * Matches the 'getSales(args: PaginatedSalesInput!): PaginatedSales!' query in server/src/features/sale/sale.gql.
  */
 export const GET_SALES = gql`
   query GetSales($args: PaginatedSalesInput!) {
     getSales(args: $args) {
       data {
         id
-        saleDate
+        customerId
+        userId
+        status
         totalAmount
         paymentMethod
-        status
+        saleDate
+        createdAt
+        updatedAt
 
+        itemsCount
+        
         customer {
+          id
           firstName
           lastName
+          email
+          phone
         }
-
+        
         author {
           id
           firstName
           lastName
           role
+          email
         }
-
+        
         saleItems {
           id
+          productId
+          quantity
+          unitPrice
         }
       }
       meta {
@@ -46,33 +58,66 @@ export const GET_SALES = gql`
 `;
 
 /**
- * KPI metrics for the Sales Index page.
- * `getSalesMetrics` takes no arguments per the backend schema.
- * Returns: totalRevenue, completedSales, totalTransactions, refundedOrVoidedCount.
- * Note: averageOrderValue is NOT returned by the backend — compute it in the UI if needed.
+ * GraphQL Query to retrieve sales-related metrics/KPIs.
+ * Matches the 'getSalesMetrics: SaleMetrics!' query in server/src/features/sale/sale.gql.
  */
 export const GET_SALE_METRICS = gql`
   query GetSaleMetrics {
     getSalesMetrics {
       totalRevenue
-      completedSales
       totalTransactions
+      completedSales
       refundedOrVoidedCount
     }
   }
 `;
 
 /**
- * Products list for POS product catalog grid.
+ * GraphQL Query to retrieve detailed information for a single sale.
+ * Matches the 'getSale(saleId: ID!): Sale!' query in server/src/features/sale/sale.gql.
  */
-export const GET_POS_PRODUCTS = gql`
-  query GetPosProducts($input: GetInventoriesInput) {
-    getInventories(input: $input) {
-      data {
+export const GET_SALE = gql`
+  query GetSale($saleId: ID!) {
+    getSale(saleId: $saleId) {
+      id
+      customerId
+      userId
+      status
+      totalAmount
+      paymentMethod
+      saleDate
+      createdAt
+      updatedAt
+      
+      customer {
         id
+        firstName
+        lastName
+        email
+        phone
+        addressLine1
+        addressLine2
+        cityCode
+        provinceCode
+        postalCode
+        country
+      }
+      
+      author {
+        id
+        firstName
+        lastName
+        role
+        email
+        status
+      }
+      
+      saleItems {
+        id
+        saleId
         productId
-        quantityOnHand
-        reorderLevel
+        quantity
+        unitPrice
         product {
           id
           sku
@@ -81,77 +126,42 @@ export const GET_POS_PRODUCTS = gql`
           status
         }
       }
-      meta {
-        page
-        limit
-        totalItems
-        totalPages
-        hasNextPage
-      }
     }
   }
 `;
 
-/**
- * Customers search for POS customer modal with cursor pagination.
- * Uses the correct backend argument signature: searchCustomers(args: SearchCustomersInput!)
- */
-export const SEARCH_CUSTOMERS = gql`
-  query SearchCustomers($args: SearchCustomersInput!) {
-    searchCustomers(args: $args) {
+
+
+export const GET_SELLABLE_PRODUCTS = gql`
+  query GetSellableProducts($input: GetInventoriesInput!) {
+    getSellableProducts(args: $input) {
       data {
         id
-        firstName
-        lastName
-        phone
-        email
-      }
-      meta {
-        nextCursor
-        hasNextPage
-      }
-    }
-  }
-`;
-
-/**
- * Full sale detail query for the Sale View Page.
- * The cashier relation is `author` (not `user`).
- * Sale items are under `saleItems` (not `items`), and product details
- * come from the nested `product` relation on each SaleItem.
- */
-export const GET_SALE = gql`
-  query GetSale($saleId: ID!) {
-    getSale(saleId: $saleId) {
-      id
-      saleDate
-      totalAmount
-      paymentMethod
-      status
-      customer {
-        id
-        firstName
-        lastName
-        email
-        phone
-      }
-      author {
-        id
-        firstName
-        lastName
-        role
-        email
-      }
-      saleItems {
-        id
         productId
-        quantity
-        unitPrice
+        quantityOnHand
+        reorderLevel
+        maxStock
+        updatedAt
+        stockStatus
         product {
           id
           sku
           name
+          description
+          unitPrice
+          costPrice
+          status
         }
+      }
+      meta {
+        page
+        limit
+        firstItem
+        lastItem
+        totalItems
+        totalPages
+        hasPreviousPage
+        hasNextPage
       }
     }
   }

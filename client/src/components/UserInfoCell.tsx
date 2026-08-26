@@ -47,6 +47,8 @@ export interface UserInfoCellProps {
     fallbackText?: string;
     /** Type of the entity. Defaults to 'user'. If 'customer', handles customer styling. */
     type?: 'user' | 'customer';
+    /** Optional click handler callback */
+    onClick?: (e: React.MouseEvent) => void;
 }
 
 export const UserInfoCell = React.memo(function UserInfoCell({
@@ -66,6 +68,7 @@ export const UserInfoCell = React.memo(function UserInfoCell({
     className,
     fallbackText = "—",
     type = 'user',
+    onClick,
 }: UserInfoCellProps) {
     const { user: authUser } = useAuthStore();
 
@@ -102,7 +105,7 @@ export const UserInfoCell = React.memo(function UserInfoCell({
     }
     const isWalkIn = type === 'customer' && displayName === 'Walk-in';
 
-    const shouldLink = isLink && Boolean(linkPath) && !isWalkIn;
+    const shouldLink = isLink && Boolean(linkPath) && !isWalkIn && !onClick;
 
 
     // Resolve custom classes for customer layout
@@ -152,7 +155,10 @@ export const UserInfoCell = React.memo(function UserInfoCell({
     }
 
     return (
-        <div className={containerClasses}>
+        <div
+            className={containerClasses}
+            onClick={onClick ? (e) => { e.stopPropagation(); onClick(e); } : undefined}
+        >
             {content}
         </div>
     );

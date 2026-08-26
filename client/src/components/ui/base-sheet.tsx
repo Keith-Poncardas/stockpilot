@@ -1,4 +1,5 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
 export interface BaseSheetLayoutProps {
     isOpen: boolean;
@@ -9,9 +10,22 @@ export interface BaseSheetLayoutProps {
     children: React.ReactNode;
     className?: string;
     onOpenAutoFocus?: (e: Event) => void;
+    footer?: React.ReactNode;
+    footerClassName?: string;
 }
 
-export function BaseSheetLayout({ isOpen, onClose, title, description, icon: Icon, children, className, onOpenAutoFocus }: BaseSheetLayoutProps) {
+export function BaseSheetLayout({
+    isOpen,
+    onClose,
+    title,
+    description,
+    icon: Icon,
+    children,
+    className,
+    onOpenAutoFocus,
+    footer,
+    footerClassName,
+}: BaseSheetLayoutProps) {
     return (
         <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <SheetContent
@@ -31,7 +45,13 @@ export function BaseSheetLayout({ isOpen, onClose, title, description, icon: Ico
                 <div className="flex-1 overflow-y-auto">
                     {children}
                 </div>
+                {footer && (
+                    <div className={cn("px-4 sm:px-6 py-4 border-t border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-950 flex items-center justify-end gap-3 sticky bottom-0 z-10 shrink-0", footerClassName)}>
+                        {footer}
+                    </div>
+                )}
             </SheetContent>
         </Sheet>
     );
 }
+

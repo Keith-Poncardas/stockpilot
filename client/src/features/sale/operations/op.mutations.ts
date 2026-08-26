@@ -1,21 +1,25 @@
 import { gql } from '@apollo/client';
 
-export const CREATE_SALE = gql`
-  mutation CreateSale($input: CreateSaleInput!) {
-    createSale(input: $input) {
+/**
+ * GraphQL Mutation to change the status of an existing sale.
+ * Matches the 'changeSaleStatus(input: ChangeSaleStatusInput!): Sale!' mutation in server/src/features/sale/sale.gql.
+ */
+export const CHANGE_SALE_STATUS = gql`
+  mutation ChangeSaleStatus($input: ChangeSaleStatusInput!) {
+    changeSaleStatus(input: $input) {
       id
-      saleDate
-      totalAmount
-      paymentMethod
       status
     }
   }
 `;
 
-export const CHANGE_SALE_STATUS = gql`
-  mutation ChangeSaleStatus($input: ChangeSaleStatusInput!) {
-    changeSaleStatus(input: $input) {
+export const CREATE_POS_SALE = gql`
+  mutation CreatePosSale($input: CreateSaleInput!) {
+    createSale(input: $input) {
       id
+      saleDate
+      totalAmount
+      paymentMethod
       status
     }
   }

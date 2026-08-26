@@ -103,8 +103,8 @@ type CustomerPurchaseSummary {
     totalOrders: Int!
     totalSpent: Float!
     averageOrderValue: Float!
-    firstPurchase: String!
-    lastPurchase: String!
+    firstPurchase: String
+    lastPurchase: String
 }
 
 """

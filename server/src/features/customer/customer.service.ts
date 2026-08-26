@@ -35,7 +35,7 @@ export class CustomerService {
      */
     private async ensurePhoneNumberUnique(phone?: string) {
         if (!phone) return;
-        const customer = await this.getCustomer({ phone });
+        const customer = await prisma.customer.findUnique({ where: { phone } });
         if (customer) throwConflict(
             'A customer with this phone number already exists.'
         );
@@ -49,7 +49,7 @@ export class CustomerService {
      */
     private async ensureEmailUnique(email?: string) {
         if (!email) return;
-        const customer = await this.getCustomer({ email });
+        const customer = await prisma.customer.findUnique({ where: { email } });
         if (customer) throwConflict(
             'A customer with this email address already exists.'
         );
@@ -181,14 +181,31 @@ export class CustomerService {
      * @returns The newly created customer record.
      */
     async createCustomer(input: CreateCustomerInput) {
+        const { provinceCode, cityCode, country, ...rest } = input;
 
-        const { phone, email } = input;
+        const phone = rest.phone?.trim() || undefined;
+        const email = rest.email?.trim() || undefined;
+        const addressLine1 = rest.addressLine1?.trim() || undefined;
+        const addressLine2 = rest.addressLine2?.trim() || undefined;
+        const postalCode = rest.postalCode?.trim() || undefined;
 
         await this.ensurePhoneNumberUnique(phone);
         await this.ensureEmailUnique(email);
 
-        return await prisma.customer.create({ data: input });
+        const data = {
+            firstName: rest.firstName,
+            lastName: rest.lastName,
+            phone,
+            email,
+            addressLine1,
+            addressLine2,
+            province: provinceCode,
+            city: cityCode,
+            postalCode,
+            country: country || "Philippines",
+        };
 
+        return await prisma.customer.create({ data });
     }
 
     /**

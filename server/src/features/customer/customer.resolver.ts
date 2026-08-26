@@ -35,8 +35,8 @@ export const customerResolver = {
          */
         getCustomer: composeResolvers(
             validate(uuidSchema)
-        )(async (_: unknown, { customerId }: { customerId: UUIDInput }) => {
-            return customerService.getCustomer({ id: customerId });
+        )(async (_: unknown, { id }: { id: UUIDInput }) => {
+            return customerService.getCustomer({ id });
         }),
 
         /**
@@ -79,10 +79,17 @@ export const customerResolver = {
     Customer: applyErrorHandling({
 
         /**
+         * Maps the database 'province' field to GraphQL 'provinceCode'.
+         */
+        provinceCode: (customer: Customer) => customer.province,
+
+        /**
+         * Maps the database 'city' field to GraphQL 'cityCode'.
+         */
+        cityCode: (customer: Customer) => customer.city,
+
+        /**
          * Resolves the purchase summary (total orders, total spent, etc.) for a specific customer.
-         *
-         * @param customer - The parent customer record.
-         * @returns The purchase summary for the customer.
          */
         purchaseSummary: async (customer: Customer) => {
             return saleService.getCustomerPurchaseSummary(customer.id);
@@ -121,8 +128,8 @@ export const customerResolver = {
          */
         createCustomer: composeResolvers(
             validate(createCustomerSchema)
-        )(async (_: unknown, { args }: { args: CreateCustomerInput }) => {
-            return customerService.createCustomer(args);
+        )(async (_: unknown, { input }: { input: CreateCustomerInput }) => {
+            return customerService.createCustomer(input);
         }),
 
     })

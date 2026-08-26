@@ -12,7 +12,7 @@ import { cn, formatCurrency } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { PATHS } from "@/routes";
 import { ActionCellContent } from "@/components/common/action-cell-content/ActionCellContent";
-import { getSaleStatusColor } from "@/features/sale/sale.utils";
+import { SALE_STATUS_COLORS } from "@/features/sale/constants";
 
 export type SaleStatus = "COMPLETED" | "PENDING" | "REFUNDED" | "VOIDED" | string;
 
@@ -162,7 +162,7 @@ export function RecentSales({
                     cellClassName: (row: RecentSaleItem) =>
                         cn(
                             "p-0 text-center text-xs font-semibold tracking-wide h-[1px]",
-                            getSaleStatusColor(row.status)
+                            SALE_STATUS_COLORS[row.status as keyof typeof SALE_STATUS_COLORS] || ""
                         ),
                 },
                 cell: ({ row }) => (
@@ -221,3 +221,4 @@ export function RecentSales({
 }
 
 export default RecentSales;
+

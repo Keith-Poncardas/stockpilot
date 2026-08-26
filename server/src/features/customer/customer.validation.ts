@@ -60,27 +60,30 @@ export const createCustomerSchema = z
             .string()
             .trim()
             .max(20, "Phone number must not exceed 20 characters")
-            .optional(),
-        email: emailSchema.optional(),
+            .optional()
+            .or(z.literal("")),
+        email: emailSchema.optional().or(z.literal("")),
         addressLine1: z
             .string()
             .trim()
             .max(255)
-            .optional(),
+            .optional()
+            .or(z.literal("")),
         addressLine2: z
             .string()
             .trim()
             .max(255)
-            .optional(),
+            .optional()
+            .or(z.literal("")),
         provinceCode: z
             .string()
             .trim()
-            .length(4, "Province code must be exactly 4 characters"),
+            .min(1, "Province code is required"),
         cityCode: z
             .string()
             .trim()
-            .length(6, "City/municipality code must be exactly 6 characters"),
-        postalCode: z.string().trim().max(10).optional(),
-        country: z.literal("Philippines").default("Philippines"),
+            .min(1, "City/municipality code is required"),
+        postalCode: z.string().trim().max(10).optional().or(z.literal("")),
+        country: z.string().optional().default("Philippines"),
     })
     .superRefine(psgcAddressRefine);
