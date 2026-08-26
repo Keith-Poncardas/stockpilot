@@ -3,7 +3,7 @@ import { DataTable } from '@/components/ui/data-table'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ServerCrash } from 'lucide-react'
-import type { Table } from '@tanstack/react-table'
+import type { Table, Row } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 
 interface DataTableLayoutProps<TData> {
@@ -14,7 +14,7 @@ interface DataTableLayoutProps<TData> {
     emptyState?: React.ReactNode
     errorState?: React.ReactNode
     className?: string
-    onRowClick?: (row: any) => void
+    onRowClick?: (row: Row<TData>) => void
 }
 
 export function DataTableLayout<TData>({

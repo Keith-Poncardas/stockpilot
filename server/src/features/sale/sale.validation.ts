@@ -65,26 +65,35 @@ export const createSaleItemSchema = z.object({
     quantity: z
         .number()
         .int()
-        .positive("Quantity must be greater than zero"),
+        .positive("Quantity must be greater than zero")
+        .max(10000, "Quantity cannot exceed 10,000 per item"),
     unitPrice: z
         .number()
-        .nonnegative("Unit price must be non-negative"),
+        .nonnegative("Unit price must be non-negative")
+        .max(100000000, "Unit price exceeds maximum allowed value"),
 });
 
 /**
  * SALE ITEMS ARRAY SCHEMA
  * Validates an array of sale items, ensuring at least one item is provided.
  */
-export const saleItemSchema = z.array(createSaleItemSchema).min(1,
-    "At least one item is required in the cart"
-);
+export const saleItemSchema = z.array(createSaleItemSchema)
+    .min(1, "At least one item is required in the cart")
+    .max(100, "Maximum of 100 different items per sale allowed")
+    .refine(
+        (items) => {
+            const productIds = items.map((i) => i.productId);
+            return new Set(productIds).size === productIds.length;
+        },
+        { message: "Duplicate products are not allowed in the same sale" }
+    );
 
 /**
  * CREATE SALE SCHEMA
  * Validates the payload for creating a new sale, including customer, payment, status, and items.
  */
 export const createSaleSchema = z.object({
-    customerId: uuidSchema.optional(),
+    customerId: uuidSchema.nullish(),
     paymentMethod: paymentMethodSchema,
     status: saleStatusSchema
         .optional()

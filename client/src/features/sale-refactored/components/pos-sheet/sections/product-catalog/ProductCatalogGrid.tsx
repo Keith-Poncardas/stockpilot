@@ -1,14 +1,16 @@
-
 import { FormSection } from "@/components/ui/form-section";
 import { Package, Search, X } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import type { IInventory } from "@/features/inventory/inventory.types";
+import type { PosProductItem } from "./types";
 import { ProductCard } from "./components/ProductCard";
 import { ProductCatalogSkeleton } from "./skeleton/ProductCatalogSkeleton";
 
 import { useCart } from "../cart/hook/useCart";
 
 export interface ProductCatalogGridProps {
-  products: any[];
+  products: IInventory[];
   loading: boolean;
   totalItems: number;
   searchTerm: string;
@@ -79,21 +81,33 @@ export const ProductCatalogGrid = ({
         {/* Product Grid */}
         {!loading && (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
-            {products.map((product: any) => (
-              <ProductCard
-                key={product.id}
-                product={product as any}
-                onAddToCart={() => {
-                  addItem({
-                    productId: product.id,
-                    name: product.name,
-                    sku: product.sku,
-                    unitPrice: product.unitPrice,
-                    stockQuantity: product.quantityOnHand || 0,
-                  });
-                }}
-              />
-            ))}
+            {products.map((inv: IInventory) => {
+              const flatProduct = {
+                id: inv.productId || inv.product?.id || inv.id,
+                sku: inv.product?.sku ?? "",
+                name: inv.product?.name ?? "Unknown Product",
+                unitPrice: Number(inv.product?.unitPrice ?? 0),
+                quantityOnHand: inv.quantityOnHand ?? 0,
+                reorderLevel: inv.reorderLevel ?? 0,
+                status: inv.product?.status ?? "",
+              };
+
+              return (
+                <ProductCard
+                  key={flatProduct.id}
+                  product={flatProduct as PosProductItem}
+                  onAddToCart={() => {
+                    addItem({
+                      productId: flatProduct.id,
+                      name: flatProduct.name,
+                      sku: flatProduct.sku,
+                      unitPrice: flatProduct.unitPrice,
+                      stockQuantity: flatProduct.quantityOnHand || 0,
+                    });
+                  }}
+                />
+              );
+            })}
           </div>
         )}
 

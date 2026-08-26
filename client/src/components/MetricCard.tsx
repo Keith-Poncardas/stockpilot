@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface MetricCardProps {
     value?: string | number | null;
@@ -49,10 +50,10 @@ export function MetricCardSkeleton({ className = '' }: { className?: string } = 
             className
         )}>
             <div className="flex flex-col gap-2">
-                <div className="h-3 w-24 bg-[#F0EFEA] animate-pulse rounded-md" />
-                <div className="h-8 w-16 bg-[#F0EFEA] animate-pulse rounded-md" />
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-8 w-16" />
             </div>
-            <div className="w-12 h-12 rounded-[14px] bg-[#F0EFEA] animate-pulse shrink-0" />
+            <Skeleton className="w-12 h-12 rounded-[14px] shrink-0" />
         </div>
     );
 }

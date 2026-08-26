@@ -18,6 +18,24 @@ export function DataTablePagination<TData>({
   const startRowIndex = totalRows === 0 ? 0 : pageIndex * pageSize + 1
   const endRowIndex = Math.min(totalRows, (pageIndex + 1) * pageSize)
 
+  const getPaginationItems = () => {
+    const items: (number | "...")[] = []
+    if (pageCount <= 7) {
+      for (let i = 0; i < pageCount; i++) {
+        items.push(i)
+      }
+    } else {
+      if (pageIndex <= 3) {
+        items.push(0, 1, 2, 3, 4, "...", pageCount - 1)
+      } else if (pageIndex >= pageCount - 4) {
+        items.push(0, "...", pageCount - 5, pageCount - 4, pageCount - 3, pageCount - 2, pageCount - 1)
+      } else {
+        items.push(0, "...", pageIndex - 1, pageIndex, pageIndex + 1, "...", pageCount - 1)
+      }
+    }
+    return items
+  }
+
   if (pageCount <= 1) return null
 
   return (
@@ -36,18 +54,29 @@ export function DataTablePagination<TData>({
           <ArrowLeft size={16} strokeWidth={3} />
         </button>
 
-        {Array.from({ length: pageCount }).map((_, idx) => {
-          const isActive = idx === pageIndex
+        {getPaginationItems().map((item, idx) => {
+          if (item === "...") {
+            return (
+              <div
+                key={`ellipsis-${idx}`}
+                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-gray-500 font-semibold text-xs sm:text-sm dark:text-zinc-400"
+              >
+                ...
+              </div>
+            )
+          }
+
+          const isActive = item === pageIndex
           return (
             <button
-              key={idx}
-              onClick={() => table.setPageIndex(idx)}
+              key={item}
+              onClick={() => table.setPageIndex(item)}
               className={`w-7 h-7 sm:w-8 sm:h-8 rounded-sm border flex items-center justify-center font-semibold text-xs sm:text-sm transition-colors ${isActive
                 ? "bg-amber-400 border-amber-400 text-black font-bold"
                 : "border-gray-200 bg-white text-gray-600 hover:bg-amber-400 hover:border-amber-400 hover:text-black dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-400"
                 }`}
             >
-              {idx + 1}
+              {item + 1}
             </button>
           )
         })}

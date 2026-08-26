@@ -180,6 +180,7 @@ type Query {
     getSale(saleId: ID!): Sale!
     getSales(args: PaginatedSalesInput!): PaginatedSales!
     getSalesMetrics: SaleMetrics!
+    getSellableProducts(args: GetInventoriesInput!): PaginatedInventories!
 }
 
 """

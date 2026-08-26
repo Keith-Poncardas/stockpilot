@@ -39,7 +39,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         SKU: {product.sku}
       </p>
 
-      <div className="mt-2.5 flex items-center gap-1.5 text-xs">
+      <div className="mt-2.5 flex items-center gap-1.5 text-xs min-w-0">
         {isOutOfStock ? (
           <>
             <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
@@ -48,28 +48,29 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         ) : isLowStock ? (
           <>
             <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-            <span className="font-medium text-amber-600">
+            <span className="font-medium text-amber-600 truncate">
               {qty} left · Low stock
             </span>
           </>
         ) : (
           <>
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            <span className="font-medium text-emerald-600">
+            <span className="font-medium text-emerald-600 truncate">
               {qty} in stock
             </span>
           </>
         )}
       </div>
 
-      <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-3.5">
-        <span className="text-sm font-semibold text-slate-900">
+      <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-3.5 gap-2">
+        <span className="text-sm font-semibold text-slate-900 truncate">
           {formatCurrency(product.unitPrice)}
         </span>
 
         <Button
           type="button"
           size="xs"
+          className="shrink-0"
           variant={isOutOfStock ? "outline" : "default"}
           disabled={isOutOfStock}
           onClick={() =>

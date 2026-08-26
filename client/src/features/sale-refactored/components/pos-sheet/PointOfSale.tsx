@@ -6,36 +6,19 @@ import {
     CartSection,
     PaymentActionsSection,
 } from "./sections";
-import { toast } from "sonner";
-import { useCart } from "./sections/cart/hook/useCart";
-import { useCreateSaleMutation, usePOSProducts, usePOSCustomers } from "./hooks/usePOSApi";
+import { useCart } from "./sections/cart/hook";
+import { usePOS, usePOSSheet } from "./hooks";
+import type { SelectedCustomer } from "./sections/customer-search/types";
 
 export function PointOfSale() {
     // --- STATE ---
-    const [customer, setCustomer] = useState<any>(null);
+    const [customer, setCustomer] = useState<SelectedCustomer | null>(null);
 
     const [paymentMethod, setPaymentMethod] = useState<string>("CASH");
     const [validationError, setValidationError] = useState<string | null>(null);
 
-    const { createSale, isSubmitting } = useCreateSaleMutation();
-
-    // --- API DATA ---
-    const { 
-        products, 
-        loading: loadingProducts, 
-        meta: productsMeta, 
-        searchTerm: productSearchTerm, 
-        setSearchTerm: setProductSearchTerm 
-    } = usePOSProducts(50);
-    
-    const { 
-        customers, 
-        loading: loadingCustomers, 
-        meta: customersMeta, 
-        searchTerm: customerSearchTerm, 
-        setSearchTerm: setCustomerSearchTerm, 
-        loadMore: loadMoreCustomers 
-    } = usePOSCustomers();
+    const { products, customers, sale } = usePOS();
+    const { onClose } = usePOSSheet();
 
     // --- CART STATE ---
     const { getSubtotal, getTotalItemsCount, clearCart, items } = useCart();
@@ -44,31 +27,18 @@ export function PointOfSale() {
     const totalDue = subtotal; // Assuming no tax/discount for now
 
     const handleCompleteSale = useCallback(async () => {
-        if (items.length === 0) {
-            setValidationError("Cart is empty. Please add items.");
-            return;
-        }
-
-        setValidationError(null);
-
-        try {
-            await createSale({
-                customerId: customer?.id || null,
-                paymentMethod,
-                status: "COMPLETED",
-                items: items.map(item => ({
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    unitPrice: item.unitPrice,
-                })),
-            });
-            toast.success("Sale completed successfully!");
-            clearCart();
-            setCustomer(null);
-        } catch (error: any) {
-            toast.error(error.message || "Failed to complete sale.");
-        }
-    }, [items, customer, paymentMethod, createSale, clearCart]);
+        await sale.handleCompleteSale({
+            items,
+            customerId: customer?.id,
+            paymentMethod,
+            onValidationFailed: setValidationError,
+            onSuccess: () => {
+                clearCart();
+                setCustomer(null);
+                onClose();
+            }
+        });
+    }, [items, customer, paymentMethod, sale.handleCompleteSale, clearCart, onClose]);
 
     return (
         <PointOfSaleLayout
@@ -76,21 +46,22 @@ export function PointOfSale() {
                 <CustomerSearchSection
                     selectedCustomer={customer}
                     onSelectCustomer={setCustomer}
-                    customers={customers}
-                    loading={loadingCustomers}
-                    hasNextPage={customersMeta?.hasNextPage ?? false}
-                    onLoadMore={loadMoreCustomers}
-                    searchTerm={customerSearchTerm}
-                    onSearchTermChange={setCustomerSearchTerm}
+                    customers={customers.customers}
+                    loading={customers.loading}
+                    isFetchingMore={customers.isFetchingMore}
+                    hasNextPage={customers.hasMore}
+                    onLoadMore={customers.loadMore}
+                    searchTerm={customers.searchTerm}
+                    onSearchTermChange={customers.setSearchTerm}
                 />
             }
             productCatalog={
-                <ProductCatalogGrid 
-                    products={products}
-                    loading={loadingProducts}
-                    totalItems={productsMeta?.totalItems ?? 0}
-                    searchTerm={productSearchTerm}
-                    onSearchTermChange={setProductSearchTerm}
+                <ProductCatalogGrid
+                    products={products.inventories}
+                    loading={products.loading}
+                    totalItems={products.meta?.totalItems ?? 0}
+                    searchTerm={products.searchTerm}
+                    onSearchTermChange={products.setSearchTerm}
                 />
             }
             cart={
@@ -104,7 +75,7 @@ export function PointOfSale() {
                     totalDue={totalDue}
                     totalItemsCount={totalItemsCount}
                     onCompleteSale={handleCompleteSale}
-                    isSubmitting={isSubmitting}
+                    isSubmitting={sale.isSubmitting}
                     validationError={validationError}
                 />
             }

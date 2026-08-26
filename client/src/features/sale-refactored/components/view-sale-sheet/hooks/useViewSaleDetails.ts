@@ -22,8 +22,8 @@ export function useViewSaleDetails(saleId: string) {
     const handleRefund = useCallback(async () => {
         if (!saleId || isMutating) return;
 
-        // In a real app, you might want a confirmation dialog here.
-        // For now, we execute the mutation.
+        const confirmed = window.confirm(`Are you sure you want to mark this sale as REFUNDED?`);
+        if (!confirmed) return;
         try {
             await changeStatus({
                 variables: {
@@ -34,13 +34,16 @@ export function useViewSaleDetails(saleId: string) {
                 },
             });
             toast.success("Sale has been refunded successfully");
-        } catch (err) {
+        } catch {
             // Handled by onError
         }
     }, [saleId, isMutating, changeStatus]);
 
     const handleVoid = useCallback(async () => {
         if (!saleId || isMutating) return;
+
+        const confirmed = window.confirm(`Are you sure you want to mark this sale as VOIDED?`);
+        if (!confirmed) return;
 
         try {
             await changeStatus({
@@ -52,7 +55,7 @@ export function useViewSaleDetails(saleId: string) {
                 },
             });
             toast.success("Sale has been voided successfully");
-        } catch (err) {
+        } catch {
             // Handled by onError
         }
     }, [saleId, isMutating, changeStatus]);

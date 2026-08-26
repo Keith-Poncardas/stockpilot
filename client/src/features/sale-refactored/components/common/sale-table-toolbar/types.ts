@@ -12,6 +12,12 @@ export interface ISaleFilters {
     dateTo: string;
 };
 
+export interface FilterOption {
+    value: string;
+    onChange: (value: string) => void;
+    options: { label: string; value: string }[];
+    defaultValue: string;
+}
 /**
  * Props for the SaleTableToolbar component.
  */
@@ -20,7 +26,7 @@ export interface SaleTableToolbarProps {
     setSearch: (value: string) => void;
     filters: ISaleFilters;
     setFilters: React.Dispatch<React.SetStateAction<ISaleFilters>>;
-    filterOptions: any[];
+    filterOptions: FilterOption[];
     dateError: string | null;
     onRefresh: () => void;
     onResetFilters: () => void;

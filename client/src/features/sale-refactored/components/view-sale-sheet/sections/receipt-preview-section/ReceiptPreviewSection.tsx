@@ -5,7 +5,7 @@ import Barcode from "react-barcode";
 import { FormSection } from "@/components/ui/form-section";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import type { ISaleDetails } from "../../../types";
+import type { ISaleDetails } from "@/features/sale-refactored/types";
 
 export interface ReceiptPreviewSectionProps {
     sale: ISaleDetails;

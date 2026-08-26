@@ -1,5 +1,5 @@
 import type { SaleCellProps } from "../cells.types";
-import { formatSaleId } from "../../columns/sale.utils";
+import { formatSaleId } from "../../columns";
 
 /**
  * Renders the human-readable Sale ID (e.g. SALE-A1B2C3).

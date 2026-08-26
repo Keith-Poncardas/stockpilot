@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
 import { useDateRangeValidation } from '@/hooks/useDateRangeValidation';
-import { useSaleFilterOptions } from '../use-sale-filter-options/useSaleFilterOptions';
+import { useSaleFilterOptions } from '../use-sale-filter-options';
 import type { ISaleFilters } from '../../../../components';
 import { useSaleMetrics } from '../use-sale-metrics';
 import { GET_SALES } from '../../../../operations';
@@ -38,7 +38,7 @@ export function useSalesPage() {
     // Build query filter by cleaning up empty values
     const buildSaleQueryFilter = useCallback((
         activeFilters: ISaleFilters & { search: string },
-        queryParams: any
+        queryParams: { page?: number; limit?: number; orderBy?: string; orderDirection?: string }
     ) => {
         return cleanObject({
             search: activeFilters.search,

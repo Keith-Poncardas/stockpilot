@@ -1,18 +1,11 @@
-export interface SelectedCustomer {
-  id: string;
-  firstName: string | null;
-  lastName: string | null;
-  email: string | null;
-  phone: string | null;
-  customerType: string | null;
-  companyName?: string | null;
-}
+import type { ICustomer } from "@/features/customer/customer.types";
 
 export interface CustomerSearchSectionProps {
-  selectedCustomer: SelectedCustomer | null;
-  onSelectCustomer: (customer: SelectedCustomer | null) => void;
-  customers: any[];
+  selectedCustomer: ICustomer | null;
+  onSelectCustomer: (customer: ICustomer | null) => void;
+  customers: ICustomer[];
   loading: boolean;
+  isFetchingMore?: boolean;
   hasNextPage: boolean;
   onLoadMore: () => void;
   searchTerm: string;

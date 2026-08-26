@@ -1,21 +1,24 @@
 import { useCallback } from 'react';
-import { ShoppingCart, Plus, ServerCrash, Calculator } from "lucide-react";
+import { ShoppingCart, Plus, ServerCrash } from "lucide-react";
+
 
 import { GridMetrics, SectionHeader } from "@/components";
 import { Button } from "@/components/ui/button";
 import { DataTableLayout } from '@/components/ui/data-table-layout';
 import { EmptyState } from '@/components/ui/empty-state';
-import { useSheet } from '@/providers';
+import type { Row } from '@tanstack/react-table';
 
 import { useSalesPage } from "./hooks";
-import { SaleTableToolbar, ViewSaleDetails, PointOfSale } from "../../components";
+import { SaleTableToolbar, usePOSSheet, useViewSaleSheet } from "../../components";
+import type { ISaleDetails } from '../../types';
 
 /**
  * Renders the main refactored sales page with metrics, table toolbar filters, and a paginated table.
  * Consumes the useSalesPage custom hook to decouple rendering from state management.
  */
 export function SalesPage() {
-    const { openSheet } = useSheet();
+    const { onOpen: onOpenViewSale } = useViewSaleSheet();
+    const { onOpen: onOpenPOS } = usePOSSheet();
 
     const {
         search,
@@ -35,24 +38,12 @@ export function SalesPage() {
     } = useSalesPage();
 
     const handleNewSale = useCallback(() => {
-        openSheet({
-            title: "Point of Sale",
-            description: "Process new transactions, select products, and complete sales.",
-            icon: Calculator,
-            content: <PointOfSale />,
-            className: "w-[95vw] max-w-none sm:max-w-[600px] md:max-w-[768px] lg:max-w-[800px] !sm:max-w-3xl",
-        });
-    }, [openSheet]);
+        onOpenPOS();
+    }, [onOpenPOS]);
 
-    const handleRowClick = useCallback((row: any) => {
-        openSheet({
-            title: "Sale Details",
-            description: "Comprehensive overview of the transaction, including purchased items and customer details.",
-            icon: ShoppingCart,
-            content: <ViewSaleDetails saleId={row.original.id} />,
-            className: "w-[95vw] max-w-none sm:max-w-[600px] md:max-w-[768px] lg:max-w-[780px] !sm:max-w-3xl",
-        });
-    }, [openSheet]);
+    const handleViewClick = useCallback((row: Row<ISaleDetails>) => {
+        onOpenViewSale(row.original.id);
+    }, [onOpenViewSale]);
 
     return (
         <>
@@ -86,7 +77,7 @@ export function SalesPage() {
                 isLoading={loading}
                 error={error}
                 isEmpty={isEmpty}
-                onRowClick={handleRowClick}
+                onRowClick={handleViewClick}
                 errorState={
                     <EmptyState
                         title="Something went wrong"

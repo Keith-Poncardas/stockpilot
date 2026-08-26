@@ -4,12 +4,16 @@ import { LoginPage, OTPPage, SignupPage, UserLayout, UserPage, UserViewPage, Pen
 import MainLayout from './layout/MainLayout'
 import { EmptyState } from './components/ui/empty-state'
 import { SheetProvider } from './providers'
+import { ViewSaleSheet } from './features/sale-refactored/components/view-sale-sheet'
+import { PointOfSaleSheet } from './features/sale-refactored/components/pos-sheet'
 import { Toaster } from './components/ui/sonner'
 
 function App() {
   return (
     <SheetProvider>
       <Toaster position="top-center" />
+      <ViewSaleSheet />
+      <PointOfSaleSheet />
       <Routes>
 
         <Route element={<PublicRoute />}>

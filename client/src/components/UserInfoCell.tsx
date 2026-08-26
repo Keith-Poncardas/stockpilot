@@ -4,6 +4,7 @@ import UserAvatar from "@/components/UserAvatar";
 import { useAuthStore } from "@/store";
 import { cn } from "@/lib/utils";
 import { CUSTOMER_AVATAR_COLORS, CUSTOMER_TEXT_COLORS } from "@/features/customer/customer.config";
+import { PATHS } from "@/routes/paths";
 
 export interface UserInfoCellUser {
     id?: string;
@@ -69,9 +70,9 @@ export const UserInfoCell = React.memo(function UserInfoCell({
     const { user: authUser } = useAuthStore();
 
     // Determine target user object (priority: user prop > row.original.user/customer > row.original)
-    const targetUser = userProp ?? 
-        (type === 'customer' ? row?.original?.customer : row?.original?.user) ?? 
-        row?.original ?? 
+    const targetUser = userProp ??
+        (type === 'customer' ? row?.original?.customer : row?.original?.user) ??
+        row?.original ??
         null;
 
     const id = idProp ?? targetUser?.id;
@@ -94,10 +95,15 @@ export const UserInfoCell = React.memo(function UserInfoCell({
 
     const isCurrentUser = isCurrentUserProp ?? targetUser?.isCurrentUser ?? (Boolean(id) && authUser?.id === id);
 
-    const linkPath = to || (type === 'user' && id ? `/users/${id}/view` : undefined);
-    const shouldLink = isLink && Boolean(linkPath);
-
+    let linkPath = to;
+    if (!linkPath && id) {
+        if (type === 'user') linkPath = PATHS.users.view(id);
+        else if (type === 'customer') linkPath = PATHS.customers.view(id);
+    }
     const isWalkIn = type === 'customer' && displayName === 'Walk-in';
+
+    const shouldLink = isLink && Boolean(linkPath) && !isWalkIn;
+
 
     // Resolve custom classes for customer layout
     let finalAvatarClassName = avatarClassName;
@@ -139,7 +145,7 @@ export const UserInfoCell = React.memo(function UserInfoCell({
 
     if (shouldLink && linkPath) {
         return (
-            <Link to={linkPath} className={cn(containerClasses, "hover:opacity-80 transition-opacity")}>
+            <Link to={linkPath} className={cn(containerClasses, "hover:opacity-80 transition-opacity")} onClick={(e) => e.stopPropagation()}>
                 {content}
             </Link>
         );

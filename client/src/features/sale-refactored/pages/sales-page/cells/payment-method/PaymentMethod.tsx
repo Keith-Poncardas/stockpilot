@@ -12,9 +12,11 @@ export function PaymentMethodCell({ row }: SaleCellProps) {
         return <span className="text-sm text-slate-400">—</span>;
     }
 
+    const formattedMethod = method.replace(/_/g, " ");
+
     return (
         <ActionCellContent
-            label={method}
+            label={formattedMethod}
             isLocked={false}
             withBorder={false}
         />

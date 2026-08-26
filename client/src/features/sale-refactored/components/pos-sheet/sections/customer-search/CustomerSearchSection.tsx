@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import type { ICustomer } from "@/features/customer/customer.types";
 
-import { useDebounce } from "@/hooks/useDebounce";
 import { FormSection } from "@/components/ui/form-section";
 import { FormField } from "@/components/ui/form-field";
 import { VirtualInfiniteList } from "@/components/ui/virtual-infinite-list";
@@ -19,6 +19,7 @@ export const CustomerSearchSection = ({
   hasNextPage,
   onLoadMore,
   onSearchTermChange,
+  isFetchingMore = false,
 }: CustomerSearchSectionProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -62,14 +63,14 @@ export const CustomerSearchSection = ({
           <VirtualInfiniteList
             items={customers}
             loading={loading}
-            isFetchingMore={false}
+            isFetchingMore={isFetchingMore}
             hasNextPage={hasNextPage}
             onLoadMore={onLoadMore}
             emptyMessage="No customers found. Try a different name, phone, or email."
             aria-label="Customer search results"
             renderItem={(item) => (
               <CustomerSearchResultItem
-                customer={item as any}
+                customer={item as ICustomer}
                 isSelected={selectedCustomer?.id === item.id}
                 onSelect={(c) => {
                   const fullName = `${c.firstName ?? ""} ${c.lastName ?? ""}`.trim();

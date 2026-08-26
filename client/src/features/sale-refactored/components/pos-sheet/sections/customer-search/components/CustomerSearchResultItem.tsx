@@ -1,11 +1,11 @@
 
 
-import type { SelectedCustomer } from "../types";
+import type { ICustomer } from "@/features/customer/customer.types";
 
 interface CustomerSearchResultItemProps {
-  customer: SelectedCustomer;
+  customer: ICustomer;
   isSelected?: boolean;
-  onSelect: (customer: SelectedCustomer) => void;
+  onSelect: (customer: ICustomer) => void;
 }
 
 export function CustomerSearchResultItem({

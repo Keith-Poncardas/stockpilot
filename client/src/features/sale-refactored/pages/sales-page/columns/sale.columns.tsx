@@ -39,7 +39,6 @@ export const columns: ColumnDef<ISaleDetails>[] = [
             <UserInfoCell
                 user={row.original.customer}
                 type="customer"
-                isLink={false}
             />
         ),
         size: 160,

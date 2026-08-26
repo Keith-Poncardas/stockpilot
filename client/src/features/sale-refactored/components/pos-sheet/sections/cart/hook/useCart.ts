@@ -32,7 +32,7 @@ export const useCart = create<CartState>()(
           updatedItems[existingItemIndex] = {
             ...existingItem,
             // Ensure we don't exceed stock quantity
-            quantity: Math.min(newQuantity, existingItem.stockQuantity)
+            quantity: Math.max(1, Math.min(newQuantity, existingItem.stockQuantity))
           };
 
           return { items: updatedItems };
@@ -44,7 +44,7 @@ export const useCart = create<CartState>()(
             {
               ...newItem,
               // Ensure we don't exceed stock quantity on initial add
-              quantity: Math.min(quantityToAdd, newItem.stockQuantity)
+              quantity: Math.max(1, Math.min(quantityToAdd, newItem.stockQuantity))
             } as CartItem
           ]
         };

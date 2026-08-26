@@ -3,6 +3,6 @@
  */
 export interface DatePickerConfigItem {
     value: string | undefined;
-    onChange: (val: any) => void;
+    onChange: (val: string | undefined) => void;
     placeholder: string;
 };

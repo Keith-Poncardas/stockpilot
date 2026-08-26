@@ -16,10 +16,13 @@ import {
     CreateSaleInput,
     PaginatedSalesInput
 } from "./types";
-import { Sale } from '@/generated/client.js';
+import { Sale, ProductStatus } from '@/generated/client.js';
 import { customerService } from "../customer";
 import { userService } from "../user";
 import { productService } from "../product";
+import { inventoryService } from "../inventory/inv.service";
+import { paginatedInventoriesSchema } from "../inventory/inv.validation";
+import { PaginatedInventoriesInput } from "../inventory/types";
 import { GraphQLContext } from "@/types";
 
 export const saleResolver = {
@@ -63,6 +66,15 @@ export const saleResolver = {
         getSalesMetrics: async () => {
             return saleService.getSalesMetrics();
         },
+
+        /**
+         * Retrieves a paginated list of sellable (ACTIVE) inventory products for the POS.
+         */
+        getSellableProducts: composeResolvers(
+            validate(paginatedInventoriesSchema)
+        )(async (_: unknown, { args }: { args: PaginatedInventoriesInput }) => {
+            return inventoryService.getInventories(args, ProductStatus.ACTIVE);
+        }),
 
     }),
 

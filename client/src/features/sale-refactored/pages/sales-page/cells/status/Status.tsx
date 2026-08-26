@@ -19,6 +19,11 @@ export function StatusCell({ row }: SaleCellProps) {
     const isStatusDisabled = status === SaleStatus.VOIDED || status === SaleStatus.REFUNDED;
 
     const handleUpdate = async (newStatus: string) => {
+        if (newStatus === SaleStatus.REFUNDED || newStatus === SaleStatus.VOIDED) {
+            const confirmed = window.confirm(`Are you sure you want to mark this sale as ${newStatus}?`);
+            if (!confirmed) return;
+        }
+
         await mutate({
             mutation: CHANGE_SALE_STATUS,
             typename: "SaleListItem",
@@ -34,7 +39,7 @@ export function StatusCell({ row }: SaleCellProps) {
     };
 
     const statusOptions = useMemo(() => getOptions({
-        items: Object.values(SaleStatus),
+        items: Object.values(SaleStatus).filter(s => s !== SaleStatus.PENDING),
         currentValue: status,
         getValue: (s) => s,
         labelConfig: SALE_STATUS_LABELS,

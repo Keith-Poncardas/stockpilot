@@ -2,7 +2,7 @@ import { prisma } from "@/lib";
 import {
     createPaginator
 } from "@/utils";
-import { MovementReason, MovementType, Prisma } from '@/generated/client.js';
+import { MovementReason, MovementType, Prisma, ProductStatus } from '@/generated/client.js';
 import {
     AdjustStockInput,
     CreateInventoryInput,
@@ -161,7 +161,7 @@ export class InventoryService {
      * @param args The pagination, filtering, and sorting options.
      * @returns A paginated collection of inventory records with stock status metadata.
      */
-    async getInventories(args: PaginatedInventoriesInput) {
+    async getInventories(args: PaginatedInventoriesInput, forceProductStatus?: ProductStatus) {
 
         const { filter, limit, page } = args;
         const { params, buildMeta } = createPaginator({ limit, page });
@@ -181,13 +181,18 @@ export class InventoryService {
 
         const where: Prisma.InventoryWhereInput = {
 
-            /** Search by linked product name or SKU */
-            ...(search && {
+            /** Search and Product Status Filter */
+            ...((search || forceProductStatus) && {
                 product: {
-                    OR: [
-                        { name: { contains: search, mode: "insensitive" } },
-                        { sku: { contains: search, mode: "insensitive" } },
-                    ],
+                    ...(search && {
+                        OR: [
+                            { name: { contains: search, mode: "insensitive" } },
+                            { sku: { contains: search, mode: "insensitive" } },
+                        ],
+                    }),
+                    ...(forceProductStatus && {
+                        status: forceProductStatus,
+                    }),
                 },
             }),
 

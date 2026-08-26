@@ -1,9 +1,10 @@
+import type { ICustomer } from "@/features/customer/customer.types";
 import { Button } from "@/components/ui/button";
-import { Award, X } from "lucide-react";
+import { X } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface CustomerSearchPreviewProps {
-  customer: any;
+  customer: ICustomer | null;
   onClear: () => void;
 }
 
@@ -23,12 +24,6 @@ export function CustomerSearchPreview({ customer, onClear }: CustomerSearchPrevi
             >
               {name}
             </p>
-            {customer.customerType === "VIP" && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
-                <Award className="h-3 w-3" />
-                VIP
-              </span>
-            )}
           </div>
           <p id="detail-contact" className="font-mono text-xs mt-0.5 text-foreground/60">
             {customer.phone || customer.email || "No contact info"}
@@ -46,7 +41,7 @@ export function CustomerSearchPreview({ customer, onClear }: CustomerSearchPrevi
         </div>
       </div>
       <p className="mt-2 text-sm text-ink/60">
-        {[customer.addressLine1, customer.city, customer.province]
+        {[customer.cityCode, customer.provinceCode]
           .filter(Boolean)
           .join(", ") || "No address on file."}
       </p>
@@ -54,13 +49,13 @@ export function CustomerSearchPreview({ customer, onClear }: CustomerSearchPrevi
         <div>
           <dt className="text-xs text-foreground/60">Total orders</dt>
           <dd className="font-mono text-sm text-ink mt-0.5">
-            {customer.totalOrders ?? 0}
+            {customer.purchaseSummary?.totalOrders ?? 0}
           </dd>
         </div>
         <div>
           <dt className="text-xs text-foreground/60">Total spent</dt>
           <dd className="font-mono text-sm text-ink mt-0.5">
-            {formatCurrency(customer.totalSpent ?? 0)}
+            {formatCurrency(customer.purchaseSummary?.totalSpent ?? 0)}
           </dd>
         </div>
       </dl>

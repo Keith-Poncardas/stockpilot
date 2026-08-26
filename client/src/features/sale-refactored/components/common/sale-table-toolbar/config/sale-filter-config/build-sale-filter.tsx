@@ -4,6 +4,7 @@ import { SelectFilter } from '@/components/ui/select-filter';
 import { DatePicker } from '@/components/ui/date-picker';
 import type { DatePickerConfigItem } from '../date-picker-config/types';
 import type { PopoverConfigItem } from './types';
+import type { FilterOption } from '../../types';
 
 /**
  * Builds the sales data table filter popovers configuration.
@@ -14,7 +15,7 @@ import type { PopoverConfigItem } from './types';
  * @returns {PopoverConfigItem[]} Configured popover filters.
  */
 export function buildSaleFilter(
-    filterOptions: any[],
+    filterOptions: FilterOption[],
     datePickers: DatePickerConfigItem[],
     dateError: string | null
 ): PopoverConfigItem[] {

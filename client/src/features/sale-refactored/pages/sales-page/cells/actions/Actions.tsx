@@ -2,42 +2,31 @@ import { ActionCell } from "@/components/ui/action-cell";
 import { PopoverClose } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import type { SaleCellProps } from "../cells.types";
-import { useSheet } from "@/providers";
 import { useCallback, useMemo } from "react";
 import { getActionOptions } from "./options";
-import { ViewSaleDetails } from "../../../../components";
+import { useViewSaleSheet } from "@/features/sale-refactored/components/view-sale-sheet/hooks";
+
 
 /**
  * Component that renders the action menu cell for a specific sale row.
  * Offers quick actions such as viewing the sale details or downloading the sale receipt.
  */
 export function ActionsCell({ row }: SaleCellProps) {
-    const { openSheet } = useSheet();
+    const { onOpen } = useViewSaleSheet();
 
     /**
      * Navigates to the sale details view by opening the slide-over sheet.
      */
     const handleViewClick = useCallback(() => {
-        openSheet({
-            title: "Sale Details",
-            description: `Viewing details for sale ID: ${row.original.id}`,
-            content: <ViewSaleDetails saleId={row.original.id} />,
-        });
-    }, [openSheet, row.original.id]);
-
-    /**
-     * Initiates the receipt download process for the sale.
-     */
-    const handleDownloadReceiptClick = useCallback(() => {
-        console.log("Download receipt for sale:", row.original.id);
-    }, [row.original.id]);
+        onOpen(row.original.id);
+    }, [onOpen, row.original.id]);
 
     /**
      * Memoized action options list to avoid recreating the array reference on every render.
      */
     const actions = useMemo(
-        () => getActionOptions(handleViewClick, handleDownloadReceiptClick),
-        [handleViewClick, handleDownloadReceiptClick]
+        () => getActionOptions(handleViewClick),
+        [handleViewClick]
     );
 
     return (

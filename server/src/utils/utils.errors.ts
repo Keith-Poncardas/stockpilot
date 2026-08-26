@@ -58,6 +58,7 @@ export function throwBadInput(
     message: string,
     extensions?: Record<string, unknown>
 ): never {
+    console.log("Validation Errors:", JSON.stringify(extensions?.validation, null, 2));
     throwGraphQLError(message, 'BAD_USER_INPUT', extensions);
 }
 

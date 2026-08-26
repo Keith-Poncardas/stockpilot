@@ -141,10 +141,44 @@ export const SEARCH_POS_CUSTOMERS = gql`
         lastName
         phone
         email
-        customerType
       }
       meta {
         nextCursor
+        hasNextPage
+      }
+    }
+  }
+`;
+
+export const GET_SELLABLE_PRODUCTS = gql`
+  query GetSellableProducts($input: GetInventoriesInput!) {
+    getSellableProducts(args: $input) {
+      data {
+        id
+        productId
+        quantityOnHand
+        reorderLevel
+        maxStock
+        updatedAt
+        stockStatus
+        product {
+          id
+          sku
+          name
+          description
+          unitPrice
+          costPrice
+          status
+        }
+      }
+      meta {
+        page
+        limit
+        firstItem
+        lastItem
+        totalItems
+        totalPages
+        hasPreviousPage
         hasNextPage
       }
     }

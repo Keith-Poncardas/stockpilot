@@ -1,4 +1,3 @@
 export * from "./PointOfSale";
-export * from "./layout";
-export * from "./skeleton";
-export * from "./sections";
+export * from "./PointOfSaleSheet";
+export * from "./hooks";
