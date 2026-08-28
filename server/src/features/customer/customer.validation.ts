@@ -83,6 +83,10 @@ export const createCustomerSchema = z
             .string()
             .trim()
             .min(1, "City/municipality code is required"),
+        barangayCode: z
+            .string()
+            .trim()
+            .min(1, "Barangay code is required"),
         postalCode: z.string().trim().max(10).optional().or(z.literal("")),
         country: z.string().optional().default("Philippines"),
     })

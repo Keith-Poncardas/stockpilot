@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
     useReactTable,
     getCoreRowModel,
@@ -12,10 +11,11 @@ import {
 import { FormSection } from '@/components/ui/form-section';
 import { DataTableLayout } from '@/components/ui/data-table-layout';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Button } from '@/components/ui/button';
 import { StatusBadge, type BadgeVariant } from '@/components/StatusBadge';
 import { Receipt, ShoppingBag } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/lib/utils';
+import { ActionsCell } from '@/features/sale';
+import { useViewSaleSheet } from '@/features/sale/components/view-sale-sheet/hooks';
 import type { ICustomerSale } from '../../customer.types';
 
 interface CustomerPurchaseHistorySectionProps {
@@ -27,8 +27,7 @@ export function CustomerPurchaseHistorySection({
     sales,
     isLoading = false,
 }: CustomerPurchaseHistorySectionProps) {
-    const navigate = useNavigate();
-
+    const { onOpen } = useViewSaleSheet();
     const columns: ColumnDef<ICustomerSale>[] = useMemo(
         () => [
             {
@@ -99,23 +98,12 @@ export function CustomerPurchaseHistorySection({
             },
             {
                 id: 'actions',
-                header: () => <div className="text-right">Actions</div>,
-                cell: ({ row }) => (
-                    <div className="text-right">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium text-xs h-8 px-2.5"
-                            onClick={() => navigate(`/sales/${row.original.id}/view`)}
-                        >
-                            View Sale
-                        </Button>
-                    </div>
-                ),
-                size: 100,
+                header: () => <div className="text-center">Actions</div>,
+                cell: ({ row }) => <ActionsCell row={row as any} />,
+                size: 80,
             },
         ],
-        [navigate]
+        []
     );
 
     const [sorting, setSorting] = useState<SortingState>([
@@ -152,6 +140,8 @@ export function CustomerPurchaseHistorySection({
                     table={table}
                     isLoading={isLoading}
                     isEmpty={!isLoading && sales.length === 0}
+                    onRowClick={(row) => onOpen(row.original.id)}
+                    className="cursor-pointer"
                     emptyState={
                         <EmptyState
                             title="No purchases yet"

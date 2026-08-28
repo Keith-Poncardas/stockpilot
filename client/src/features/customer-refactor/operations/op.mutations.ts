@@ -15,6 +15,7 @@ export const CREATE_CUSTOMER = gql`
       email
       provinceCode
       cityCode
+      barangayCode
       postalCode
       country
       createdAt

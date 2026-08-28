@@ -1,4 +1,4 @@
-import { Hash, User as UserIcon, ShoppingBag, UserX } from "lucide-react";
+import { Hash, User as UserIcon, ShoppingBag } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { FormSection } from "@/components/ui/form-section";
 import { InfoRow } from "@/components/ui/info-row";
@@ -35,6 +35,14 @@ export function TransactionSummaryCard({ sale }: TransactionSummaryCardProps) {
                     value={
                         <span className="text-gray-700 dark:text-gray-300">
                             {formatDate(sale.saleDate)}
+                        </span>
+                    }
+                />
+                <InfoRow
+                    label="Payment Method"
+                    value={
+                        <span className="text-gray-700 dark:text-gray-300 capitalize">
+                            {sale.paymentMethod.replace(/_/g, " ").toLowerCase()}
                         </span>
                     }
                 />

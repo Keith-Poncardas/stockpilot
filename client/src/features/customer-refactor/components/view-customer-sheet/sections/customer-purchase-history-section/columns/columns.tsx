@@ -1,15 +1,11 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Button } from '@/components/ui/button';
 import { formatDate, formatCurrency, cn, getConfigColor } from '@/lib/utils';
-import { SALE_STATUS_COLORS, SALE_PAYMENT_METHOD_COLORS, PaymentMethodCell, StaticStatusCell } from '@/features/sale';
+import { SALE_STATUS_COLORS, SALE_PAYMENT_METHOD_COLORS, PaymentMethodCell, StaticStatusCell, ActionsCell } from '@/features/sale';
 import type { ISale } from '@/features/sale/types';
 import type { ICustomerSale } from '@/features/customer-refactor';
 
 export function useCustomerPurchaseHistoryColumns() {
-    const navigate = useNavigate();
-
     const columns: ColumnDef<ISale | ICustomerSale>[] = useMemo(
         () => [
             {
@@ -82,23 +78,12 @@ export function useCustomerPurchaseHistoryColumns() {
             },
             {
                 id: 'actions',
-                header: () => <div className="text-right">Actions</div>,
-                cell: ({ row }) => (
-                    <div className="text-right">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium text-xs h-8 px-2.5"
-                            onClick={() => navigate(`/sales/${row.original.id}/view`)}
-                        >
-                            View Sale
-                        </Button>
-                    </div>
-                ),
-                size: 100,
+                header: () => <div className="text-center">Actions</div>,
+                cell: ({ row }) => <ActionsCell row={row as any} />,
+                size: 80,
             },
         ],
-        [navigate]
+        []
     );
 
     return columns;

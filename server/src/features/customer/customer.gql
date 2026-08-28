@@ -20,6 +20,7 @@ type Customer {
     addressLine2: String
     provinceCode: String
     cityCode: String
+    barangayCode: String
     postalCode: String
     country: String
     createdAt: String!
@@ -88,6 +89,7 @@ input CreateCustomerInput {
     addressLine2: String
     provinceCode: String!
     cityCode: String!
+    barangayCode: String!
     postalCode: String
 }
 

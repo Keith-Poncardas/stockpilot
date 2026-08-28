@@ -181,7 +181,7 @@ export class CustomerService {
      * @returns The newly created customer record.
      */
     async createCustomer(input: CreateCustomerInput) {
-        const { provinceCode, cityCode, country, ...rest } = input;
+        const { provinceCode, cityCode, barangayCode, country, ...rest } = input;
 
         const phone = rest.phone?.trim() || undefined;
         const email = rest.email?.trim() || undefined;
@@ -201,6 +201,7 @@ export class CustomerService {
             addressLine2,
             province: provinceCode,
             city: cityCode,
+            barangay: barangayCode,
             postalCode,
             country: country || "Philippines",
         };

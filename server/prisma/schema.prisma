@@ -167,6 +167,7 @@ model Customer {
     addressLine2 String?  @map("address_line2") @db.VarChar
     city         String?  @db.VarChar
     province     String?  @db.VarChar
+    barangay     String?  @db.VarChar
     postalCode   String?  @map("postal_code") @db.VarChar
     country      String?  @default("Philippines") @db.VarChar
     createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(6)

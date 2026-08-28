@@ -15,6 +15,7 @@ export const customerSchema = z.object({
     addressLine2: z.string().trim().max(255, "Address Line 2 is too long").optional(),
     provinceCode: z.string().trim().min(1, "Province is required"),
     cityCode: z.string().trim().min(1, "City/Municipality is required"),
+    barangayCode: z.string().trim().min(1, "Barangay is required"),
     postalCode: z.string().trim().max(10, "Postal Code is too long").optional(),
 });
 
