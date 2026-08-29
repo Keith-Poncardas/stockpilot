@@ -1,4 +1,13 @@
-import { PrismaClient, UserApprovalStatus, UserRole, UserStatus } from "./generated/client.js";
+import "dotenv/config";
+import {
+    PrismaClient,
+    UserApprovalStatus,
+    UserRole,
+    UserStatus,
+    ProductStatus,
+    MovementType,
+    MovementReason
+} from "./generated/client.js";
 import argon2 from "argon2";
 import dummyUsers from "./dummy-users.json" with { type: "json" };
 import dummyProducts from "./dummy-products.json" with { type: "json" };
@@ -10,37 +19,112 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-    const email = "poncardask03@gmail.com";
-    const plainPassword = "Iamwebdev2003?";
+    console.log("🌱 Starting database seeding...\n");
 
-    // Check if the super admin already exists to prevent duplicate seeding
-    const existing = await prisma.user.findUnique({ where: { email } });
+    let superAdminUser: any = null;
 
-    if (!existing) {
-        const passwordHash = await argon2.hash(plainPassword);
-
-        const superAdmin = await prisma.user.create({
-            data: {
-                firstName: "Keith Ralph",
-                lastName: "Poncardas",
-                email,
-                passwordHash,
-                role: UserRole.SUPER_ADMIN,
-                status: UserStatus.ACTIVE,
-                approvalStatus: UserApprovalStatus.APPROVED
-            },
+    // 1. Seed Users
+    console.log("--- Seeding Users ---");
+    for (const userData of dummyUsers) {
+        const existingUser = await prisma.user.findUnique({
+            where: { email: userData.email },
         });
 
-        console.log(`✅ Super admin seeded successfully:`);
-        console.log(`   ID    : ${superAdmin.id}`);
-        console.log(`   Name  : ${superAdmin.firstName} ${superAdmin.lastName}`);
-        console.log(`   Email : ${superAdmin.email}`);
-        console.log(`   Role  : ${superAdmin.role}`);
-        console.log(`   Status: ${superAdmin.status}`);
-    } else {
-        console.log(`⚠️  Super admin already exists (${email}). Skipping super admin seed.`);
+        if (!existingUser) {
+            const plainPassword = userData.password || "Password123!";
+            const passwordHash = await argon2.hash(plainPassword);
+
+            const roleKey = (userData.role as keyof typeof UserRole) || "SUPER_ADMIN";
+            const statusKey = (userData.status as keyof typeof UserStatus) || "ACTIVE";
+            const approvalStatusKey = (userData.approvalStatus as keyof typeof UserApprovalStatus) || "APPROVED";
+
+            const createdUser = await prisma.user.create({
+                data: {
+                    firstName: userData.firstName,
+                    lastName: userData.lastName,
+                    email: userData.email,
+                    passwordHash,
+                    role: UserRole[roleKey] ?? UserRole.SUPER_ADMIN,
+                    status: UserStatus[statusKey] ?? UserStatus.ACTIVE,
+                    approvalStatus: UserApprovalStatus[approvalStatusKey] ?? UserApprovalStatus.APPROVED,
+                },
+            });
+
+            if (!superAdminUser) superAdminUser = createdUser;
+
+            console.log(`✅ Super Admin created: ${createdUser.firstName} ${createdUser.lastName} (${createdUser.email})`);
+            console.log(`   Default Password: ${plainPassword}`);
+        } else {
+            if (!superAdminUser) superAdminUser = existingUser;
+            console.log(`⚠️  User already exists: ${existingUser.email}. Skipping user creation.`);
+        }
     }
 
+    if (!superAdminUser) {
+        // Fallback: find any existing user to associate inventory with
+        superAdminUser = await prisma.user.findFirst();
+    }
+
+    if (!superAdminUser) {
+        throw new Error("No user found or created to attach inventory records to.");
+    }
+
+    // 2. Seed Products & Initial Inventory
+    console.log("\n--- Seeding Products & Inventory ---");
+    for (const productData of dummyProducts) {
+        const existingProduct = await prisma.product.findUnique({
+            where: { sku: productData.sku },
+        });
+
+        if (!existingProduct) {
+            const product = await prisma.$transaction(async (tx) => {
+                const prod = await tx.product.create({
+                    data: {
+                        sku: productData.sku,
+                        name: productData.name,
+                        description: productData.description,
+                        unitPrice: productData.unitPrice,
+                        costPrice: productData.costPrice,
+                        status: ProductStatus.ACTIVE,
+                    },
+                });
+
+                const quantityOnHand = productData.quantityOnHand ?? 50;
+                const reorderLevel = productData.reorderLevel ?? 10;
+                const maxStock = productData.maxStock ?? 100;
+
+                await tx.inventory.create({
+                    data: {
+                        productId: prod.id,
+                        userId: superAdminUser.id,
+                        quantityOnHand,
+                        quantityReserved: 0,
+                        reorderLevel,
+                        maxStock,
+                    },
+                });
+
+                await tx.stockMovement.create({
+                    data: {
+                        productId: prod.id,
+                        userId: superAdminUser.id,
+                        type: MovementType.IN,
+                        reason: MovementReason.INITIAL_STOCK,
+                        quantity: quantityOnHand,
+                        notes: "Initial stock on database seed",
+                    },
+                });
+
+                return prod;
+            });
+
+            console.log(`✅ Product & Inventory created: [${product.sku}] ${product.name} (Stock: ${productData.quantityOnHand ?? 50})`);
+        } else {
+            console.log(`⚠️  Product already exists: [${existingProduct.sku}] ${existingProduct.name}. Skipping product creation.`);
+        }
+    }
+
+    console.log("\n🎉 Seeding completed successfully!");
 }
 
 main()
@@ -50,4 +134,5 @@ main()
     })
     .finally(async () => {
         await prisma.$disconnect();
+        await pool.end();
     });

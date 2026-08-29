@@ -14,7 +14,7 @@ export function useSaleMetrics() {
         loading: isMetricsLoading,
         error
     } = useQuery(GET_SALE_METRICS, {
-        fetchPolicy: 'cache-first',
+        fetchPolicy: 'cache-and-network',
     });
 
     const cardMetrics = useMemo(() => buildMetricsCards(

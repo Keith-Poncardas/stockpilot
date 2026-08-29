@@ -1,26 +1,8 @@
 import { FormSection } from '@/components/ui/form-section';
 import { MapPin } from 'lucide-react';
-import { listProvinces, listMuncities } from '@jobuntux/psgc';
-import { psgc } from 'ph-locations';
+import { resolveCityName, resolveProvinceName, resolveBarangayName } from '@/features/customer-refactor/utils';
 import type { CustomerAddressSectionProps, AddressRowProps } from './types';
 import { CustomerAddressSectionSkeleton } from './skeleton';
-
-const { provinces: phProvinces, citiesMunicipalities: phCities } = psgc;
-
-function resolvePsgcName(val?: string | null, type: 'city' | 'province' = 'city'): string | null {
-    if (!val) return null;
-    const clean = val.trim();
-    if (type === 'province') {
-        const p = listProvinces().find(p => p.provCode === clean || p.psgcCode === clean || p.provName.toLowerCase() === clean.toLowerCase());
-        if (p) return p.provName;
-        const phP = phProvinces.find(p => p.code === clean || p.name.toLowerCase() === clean.toLowerCase());
-        return phP ? phP.name : val;
-    }
-    const c = listMuncities().find(c => c.munCityCode === clean || c.psgcCode === clean || c.munCityName.trim().toLowerCase() === clean.toLowerCase());
-    if (c) return c.munCityName.trim();
-    const phC = phCities.find(c => c.code === clean || c.name.toLowerCase() === clean.toLowerCase());
-    return phC ? phC.name : val;
-}
 
 export function AddressRow({ label, value }: AddressRowProps) {
     return (
@@ -36,13 +18,16 @@ export function AddressRow({ label, value }: AddressRowProps) {
 export function CustomerAddressSection({ customer }: CustomerAddressSectionProps) {
     const rawCity = customer.city ?? customer.cityCode;
     const rawProvince = customer.province ?? customer.provinceCode;
+    const rawBarangay = customer.barangay ?? customer.barangayCode;
 
-    const city = resolvePsgcName(rawCity, 'city');
-    const province = resolvePsgcName(rawProvince, 'province');
+    const city = resolveCityName(rawCity);
+    const province = resolveProvinceName(rawProvince);
+    const barangay = resolveBarangayName(rawBarangay, rawCity);
 
     const hasAnyAddress = Boolean(
         customer.addressLine1 ||
         customer.addressLine2 ||
+        barangay ||
         city ||
         province ||
         customer.postalCode ||
@@ -61,8 +46,9 @@ export function CustomerAddressSection({ customer }: CustomerAddressSectionProps
                     <>
                         <AddressRow label="Address Line 1" value={customer.addressLine1} />
                         <AddressRow label="Address Line 2" value={customer.addressLine2} />
+                        <AddressRow label="Barangay" value={barangay} />
                         <AddressRow label="City / Municipality" value={city} />
-                        <AddressRow label="Province / State" value={province} />
+                        <AddressRow label="Province / Area" value={province} />
                         <AddressRow label="Postal Code" value={customer.postalCode} />
                         <AddressRow label="Country" value={customer.country} />
                     </>

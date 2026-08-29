@@ -89,6 +89,11 @@ export const customerResolver = {
         cityCode: (customer: Customer) => customer.city,
 
         /**
+         * Maps the database 'barangay' field to GraphQL 'barangayCode'.
+         */
+        barangayCode: (customer: Customer) => customer.barangay,
+
+        /**
          * Resolves the purchase summary (total orders, total spent, etc.) for a specific customer.
          */
         purchaseSummary: async (customer: Customer) => {

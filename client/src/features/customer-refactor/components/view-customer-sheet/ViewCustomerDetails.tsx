@@ -21,6 +21,7 @@ export function ViewCustomerDetails({ customerId }: ViewCustomerDetailsProps) {
     const { data, loading, error } = useQuery(GET_CUSTOMER, {
         variables: { id: customerId },
         skip: !customerId,
+        fetchPolicy: "cache-and-network",
     });
 
     if (loading) {

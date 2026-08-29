@@ -1,4 +1,4 @@
-import type { ICustomer } from "@/features/customer/customer.types";
+import type { ICustomer } from "@/features/customer-refactor";
 
 export interface CustomerSearchSectionProps {
   selectedCustomer: ICustomer | null;

@@ -8,10 +8,7 @@ export function SummaryRow({ label, value }: SummaryRowProps) {
     return (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 border-b border-[#F0EEE9] last:border-0 gap-1 sm:gap-4">
             <span className="text-xs font-medium text-slate-500">{label}</span>
-            <span
-                className="text-sm font-semibold text-slate-900 sm:text-right"
-                style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}
-            >
+            <span className="text-sm font-semibold font-mono text-slate-900 sm:text-right">
                 {value}
             </span>
         </div>

@@ -13,6 +13,8 @@ export function useViewSaleDetails(saleId: string) {
     });
 
     const [changeStatus, { loading: isMutating }] = useMutation(CHANGE_SALE_STATUS, {
+        refetchQueries: ["GetSales", "GetSaleMetrics", "GetDashboardMetrics", "GetSale"],
+        awaitRefetchQueries: true,
         onError: (err) => {
             console.error("Failed to change sale status:", err);
             toast.error(err.message || "Failed to change sale status");

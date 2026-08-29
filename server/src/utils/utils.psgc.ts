@@ -2,7 +2,10 @@ import z from "zod";
 import {
     listProvinces,
     listMuncities,
+    listRegions,
 } from "@jobuntux/psgc";
+
+const NCR_PROVINCE_CODES = new Set(["1300000000", "13", "NCR", "130000000"]);
 
 /**
  * Normalizes PSGC code to 10-digit format if given in 9-digit format (e.g. from ph-locations).
@@ -16,25 +19,32 @@ function normalizePsgcCode(code: string): string {
 }
 
 /**
- * Validates that a province code exists within the PSGC dataset.
- * Accepts standard PSGC codes and 9-digit ph-locations codes.
+ * Validates that a province code exists within the PSGC dataset or is NCR.
+ * Accepts standard PSGC codes, region codes, and 9-digit ph-locations codes.
  *
  * @param provinceCode - PSGC province code
  */
 export function isValidProvince(provinceCode: string): boolean {
     if (!provinceCode) return false;
-    const norm = normalizePsgcCode(provinceCode);
     const clean = provinceCode.trim();
-    return listProvinces().some(
+    if (NCR_PROVINCE_CODES.has(clean)) return true;
+
+    const norm = normalizePsgcCode(provinceCode);
+    const inProvinces = listProvinces().some(
         (province) =>
             province.provCode === clean ||
             province.psgcCode === clean ||
             province.psgcCode === norm
     );
+    if (inProvinces) return true;
+
+    return listRegions().some(
+        (reg) => reg.regCode === clean || reg.psgcCode === clean
+    );
 }
 
 /**
- * Validates that a city/municipality code exists under the given province.
+ * Validates that a city/municipality code exists under the given province or in PSGC dataset.
  * Accepts standard PSGC codes and 9-digit ph-locations codes.
  *
  * @param provinceCode - PSGC province code
@@ -45,8 +55,9 @@ export function isValidCityOrMunicipality(
     cityCode: string
 ): boolean {
     if (!cityCode) return false;
-    const normCity = normalizePsgcCode(cityCode);
     const cleanCity = cityCode.trim();
+    const normCity = normalizePsgcCode(cityCode);
+
     return listMuncities().some(
         (city) =>
             city.munCityCode === cleanCity ||

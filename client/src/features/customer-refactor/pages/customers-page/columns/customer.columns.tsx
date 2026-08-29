@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { UserInfoCell, NumberBadge } from "@/components";
 import type { ICustomer } from "../../../types";
 import { Actions, LocationCell } from "../cells";
-import { formatLocation, formatCustomerName } from "./customer.utils";
+import { formatLocation, formatCustomerName } from "@/features/customer-refactor/utils";
 
 export const columns: ColumnDef<ICustomer>[] = [
     {

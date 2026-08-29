@@ -34,7 +34,7 @@ export function StatusCell({ row }: SaleCellProps) {
             buildVariables: ({ status }) => ({
                 input: { saleId: id, status }
             }),
-            refetchQueries: [GET_SALE_METRICS]
+            refetchQueries: [GET_SALE_METRICS, "GetSales", "GetDashboardMetrics"]
         });
     };
 

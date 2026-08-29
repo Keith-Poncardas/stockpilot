@@ -7,7 +7,7 @@ import type { IUseCustomerMetricsReturn } from './types';
 
 export function useCustomerMetrics(): IUseCustomerMetricsReturn {
     const { data: metricsData, loading: isMetricsLoading, error } = useQuery(GET_CUSTOMER_METRICS, {
-        fetchPolicy: 'cache-first',
+        fetchPolicy: 'cache-and-network',
     });
 
     const cardMetrics = useMemo(() => buildMetricsCards(

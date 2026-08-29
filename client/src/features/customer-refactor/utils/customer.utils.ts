@@ -1,7 +1,4 @@
-import { listProvinces, listMuncities } from '@jobuntux/psgc';
-import { psgc } from 'ph-locations';
-
-const { provinces: phProvinces, citiesMunicipalities: phCities } = psgc;
+import { resolveCityName, resolveProvinceName } from './address.utils';
 
 /**
  * Returns a readable location string: "City, Province"
@@ -13,32 +10,12 @@ export function formatLocation(
 ): string {
     if (!city && !province) return '—';
 
-    let resolvedProvince = province || '';
-    if (province) {
-        const cleanProv = province.trim();
-        const pObj = listProvinces().find(
-            p => p.provCode === cleanProv || p.psgcCode === cleanProv || p.provName.toLowerCase() === cleanProv.toLowerCase()
-        );
-        if (pObj) {
-            resolvedProvince = pObj.provName;
-        } else {
-            const phP = phProvinces.find(p => p.code === cleanProv || p.name.toLowerCase() === cleanProv.toLowerCase());
-            if (phP) resolvedProvince = phP.name;
-        }
-    }
+    const resolvedProvince = resolveProvinceName(province);
+    const resolvedCity = resolveCityName(city);
 
-    let resolvedCity = city || '';
-    if (city) {
-        const cleanCity = city.trim();
-        const cObj = listMuncities().find(
-            c => c.munCityCode === cleanCity || c.psgcCode === cleanCity || c.munCityName.trim().toLowerCase() === cleanCity.toLowerCase()
-        );
-        if (cObj) {
-            resolvedCity = cObj.munCityName.trim();
-        } else {
-            const phC = phCities.find(c => c.code === cleanCity || c.name.toLowerCase() === cleanCity.toLowerCase());
-            if (phC) resolvedCity = phC.name;
-        }
+    // If city and province are identical (e.g. City of Baguio, City of Baguio), just return the city
+    if (resolvedCity && resolvedProvince && resolvedCity.toLowerCase() === resolvedProvince.toLowerCase()) {
+        return resolvedCity;
     }
 
     return [resolvedCity, resolvedProvince].filter(Boolean).join(', ') || '—';

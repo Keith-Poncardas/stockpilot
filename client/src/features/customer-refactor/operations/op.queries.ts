@@ -59,6 +59,7 @@ export const GET_CUSTOMER = gql`
       addressLine2
       provinceCode
       cityCode
+      barangayCode
       postalCode
       country
       createdAt

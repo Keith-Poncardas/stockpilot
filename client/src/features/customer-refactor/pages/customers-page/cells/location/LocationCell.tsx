@@ -1,7 +1,7 @@
 import type { Row } from "@tanstack/react-table";
 import { MapPin } from "lucide-react";
-import type { ICustomer } from "@/features/customer-refactor/types";
-import { formatLocation } from "../../columns/customer.utils";
+import { formatLocation } from "@/features/customer-refactor/utils";
+import type { ICustomer } from "../../../../types";
 
 interface LocationCellProps {
     row: Row<ICustomer>;

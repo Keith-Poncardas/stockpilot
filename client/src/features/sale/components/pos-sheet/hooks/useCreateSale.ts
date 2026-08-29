@@ -14,7 +14,14 @@ export interface CompleteSaleParams {
 
 export function useCreateSale() {
   const [createSaleMutation, { loading, error }] = useMutation(CREATE_POS_SALE, {
-    refetchQueries: ["GetSales"],
+    refetchQueries: [
+      "GetSales",
+      "GetSaleMetrics",
+      "GetDashboardMetrics",
+      "GetSellableProducts",
+      "GetCustomerMetrics",
+    ],
+    awaitRefetchQueries: true,
   });
 
   const handleCompleteSale = async ({

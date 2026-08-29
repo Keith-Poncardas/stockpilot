@@ -5,7 +5,11 @@ import { FormField } from '@/components/ui/form-field';
 import { FormSection } from '@/components/ui/form-section';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { SelectFilter } from '@/components/ui/select-filter';
-import { listProvinces, listMuncities, listBarangays } from '@jobuntux/psgc';
+import {
+    getProvinceOptions,
+    getCityOptions,
+    getBarangayOptions,
+} from '@/features/customer-refactor/utils';
 
 interface AddressInfoProps {
     control: Control<any>;
@@ -17,87 +21,32 @@ export function AddressInfo({ control, setValue }: AddressInfoProps) {
     const selectedProvinceCode = useWatch({ control, name: 'provinceCode' });
     const selectedCityCode = useWatch({ control, name: 'cityCode' });
 
-    // Sort provinces alphabetically, stripping "City of " for display
+    // 1. Province options (Metro Manila at the top + 81 real provinces)
     const provinceOptions = React.useMemo(() => {
-        const provs = listProvinces();
-        return provs
-            .map(p => {
-                const originalName = p.provName.trim();
-                const isCity = originalName.startsWith('City of');
-                const cleanName = isCity ? originalName.replace('City of ', '').trim() : originalName;
-                return {
-                    value: p.provCode,
-                    label: cleanName,
-                    isCity,
-                    originalName
-                };
-            })
-            .sort((a, b) => a.label.localeCompare(b.label));
+        return getProvinceOptions();
     }, []);
 
-    const selectedProvince = React.useMemo(() => {
-        return provinceOptions.find(p => p.value === selectedProvinceCode);
-    }, [selectedProvinceCode, provinceOptions]);
-
-    // Filter and sort cities based on selected province code
+    // 2. City options (all 17 NCR cities if Metro Manila, or provincial cities/municipalities)
     const cityOptions = React.useMemo(() => {
-        if (!selectedProvinceCode) return [];
-
-        const cities = listMuncities(selectedProvinceCode);
-        return cities
-            .map(c => ({ value: c.munCityCode, label: c.munCityName.trim() }))
-            .sort((a, b) => a.label.localeCompare(b.label));
+        return getCityOptions(selectedProvinceCode);
     }, [selectedProvinceCode]);
 
-    // Filter and sort barangays based on selected city code
+    // 3. Barangay options for selected city
     const barangayOptions = React.useMemo(() => {
-        if (selectedProvince?.isCity) {
-            // If it's an independent city (e.g. Manila, Pasig), fetch barangays for all its municipalities (districts)
-            const cities = listMuncities(selectedProvinceCode);
-            const allBarangays = cities.flatMap(c => listBarangays(c.munCityCode));
-            return allBarangays
-                .map(b => ({ value: b.brgyCode, label: b.brgyName.trim() }))
-                .sort((a, b) => a.label.localeCompare(b.label));
-        }
+        return getBarangayOptions(selectedCityCode);
+    }, [selectedCityCode]);
 
-        if (!selectedCityCode) return [];
-
-        const barangays = listBarangays(selectedCityCode);
-        return barangays
-            .map(b => ({ value: b.brgyCode, label: b.brgyName.trim() }))
-            .sort((a, b) => a.label.localeCompare(b.label));
-    }, [selectedCityCode, selectedProvince, selectedProvinceCode]);
-
-    // Handle province change
+    // Handle province change: reset city, barangay, and postal code
     const handleProvinceChange = (newProvinceCode: string, onChange: (val: string) => void) => {
         onChange(newProvinceCode);
-
-        const prov = provinceOptions.find(p => p.value === newProvinceCode);
-
-        if (prov?.isCity) {
-            // Auto-select the city if the province is an independent city
-            const cities = listMuncities(newProvinceCode);
-            // Fallback to the first city if exact match isn't found
-            const mainCity = cities.find(c => c.munCityName.trim() === prov.originalName) || cities[0];
-            if (mainCity) {
-                setValue?.('cityCode', mainCity.munCityCode, { shouldValidate: true, shouldDirty: true });
-            } else {
-                setValue?.('cityCode', '', { shouldValidate: true, shouldDirty: true });
-            }
-        } else {
-            // Reset cityCode when normal province changes
-            setValue?.('cityCode', '', { shouldValidate: true, shouldDirty: true });
-        }
-
-        // Always reset barangay and postal code on province change
+        setValue?.('cityCode', '', { shouldValidate: true, shouldDirty: true });
         setValue?.('barangayCode', '', { shouldValidate: true, shouldDirty: true });
         setValue?.('postalCode', '', { shouldValidate: true, shouldDirty: true });
     };
 
-    // Handle city change
+    // Handle city change: reset barangay
     const handleCityChange = (newCityCode: string, onChange: (val: string) => void) => {
         onChange(newCityCode);
-        // Reset barangayCode when city changes
         setValue?.('barangayCode', '', { shouldValidate: true, shouldDirty: true });
     };
 
@@ -140,14 +89,14 @@ export function AddressInfo({ control, setValue }: AddressInfoProps) {
                         render={({ field, fieldState }) => (
                             <Field data-invalid={fieldState.invalid}>
                                 <FieldLabel className="text-[13px] font-semibold text-gray-700 m-0">
-                                    Province
+                                    Province / Area
                                 </FieldLabel>
                                 <SelectFilter
                                     value={field.value || ""}
                                     onChange={(val) => handleProvinceChange(val, field.onChange)}
                                     options={provinceOptions}
                                     className="w-full h-9"
-                                    placeholder="Select a province"
+                                    placeholder="Select a province or area"
                                 />
                                 {fieldState.invalid && (
                                     <FieldError
@@ -166,20 +115,18 @@ export function AddressInfo({ control, setValue }: AddressInfoProps) {
                         render={({ field, fieldState }) => (
                             <Field data-invalid={fieldState.invalid}>
                                 <FieldLabel className="text-[13px] font-semibold text-gray-700 m-0">
-                                    City/Municipality
+                                    City / Municipality
                                 </FieldLabel>
                                 <SelectFilter
                                     value={field.value || ""}
                                     onChange={(val) => handleCityChange(val, field.onChange)}
                                     options={cityOptions}
                                     className="w-full h-9"
-                                    disabled={!selectedProvinceCode || selectedProvince?.isCity}
+                                    disabled={!selectedProvinceCode}
                                     placeholder={
                                         !selectedProvinceCode
-                                            ? "Select province first"
-                                            : selectedProvince?.isCity
-                                                ? "City auto-selected"
-                                                : "Select a city"
+                                            ? "Select province/area first"
+                                            : "Select a city / municipality"
                                     }
                                 />
                                 {fieldState.invalid && (
@@ -206,8 +153,12 @@ export function AddressInfo({ control, setValue }: AddressInfoProps) {
                                     onChange={field.onChange}
                                     options={barangayOptions}
                                     className="w-full h-9"
-                                    disabled={!selectedProvince?.isCity && !selectedCityCode}
-                                    placeholder={(!selectedProvince?.isCity && !selectedCityCode) ? "Select city first" : "Select a barangay"}
+                                    disabled={!selectedCityCode}
+                                    placeholder={
+                                        !selectedCityCode
+                                            ? "Select city first"
+                                            : "Select a barangay"
+                                    }
                                 />
                                 {fieldState.invalid && (
                                     <FieldError

@@ -9,8 +9,8 @@
  * 🟢 You can import this file directly.
  */
 import type * as runtime from "@prisma/client/runtime/client"
-import type * as $Enums from "../enums.js"
-import type * as Prisma from "../internal/prismaNamespace.js"
+import type * as $Enums from "../enums"
+import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model Customer
@@ -34,6 +34,7 @@ export type CustomerMinAggregateOutputType = {
   addressLine2: string | null
   city: string | null
   province: string | null
+  barangay: string | null
   postalCode: string | null
   country: string | null
   createdAt: Date | null
@@ -50,6 +51,7 @@ export type CustomerMaxAggregateOutputType = {
   addressLine2: string | null
   city: string | null
   province: string | null
+  barangay: string | null
   postalCode: string | null
   country: string | null
   createdAt: Date | null
@@ -66,6 +68,7 @@ export type CustomerCountAggregateOutputType = {
   addressLine2: number
   city: number
   province: number
+  barangay: number
   postalCode: number
   country: number
   createdAt: number
@@ -84,6 +87,7 @@ export type CustomerMinAggregateInputType = {
   addressLine2?: true
   city?: true
   province?: true
+  barangay?: true
   postalCode?: true
   country?: true
   createdAt?: true
@@ -100,6 +104,7 @@ export type CustomerMaxAggregateInputType = {
   addressLine2?: true
   city?: true
   province?: true
+  barangay?: true
   postalCode?: true
   country?: true
   createdAt?: true
@@ -116,6 +121,7 @@ export type CustomerCountAggregateInputType = {
   addressLine2?: true
   city?: true
   province?: true
+  barangay?: true
   postalCode?: true
   country?: true
   createdAt?: true
@@ -205,6 +211,7 @@ export type CustomerGroupByOutputType = {
   addressLine2: string | null
   city: string | null
   province: string | null
+  barangay: string | null
   postalCode: string | null
   country: string | null
   createdAt: Date
@@ -242,6 +249,7 @@ export type CustomerWhereInput = {
   addressLine2?: Prisma.StringNullableFilter<"Customer"> | string | null
   city?: Prisma.StringNullableFilter<"Customer"> | string | null
   province?: Prisma.StringNullableFilter<"Customer"> | string | null
+  barangay?: Prisma.StringNullableFilter<"Customer"> | string | null
   postalCode?: Prisma.StringNullableFilter<"Customer"> | string | null
   country?: Prisma.StringNullableFilter<"Customer"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
@@ -259,6 +267,7 @@ export type CustomerOrderByWithRelationInput = {
   addressLine2?: Prisma.SortOrderInput | Prisma.SortOrder
   city?: Prisma.SortOrderInput | Prisma.SortOrder
   province?: Prisma.SortOrderInput | Prisma.SortOrder
+  barangay?: Prisma.SortOrderInput | Prisma.SortOrder
   postalCode?: Prisma.SortOrderInput | Prisma.SortOrder
   country?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -279,6 +288,7 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   addressLine2?: Prisma.StringNullableFilter<"Customer"> | string | null
   city?: Prisma.StringNullableFilter<"Customer"> | string | null
   province?: Prisma.StringNullableFilter<"Customer"> | string | null
+  barangay?: Prisma.StringNullableFilter<"Customer"> | string | null
   postalCode?: Prisma.StringNullableFilter<"Customer"> | string | null
   country?: Prisma.StringNullableFilter<"Customer"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
@@ -296,6 +306,7 @@ export type CustomerOrderByWithAggregationInput = {
   addressLine2?: Prisma.SortOrderInput | Prisma.SortOrder
   city?: Prisma.SortOrderInput | Prisma.SortOrder
   province?: Prisma.SortOrderInput | Prisma.SortOrder
+  barangay?: Prisma.SortOrderInput | Prisma.SortOrder
   postalCode?: Prisma.SortOrderInput | Prisma.SortOrder
   country?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -318,6 +329,7 @@ export type CustomerScalarWhereWithAggregatesInput = {
   addressLine2?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   city?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   province?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
+  barangay?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   postalCode?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   country?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Customer"> | Date | string
@@ -334,6 +346,7 @@ export type CustomerCreateInput = {
   addressLine2?: string | null
   city?: string | null
   province?: string | null
+  barangay?: string | null
   postalCode?: string | null
   country?: string | null
   createdAt?: Date | string
@@ -351,6 +364,7 @@ export type CustomerUncheckedCreateInput = {
   addressLine2?: string | null
   city?: string | null
   province?: string | null
+  barangay?: string | null
   postalCode?: string | null
   country?: string | null
   createdAt?: Date | string
@@ -368,6 +382,7 @@ export type CustomerUpdateInput = {
   addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -385,6 +400,7 @@ export type CustomerUncheckedUpdateInput = {
   addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -402,6 +418,7 @@ export type CustomerCreateManyInput = {
   addressLine2?: string | null
   city?: string | null
   province?: string | null
+  barangay?: string | null
   postalCode?: string | null
   country?: string | null
   createdAt?: Date | string
@@ -418,6 +435,7 @@ export type CustomerUpdateManyMutationInput = {
   addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -434,6 +452,7 @@ export type CustomerUncheckedUpdateManyInput = {
   addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -450,6 +469,7 @@ export type CustomerCountOrderByAggregateInput = {
   addressLine2?: Prisma.SortOrder
   city?: Prisma.SortOrder
   province?: Prisma.SortOrder
+  barangay?: Prisma.SortOrder
   postalCode?: Prisma.SortOrder
   country?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -466,6 +486,7 @@ export type CustomerMaxOrderByAggregateInput = {
   addressLine2?: Prisma.SortOrder
   city?: Prisma.SortOrder
   province?: Prisma.SortOrder
+  barangay?: Prisma.SortOrder
   postalCode?: Prisma.SortOrder
   country?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -482,6 +503,7 @@ export type CustomerMinOrderByAggregateInput = {
   addressLine2?: Prisma.SortOrder
   city?: Prisma.SortOrder
   province?: Prisma.SortOrder
+  barangay?: Prisma.SortOrder
   postalCode?: Prisma.SortOrder
   country?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -519,6 +541,7 @@ export type CustomerCreateWithoutSalesInput = {
   addressLine2?: string | null
   city?: string | null
   province?: string | null
+  barangay?: string | null
   postalCode?: string | null
   country?: string | null
   createdAt?: Date | string
@@ -535,6 +558,7 @@ export type CustomerUncheckedCreateWithoutSalesInput = {
   addressLine2?: string | null
   city?: string | null
   province?: string | null
+  barangay?: string | null
   postalCode?: string | null
   country?: string | null
   createdAt?: Date | string
@@ -567,6 +591,7 @@ export type CustomerUpdateWithoutSalesInput = {
   addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -583,6 +608,7 @@ export type CustomerUncheckedUpdateWithoutSalesInput = {
   addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -630,6 +656,7 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   addressLine2?: boolean
   city?: boolean
   province?: boolean
+  barangay?: boolean
   postalCode?: boolean
   country?: boolean
   createdAt?: boolean
@@ -648,6 +675,7 @@ export type CustomerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   addressLine2?: boolean
   city?: boolean
   province?: boolean
+  barangay?: boolean
   postalCode?: boolean
   country?: boolean
   createdAt?: boolean
@@ -664,6 +692,7 @@ export type CustomerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   addressLine2?: boolean
   city?: boolean
   province?: boolean
+  barangay?: boolean
   postalCode?: boolean
   country?: boolean
   createdAt?: boolean
@@ -680,13 +709,14 @@ export type CustomerSelectScalar = {
   addressLine2?: boolean
   city?: boolean
   province?: boolean
+  barangay?: boolean
   postalCode?: boolean
   country?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firstName" | "lastName" | "phone" | "email" | "addressLine1" | "addressLine2" | "city" | "province" | "postalCode" | "country" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
+export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firstName" | "lastName" | "phone" | "email" | "addressLine1" | "addressLine2" | "city" | "province" | "barangay" | "postalCode" | "country" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
 export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sales?: boolean | Prisma.Customer$salesArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
@@ -709,6 +739,7 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     addressLine2: string | null
     city: string | null
     province: string | null
+    barangay: string | null
     postalCode: string | null
     country: string | null
     createdAt: Date
@@ -1146,6 +1177,7 @@ export interface CustomerFieldRefs {
   readonly addressLine2: Prisma.FieldRef<"Customer", 'String'>
   readonly city: Prisma.FieldRef<"Customer", 'String'>
   readonly province: Prisma.FieldRef<"Customer", 'String'>
+  readonly barangay: Prisma.FieldRef<"Customer", 'String'>
   readonly postalCode: Prisma.FieldRef<"Customer", 'String'>
   readonly country: Prisma.FieldRef<"Customer", 'String'>
   readonly createdAt: Prisma.FieldRef<"Customer", 'DateTime'>

@@ -39,6 +39,7 @@ export function CreateCustomerSheet() {
             addressLine2: "",
             provinceCode: "",
             cityCode: "",
+            barangayCode: "",
             postalCode: "",
         }
     });

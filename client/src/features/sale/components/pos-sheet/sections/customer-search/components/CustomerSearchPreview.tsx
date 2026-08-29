@@ -1,4 +1,5 @@
-import type { ICustomer } from "@/features/customer/customer.types";
+import type { ICustomer } from "@/features/customer-refactor";
+import { formatLocation, formatCustomerName } from "@/features/customer-refactor";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
@@ -11,7 +12,8 @@ interface CustomerSearchPreviewProps {
 export function CustomerSearchPreview({ customer, onClear }: CustomerSearchPreviewProps) {
   if (!customer) return null;
 
-  const name = `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim() || "Unnamed Customer";
+  const name = formatCustomerName(customer.firstName, customer.lastName);
+  const location = formatLocation(customer.cityCode, customer.provinceCode);
 
   return (
     <div className="mt-4 rounded-lg border border-hairline bg-[#F5F6F2]/70 p-4">
@@ -53,9 +55,7 @@ export function CustomerSearchPreview({ customer, onClear }: CustomerSearchPrevi
         </div>
       </div>
       <p className="mt-2 text-sm text-ink/60">
-        {[customer.cityCode, customer.provinceCode]
-          .filter(Boolean)
-          .join(", ") || "No address on file."}
+        {location !== "—" ? location : "No address on file."}
       </p>
       <dl className="mt-3 grid grid-cols-2 gap-3 border-t border-hairline pt-3">
         <div>

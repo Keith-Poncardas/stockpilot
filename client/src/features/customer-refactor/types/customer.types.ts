@@ -57,6 +57,7 @@ export interface ICustomerDetails {
     addressLine2: string | null;
     cityCode: string | null;
     provinceCode: string | null;
+    barangayCode: string | null;
     postalCode: string | null;
     country: string | null;
     createdAt: string;
@@ -67,6 +68,7 @@ export interface ICustomerDetails {
     // Optional fields for backward compatibility across components
     city?: string | null;
     province?: string | null;
+    barangay?: string | null;
     sales?: ICustomerSale[];
     recentSales?: ICustomerSale[];
     totalOrders?: number;
