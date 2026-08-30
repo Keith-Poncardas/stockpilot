@@ -1,5 +1,7 @@
 import type { ICustomer } from "@/features/customer-refactor";
 
+export type SelectedCustomer = ICustomer;
+
 export interface CustomerSearchSectionProps {
   selectedCustomer: ICustomer | null;
   onSelectCustomer: (customer: ICustomer | null) => void;

@@ -12,6 +12,7 @@ import {
     CreateCustomerInput,
     SearchCustomersInfiniteInput,
 } from "./types";
+import { CustomerOrderBy } from "./constants";
 
 export class CustomerService {
 
@@ -109,13 +110,18 @@ export class CustomerService {
 
         };
 
+        const orderByClause: Prisma.CustomerOrderByWithRelationInput =
+            orderBy === CustomerOrderBy.TOTAL_ORDERS
+                ? { sales: { _count: orderDirection } }
+                : { [orderBy]: orderDirection };
+
         const [customers, total] = await Promise.all([
 
             this.findManyCustomers({
                 where,
                 skip: params.skip,
                 take: params.limit,
-                orderBy: { [orderBy]: orderDirection },
+                orderBy: orderByClause,
             }),
 
             this.customerCount(where),

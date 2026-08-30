@@ -2,6 +2,5 @@ export const CustomerOrderBy = {
     createdAt: 'createdAt',
     firstName: 'firstName',
     lastName:  'lastName',
+    totalOrders: 'totalOrders',
 } as const;
-
-export type CustomerOrderBy = (typeof CustomerOrderBy)[keyof typeof CustomerOrderBy];

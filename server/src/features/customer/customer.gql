@@ -5,6 +5,7 @@ enum CustomerOrderBy {
     createdAt
     firstName
     lastName
+    totalOrders
 }
 
 """

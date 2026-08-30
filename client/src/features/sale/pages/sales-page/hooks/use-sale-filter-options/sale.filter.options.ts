@@ -22,16 +22,16 @@ export const saleStatusOptions = [
  */
 export const saleOrderByOptions = [
     { value: 'saleDate', label: 'Date' },
-    { value: 'totalAmount', label: 'Total Amount' },
+    { value: 'totalAmount', label: 'Total Sales' },
 ];
 
 /**
  * Sort direction options for ordering the sales list.
- * Supports descending order (Newest First) and ascending order (Oldest First).
+ * Supports descending order (Highest / Newest First) and ascending order (Lowest / Oldest First).
  */
 export const saleOrderDirectionOptions = [
-    { value: 'desc', label: 'Newest First' },
-    { value: 'asc', label: 'Oldest First' },
+    { value: 'desc', label: 'Highest / Newest First' },
+    { value: 'asc', label: 'Lowest / Oldest First' },
 ];
 
 /**

@@ -88,3 +88,10 @@ export interface ICustomerMetrics {
 export interface CustomerRowProps {
     row: Row<ICustomer>;
 }
+
+import type { CustomerOrderBy as CustomerOrderByConstant } from "../constants/customer.constants";
+
+/**
+ * Union type representing the fields by which customers can be ordered.
+ */
+export type CustomerOrderBy = typeof CustomerOrderByConstant[keyof typeof CustomerOrderByConstant];

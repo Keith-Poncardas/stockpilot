@@ -1,20 +1,13 @@
 import { useQuery } from '@apollo/client';
 import { useCallback } from 'react';
 import { SEARCH_CUSTOMERS } from '@/features/customer-refactor';
+import type { ICustomer } from '@/features/customer-refactor';
 
-export interface CustomerSearchResult {
-    id: string;
-    firstName: string | null;
-    lastName: string | null;
-    phone: string | null;
-    email: string | null;
-    cityCode?: string | null;
-    provinceCode?: string | null;
-}
+export type CustomerSearchResult = ICustomer;
 
 interface SearchPosCustomersData {
     searchCustomers: {
-        data: CustomerSearchResult[];
+        data: ICustomer[];
         meta: {
             nextCursor: string | null;
             hasNextPage: boolean;

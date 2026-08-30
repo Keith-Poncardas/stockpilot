@@ -42,8 +42,8 @@ export function useSalesPage() {
     ) => {
         return cleanObject({
             search: activeFilters.search,
-            status: activeFilters.status,
-            paymentMethod: activeFilters.paymentMethod,
+            status: activeFilters.status === 'ALL' ? undefined : activeFilters.status,
+            paymentMethod: activeFilters.paymentMethod === 'ALL' ? undefined : activeFilters.paymentMethod,
             dateFrom,
             dateTo,
             orderBy: activeFilters.orderBy || queryParams.orderBy || 'saleDate',

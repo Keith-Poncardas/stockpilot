@@ -42,4 +42,12 @@ export const SALE_STATUS_LABELS = {
     PENDING: 'MARK AS PENDING',
     REFUNDED: 'REFUND SALE',
     VOIDED: 'VOID SALE',
-} as const;
+} as const;
+
+/**
+ * Fields available for sorting the sales list.
+ */
+export const SaleOrderBy = {
+    SALE_DATE: 'saleDate',
+    TOTAL_AMOUNT: 'totalAmount',
+} as const;

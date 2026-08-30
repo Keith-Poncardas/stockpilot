@@ -26,6 +26,7 @@ const orderByOptions = [
     { value: 'createdAt', label: 'Date Registered' },
     { value: 'firstName', label: 'First Name' },
     { value: 'lastName',  label: 'Last Name' },
+    { value: 'totalOrders', label: 'Total Orders' },
 ];
 
 const orderDirectionOptions = [

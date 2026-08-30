@@ -109,6 +109,12 @@ export const SEARCH_CUSTOMERS = gql`
         email
         provinceCode
         cityCode
+        createdAt
+        updatedAt
+        purchaseSummary {
+          totalOrders
+          totalSpent
+        }
       }
       meta {
         nextCursor
