@@ -1,0 +1,2 @@
+export const DEFAULT_PRODUCT_PAGE_SIZE = 10;
+export const PRODUCT_SEARCH_DEBOUNCE_MS = 500;

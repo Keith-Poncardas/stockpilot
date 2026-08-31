@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import UserAvatar from "@/components/UserAvatar";
 import { useAuthStore } from "@/store";
 import { cn } from "@/lib/utils";
-import { CUSTOMER_AVATAR_COLORS, CUSTOMER_TEXT_COLORS } from "@/features/customer-refactor";
+import { CUSTOMER_AVATAR_COLORS, CUSTOMER_TEXT_COLORS } from "@/features/customer";
 import { PATHS } from "@/routes/paths";
 
 export interface UserInfoCellUser {

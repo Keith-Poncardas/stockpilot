@@ -8,7 +8,7 @@ import { dashboardService } from "./dashboard.service";
 import { StockStatus } from "@/enums";
 import {
     saleService,
-    salesOverviewPeriodSchema
+    salesOverviewQuerySchema
 } from "../sale";
 import { SalesOverviewPeriod } from "../sale/constants";
 import {
@@ -36,13 +36,13 @@ export const dashboardResolver = {
         },
 
         /**
-         * Retrieves a sales overview chart grouped by the specified period.
-         * Validates the `period` argument (daily, weekly, monthly).
+         * Retrieves a sales overview chart grouped by the specified period and optional productId.
+         * Validates the `period` and optional `productId` arguments.
          */
         getSalesOverview: composeResolvers(
-            validate(salesOverviewPeriodSchema)
-        )(async (_: unknown, { period }: { period: SalesOverviewPeriod }) => {
-            return saleService.getSalesOverview(period);
+            validate(salesOverviewQuerySchema, (args) => args)
+        )(async (_: unknown, { period, productId }: { period: SalesOverviewPeriod; productId?: string }) => {
+            return saleService.getSalesOverview(period, productId);
         }),
 
         /**

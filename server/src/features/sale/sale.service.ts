@@ -398,14 +398,16 @@ export class SaleService {
         rangeInterval: string,
         bucketInterval: string,
         bucketType: string,
-        timezone: string = "Asia/Manila"
+        timezone: string = "Asia/Manila",
+        productId?: string
     ) {
         const query = buildSalesAggregationQuery(
             rangeType,
             rangeInterval,
             bucketInterval,
             bucketType,
-            timezone
+            timezone,
+            productId
         );
 
         return await prisma.$queryRaw<SalesAggregationRow[]>(query);
@@ -595,11 +597,13 @@ export class SaleService {
      * it appropriately for UI consumption (like charts or graphs).
      * 
      * @param period - The time interval by which to aggregate the sales data (e.g., DAILY, WEEKLY, MONTHLY).
+     * @param productId - Optional product ID to scope the sales aggregation to a specific product.
      * @returns A promise resolving to an array of sales overview items, each containing the date, a formatted label, total sales amount, and a flag indicating if it's the current period.
      * @throws {Error} If an unsupported sales overview period is provided.
      */
     async getSalesOverview(
-        period: SalesOverviewInput
+        period: SalesOverviewInput,
+        productId?: string
     ): Promise<SalesOverviewItem[]> {
         const timezone = "Asia/Manila";
 
@@ -614,7 +618,8 @@ export class SaleService {
                     '7 days',
                     '1 day',
                     'day',
-                    timezone
+                    timezone,
+                    productId
                 );
                 labelFn = formatShortWeekday;
                 isActiveFn = (date) => isSameDay(date, getManilaToday());
@@ -626,7 +631,8 @@ export class SaleService {
                     '1 month',
                     '1 week',
                     'week',
-                    timezone
+                    timezone,
+                    productId
                 );
                 labelFn = (date) => `Week ${getWeekOfMonth(date)}`;
                 isActiveFn = (date) => isSameWeek(date, getManilaToday());
@@ -638,7 +644,8 @@ export class SaleService {
                     '1 year',
                     '1 month',
                     'month',
-                    timezone
+                    timezone,
+                    productId
                 );
                 labelFn = formatShortMonth;
                 isActiveFn = (date) => isSameMonth(date, getManilaToday());

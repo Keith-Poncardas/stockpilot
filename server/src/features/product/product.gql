@@ -1,4 +1,6 @@
-# Product Status Enum
+"""
+Product Status lifecycle representation.
+"""
 enum ProductStatus {
   ACTIVE
   INACTIVE
@@ -7,14 +9,41 @@ enum ProductStatus {
   ARCHIVED
 }
 
-# Product Order By Enum
+"""
+Defines the fields by which products can be ordered.
+"""
 enum ProductOrderBy {
   createdAt
   name
   unitPrice
 }
 
-# Product Type
+"""
+Aggregated performance metrics for a specific product.
+"""
+type ProductPerformanceMetrics {
+  unitsSold: Int!
+  unitsSoldTrend: Float!
+  revenue: Float!
+  revenueTrend: Float!
+  transactions: Int!
+  avgPerSale: Float!
+  sellThroughRate: Float!
+}
+
+"""
+Sales trend data point for a product matching sales overview format.
+"""
+type ProductSalesTrendPoint {
+  label: String!
+  date: String!
+  sales: Float!
+  isActive: Boolean!
+}
+
+"""
+Represents a product item in the inventory catalog.
+"""
 type Product {
   id: ID!
   sku: String!
@@ -26,26 +55,41 @@ type Product {
   createdAt: String!
   updatedAt: String!
 
-  # Relations
-  sale: Sale!
-  inventory: Inventory!
-  stockMovement: StockMovement!
+  # Relations & Analytics
+  inventory: Inventory
+  stockMovement: StockMovement
+  performanceMetrics: ProductPerformanceMetrics!
+  salesTrend: [ProductSalesTrendPoint!]!
 }
 
-# Product Metrics Type
+"""
+Aggregated metrics and key performance indicators for products.
+"""
 type ProductMetrics {
   total: Int!
   active: Int!
   draft: Int!
 }
 
-# Paginated Products Type
+"""
+Response wrapper for paginated product data, including the list of products and pagination metadata.
+"""
 type PaginatedProducts {
-  data: [Product!]
+  data: [Product!]!
   meta: Pagination!
 }
 
-# Product Ranked Sales Type
+"""
+Response wrapper for cursor-based infinite scrolling of product search results.
+"""
+type InfiniteProductsResult {
+  data: [Product!]!
+  meta: InfiniteScrollMeta!
+}
+
+"""
+Product Ranked Sales performance summary.
+"""
 type ProductRankedSales {
   id: ID!
   name: String!
@@ -54,7 +98,9 @@ type ProductRankedSales {
   rank: Int!
 }
 
-# Get Products Input Type
+"""
+Input parameters for filtering and sorting the product list.
+"""
 input GetProductsInput {
   search: String
   status: ProductStatus
@@ -67,14 +113,18 @@ input GetProductsInput {
   orderDirection: OrderDirection
 }
 
-# Paginated Products Input Type
+"""
+Input arguments for fetching a paginated list of products.
+"""
 input PaginatedProductsInput {
   page: Int!
   limit: Int!
   filter: GetProductsInput!
 }
 
-# Create Product Input Type
+"""
+Base mutation payload containing core product attributes.
+"""
 input BaseProductMutationInput {
   name: String!
   description: String
@@ -84,50 +134,48 @@ input BaseProductMutationInput {
   status: ProductStatus!
 }
 
-# Create Product Input Type
+"""
+Input data required to create a new product and its initial stock.
+"""
 input CreateProductInput {
   product: BaseProductMutationInput!
-  inventory: InventoryInput!
+  inventory: InventoryInput
 }
 
-# Edit Product Input Type
+"""
+Input data required to edit an existing product record.
+"""
 input EditProductInput {
   productId: ID!
   product: BaseProductMutationInput!
-  inventory: InventoryInput!
+  inventory: InventoryInput
 }
 
-# Change Product Status Input Type
+"""
+Input data required to change a product's lifecycle status.
+"""
 input ChangeProductStatusInput {
   productId: ID!
   status: ProductStatus!
 }
 
-# Search Products Input Type
+"""
+Input parameters for cursor-based infinite scrolling product searches.
+"""
 input SearchProductsInfiniteInput {
   search: String!
   cursor: String
   limit: Int
 }
 
-# Infinite Products Result Type
-type InfiniteProductsResult {
-  data: [Product!]!
-  meta: InfiniteScrollMeta!
-}
-
-# Query Type
 type Query {
   getProduct(productId: ID!): Product!
   getProducts(args: PaginatedProductsInput!): PaginatedProducts!
-  searchProductsInfinite(
-    input: SearchProductsInfiniteInput!
-  ): InfiniteProductsResult!
+  searchProductsInfinite(input: SearchProductsInfiniteInput!): InfiniteProductsResult!
   getTotalProductsCount: Int!
   getProductMetrics: ProductMetrics!
 }
 
-# Mutation Type
 type Mutation {
   createProduct(input: CreateProductInput!): Product!
   editProduct(input: EditProductInput!): Product!

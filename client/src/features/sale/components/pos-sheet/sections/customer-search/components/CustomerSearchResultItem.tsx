@@ -1,6 +1,6 @@
 
 
-import type { ICustomer } from "@/features/customer-refactor";
+import type { ICustomer } from "@/features/customer";
 
 interface CustomerSearchResultItemProps {
   customer: ICustomer;

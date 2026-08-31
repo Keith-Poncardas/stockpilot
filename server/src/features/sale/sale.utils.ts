@@ -236,7 +236,8 @@ export const buildSalesAggregationQuery = (
     rangeInterval: string,
     bucketInterval: string,
     bucketType: string,
-    timezone: string
+    timezone: string,
+    productId?: string
 ) => {
     return Prisma.sql`
         WITH date_range AS (
@@ -261,7 +262,12 @@ export const buildSalesAggregationQuery = (
         SELECT
           buckets.bucket,
           COALESCE(
-            SUM(s.total_amount),
+            SUM(
+              ${productId
+                ? Prisma.sql`CASE WHEN si.product_id = ${productId}::uuid THEN (si.quantity * si.unit_price) ELSE 0 END`
+                : Prisma.sql`s.total_amount`
+              }
+            ),
             0
           ) AS sales
         FROM buckets
@@ -271,6 +277,7 @@ export const buildSalesAggregationQuery = (
                s.sale_date AT TIME ZONE ${timezone}
              ) = buckets.bucket
           AND s.status = 'COMPLETED'
+        ${productId ? Prisma.sql`LEFT JOIN sale_items si ON si.sale_id = s.id AND si.product_id = ${productId}::uuid` : Prisma.empty}
         GROUP BY buckets.bucket
         ORDER BY buckets.bucket;
     `;

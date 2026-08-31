@@ -43,7 +43,7 @@ const minMaxSchema = z.coerce.number().nonnegative();
  * Validates the status of a product that can be assigned.
  *
  * Excludes discontinued and archived statuses, allowing only active
- * and draft statuses to be assigned.
+ * and draft statuses to be assigned on creation.
  */
 const assignableProductStatusSchema = z.enum(
     excludeEnumValue(ProductStatus, [
@@ -54,15 +54,6 @@ const assignableProductStatusSchema = z.enum(
 
 /**
  * Validation schema for filtering, sorting, and paginating products.
- *
- * Supports:
- * - Keyword search
- * - Product status filtering
- * - Minimum and maximum price range
- * - Creation date range
- * - Custom sorting and sort direction
- *
- * Also validates that `minPrice` is not greater than `maxPrice`.
  */
 export const filterProductsSchema = dateRangeSchema.extend({
     search: searchSchema,
@@ -78,25 +69,13 @@ export const filterProductsSchema = dateRangeSchema.extend({
 
 /**
  * Validation schema for retrieving a paginated list of products.
- *
- * Combines pagination options with product-specific filtering
- * and sorting criteria.
  */
 export const paginatedProductsSchema = paginationSchema.extend({
     filter: filterProductsSchema,
 });
 
 /**
- * Validation schema for filtering, sorting, and paginating products.
- *
- * Supports:
- * - Keyword search
- * - Product status filtering
- * - Minimum and maximum price range
- * - Creation date range
- * - Custom sorting and sort direction
- *
- * Also validates that `minPrice` is not greater than `maxPrice`.
+ * Validation schema for cursor-based infinite search on products.
  */
 export const searchProductsInfiniteSchema = infiniteSchema.extend({
     search: searchSchema,
@@ -104,13 +83,8 @@ export const searchProductsInfiniteSchema = infiniteSchema.extend({
 
 /**
  * Base validation schema for product data.
- *
- * Defines the common fields shared by product-related operations,
- * including the product name, description, pricing, SKU, and status.
- * This schema is intended to be extended or reused by create and
- * update product validation schemas.
  */
-const baseProductSchemaObject = z.object({
+export const baseProductSchemaObject = z.object({
     name: z
         .string()
         .trim()
@@ -120,31 +94,31 @@ const baseProductSchemaObject = z.object({
         .string()
         .trim()
         .max(500, "Description must not exceed 500 characters")
-        .optional(),
+        .optional()
+        .nullable(),
     unitPrice: z.coerce
         .number()
         .nonnegative({ message: "Unit price must be a non-negative number" }),
-
     costPrice: z.coerce
         .number()
         .nonnegative({ message: "Cost price must be a non-negative number" })
-        .optional(),
+        .optional()
+        .nullable(),
     sku: z
         .string()
         .trim()
-        .max(50, "SKU must not exceed 50 characters"),
-    status: assignableProductStatusSchema,
+        .max(50, "SKU must not exceed 50 characters")
+        .optional()
+        .nullable(),
+    status: assignableProductStatusSchema.default(ProductStatus.DRAFT),
 });
 
 /**
  * Validation schema for creating a new product.
- *
- * Validates the product details and its initial inventory, ensuring
- * that the cost price does not exceed the unit price.
  */
 export const addProductSchema = z.object({
     product: baseProductSchemaObject,
-    inventory: inventorySchemaObject
+    inventory: inventorySchemaObject.optional().nullable(),
 }).refine(
     refineProductSchema,
     {
@@ -155,13 +129,11 @@ export const addProductSchema = z.object({
 
 /**
  * Validation schema for updating an existing product.
- *
- * Requires the product ID along with the updated product and inventory
- * details. Also ensures that the cost price does not exceed the unit price.
  */
 export const editProductSchema = z.object({
     productId: uuidSchema,
-    product: baseProductSchemaObject
+    product: baseProductSchemaObject,
+    inventory: inventorySchemaObject.optional().nullable(),
 }).refine(
     refineProductSchema,
     {
@@ -172,9 +144,6 @@ export const editProductSchema = z.object({
 
 /**
  * Validation schema for changing a product's status.
- *
- * Requires the product ID and the new status, ensuring that the
- * status value is valid and assignable.
  */
 export const changeProductStatusSchema = z.object({
     productId: uuidSchema,
@@ -182,22 +151,16 @@ export const changeProductStatusSchema = z.object({
 });
 
 /**
+ * Validation schema for top-selling products query.
+ */
+export const getTopSellingProductsSchema = z.object({
+    sort: z.enum(SortOrder).default(SortOrder.HIGH),
+});
+
+/**
  * Validation schema for getting sales by location.
- *
- * Requires the sort order and limit, ensuring that the limit is
- * a positive integer not exceeding 100.
  */
 export const getSalesByLocationSchema = z.object({
     sort: z.enum(SortOrder).default(SortOrder.HIGH),
     limit: z.coerce.number().int().positive().max(100).optional().default(10),
-});
-
-/**
- * Validation schema for changing a product's status.
- *
- * Requires the product ID and the new status, ensuring that the
- * status value is valid and assignable.
- */
-export const getTopSellingProductsSchema = z.object({
-    sort: z.enum(SortOrder).default(SortOrder.HIGH),
 });

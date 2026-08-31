@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client';
 import { useCallback } from 'react';
-import { SEARCH_CUSTOMERS } from '@/features/customer-refactor';
-import type { ICustomer } from '@/features/customer-refactor';
+import { SEARCH_CUSTOMERS } from '@/features/customer';
+import type { ICustomer } from '@/features/customer';
 
 export type CustomerSearchResult = ICustomer;
 

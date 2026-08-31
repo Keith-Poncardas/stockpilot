@@ -13,10 +13,10 @@ export const customerSchema = z.object({
         .or(z.literal("")),
     addressLine1: z.string().trim().max(255, "Address Line 1 is too long").optional(),
     addressLine2: z.string().trim().max(255, "Address Line 2 is too long").optional(),
-    city: z.string().trim().max(100, "City is too long").optional(),
-    province: z.string().trim().max(100, "Province is too long").optional(),
+    provinceCode: z.string().trim().min(1, "Province is required"),
+    cityCode: z.string().trim().min(1, "City/Municipality is required"),
+    barangayCode: z.string().trim().min(1, "Barangay is required"),
     postalCode: z.string().trim().max(10, "Postal Code is too long").optional(),
-    country: z.string().trim().max(100, "Country is too long").optional(),
 });
 
 export type CustomerFormValues = z.infer<typeof customerSchema>;

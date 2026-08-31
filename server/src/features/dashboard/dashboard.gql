@@ -39,7 +39,7 @@ Query Type
 """
 type Query {
     dashboardMetrics: DashboardMetrics!
-    getSalesOverview(period: SalesOverviewPeriod!): [SaleOverviewRow!]!
+    getSalesOverview(period: SalesOverviewPeriod!, productId: ID): [SaleOverviewRow!]!
     getSalesByLocation(input: GetSalesByLocationInput!): [SaleLocationRanking!]!
     getTopSellingProducts(sort: SortOrder!): [ProductRankedSales!]!
     recentSales: PaginatedSales!

@@ -1,5 +1,5 @@
-import { Route, Routes } from 'react-router-dom'
-import { ProtectedRoute, PublicRoute } from './routes'
+import { Route, Routes } from 'react-router-dom';
+import { ProtectedRoute, PublicRoute } from './routes';
 import {
   LoginPage,
   OTPPage,
@@ -12,10 +12,10 @@ import {
   ChangePasswordPage,
   AuthLayout,
   ProductLayout,
-  ProductPage,
-  ProductViewPage,
-  CreateProductPage,
-  EditProductPage,
+  ProductsPage,
+  CreateProductSheet,
+  EditProductSheet,
+  ViewProductSheet,
   InventoryLayout,
   InventoryPage,
   AdjustStockPage,
@@ -26,17 +26,18 @@ import {
   CustomerLayout,
   CustomersPage,
   CreateCustomerSheet,
+  EditCustomerSheet,
   ViewCustomerSheet,
   SaleLayout,
   Dashboard,
   SalesPage,
-} from './features'
-import MainLayout from './layout/MainLayout'
-import { EmptyState } from './components/ui/empty-state'
-import { SheetProvider } from './providers'
-import { ViewSaleSheet } from './features/sale/components/view-sale-sheet'
-import { PointOfSaleSheet } from './features/sale/components/pos-sheet'
-import { Toaster } from './components/ui/sonner'
+} from './features';
+import MainLayout from './layout/MainLayout';
+import { EmptyState } from './components/ui/empty-state';
+import { SheetProvider } from './providers';
+import { ViewSaleSheet } from './features/sale/components/view-sale-sheet';
+import { PointOfSaleSheet } from './features/sale/components/pos-sheet';
+import { Toaster } from './components/ui/sonner';
 
 function App() {
   return (
@@ -45,7 +46,11 @@ function App() {
       <ViewSaleSheet />
       <PointOfSaleSheet />
       <CreateCustomerSheet />
+      <EditCustomerSheet />
       <ViewCustomerSheet />
+      <CreateProductSheet />
+      <EditProductSheet />
+      <ViewProductSheet />
       <Routes>
 
         <Route element={<PublicRoute />}>
@@ -74,10 +79,7 @@ function App() {
             </Route>
 
             <Route path="/products" element={<ProductLayout />}>
-              <Route index element={<ProductPage />} />
-              <Route path=":productId/view" element={<ProductViewPage />} />
-              <Route path="new" element={<CreateProductPage />} />
-              <Route path=":productId/edit" element={<EditProductPage />} />
+              <Route index element={<ProductsPage />} />
             </Route>
 
             <Route path="/inventory" element={<InventoryLayout />}>
@@ -112,8 +114,7 @@ function App() {
 
       </Routes>
     </SheetProvider>
-  )
+  );
 }
 
-export default App
-
+export default App;

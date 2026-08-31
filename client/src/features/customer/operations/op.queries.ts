@@ -59,6 +59,7 @@ export const GET_CUSTOMER = gql`
       addressLine2
       provinceCode
       cityCode
+      barangayCode
       postalCode
       country
       createdAt
@@ -69,6 +70,15 @@ export const GET_CUSTOMER = gql`
         averageOrderValue
         firstPurchase
         lastPurchase
+      }
+      purchaseHistory(args: { page: 1, limit: 10, filter: {} }) {
+        data {
+          id
+          totalAmount
+          status
+          saleDate
+          paymentMethod
+        }
       }
     }
   }
@@ -81,6 +91,35 @@ export const GET_CUSTOMER_METRICS = gql`
       newCustomers
       totalRevenue
       returningCustomers
+    }
+  }
+`;
+
+/**
+ * Searches customers using infinite scrolling.
+ */
+export const SEARCH_CUSTOMERS = gql`
+  query SearchCustomers($args: SearchCustomersInput!) {
+    searchCustomers(args: $args) {
+      data {
+        id
+        firstName
+        lastName
+        phone
+        email
+        provinceCode
+        cityCode
+        createdAt
+        updatedAt
+        purchaseSummary {
+          totalOrders
+          totalSpent
+        }
+      }
+      meta {
+        nextCursor
+        hasNextPage
+      }
     }
   }
 `;

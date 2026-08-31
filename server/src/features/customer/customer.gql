@@ -95,6 +95,23 @@ input CreateCustomerInput {
 }
 
 """
+Input data required to edit an existing customer record.
+"""
+input EditCustomerInput {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    phone: String
+    email: String
+    addressLine1: String
+    addressLine2: String
+    provinceCode: String!
+    cityCode: String!
+    barangayCode: String!
+    postalCode: String
+}
+
+"""
 Input parameters for searching customers using infinite scroll.
 """
 input SearchCustomersInput {
@@ -118,4 +135,5 @@ Root mutations for creating and managing customers.
 """
 type Mutation {
     createCustomer(input: CreateCustomerInput!): Customer!
+    editCustomer(input: EditCustomerInput!): Customer!
 }

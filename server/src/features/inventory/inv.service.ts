@@ -2,7 +2,7 @@ import { prisma } from "@/lib";
 import {
     createPaginator
 } from "@/utils";
-import { MovementReason, MovementType, Prisma, ProductStatus } from '@/generated/client.js';
+import { MovementReason, MovementType, Prisma, ProductStatus, SaleStatus } from '@/generated/client.js';
 import {
     AdjustStockInput,
     CreateInventoryInput,
@@ -415,6 +415,45 @@ export class InventoryService {
             stockStatus,
         };
 
+    }
+
+    /**
+     * Retrieves the date of the last restock stock movement for a product.
+     *
+     * @param productId The product ID to query.
+     * @returns ISO timestamp string or null.
+     */
+    async getLastRestockDate(productId: UUIDInput): Promise<string | null> {
+        const lastMovement = await prisma.stockMovement.findFirst({
+            where: { productId, type: MovementType.IN },
+            orderBy: { createdAt: 'desc' },
+            select: { createdAt: true },
+        });
+        return lastMovement?.createdAt?.toISOString() ?? null;
+    }
+
+    /**
+     * Calculates estimated days of stock remaining for a product based on recent 30-day sales rate.
+     *
+     * @param productId The product ID to query.
+     * @param quantityOnHand Current stock level.
+     * @returns Estimated remaining days of stock.
+     */
+    async getEstimatedDaysOfStock(productId: UUIDInput, quantityOnHand: number): Promise<number> {
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const soldAgg = await prisma.saleItem.aggregate({
+            where: {
+                productId,
+                sale: { status: SaleStatus.COMPLETED, saleDate: { gte: thirtyDaysAgo } },
+            },
+            _sum: { quantity: true },
+        });
+        const unitsSoldLast30Days = soldAgg._sum.quantity ?? 0;
+        if (unitsSoldLast30Days > 0) {
+            const avgDailySales = unitsSoldLast30Days / 30;
+            return Math.round(quantityOnHand / avgDailySales);
+        }
+        return quantityOnHand > 0 ? 90 : 0;
     }
 
 }

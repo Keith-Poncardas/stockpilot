@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import type { ICustomer } from "@/features/customer-refactor";
+import type { ICustomer } from "@/features/customer";
 
 import { FormSection } from "@/components/ui/form-section";
 import { FormField } from "@/components/ui/form-field";

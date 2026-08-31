@@ -22,5 +22,8 @@ export interface GridMetricsProps {
     metrics?: GridMetricItem[];
     /** Whether the metrics are loading. */
     isLoading?: boolean;
+    /** Optional number of grid columns on large screens (defaults to matching metrics count up to 4). */
+    columns?: 1 | 2 | 3 | 4 | 5 | 6;
+    /** Optional additional Tailwind CSS classes for the grid container. */
+    className?: string;
 }
-

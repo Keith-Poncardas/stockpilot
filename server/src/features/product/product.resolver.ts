@@ -22,6 +22,8 @@ import { GraphQLContext } from "@/types";
 import { Product } from '@/generated/client.js';
 import { stockMovementsService } from "../stockMovements";
 import { inventoryService } from "../inventory";
+import { saleService } from "../sale";
+import { SalesOverviewPeriod } from "../sale/constants";
 
 export const productResolver = {
 
@@ -87,6 +89,20 @@ export const productResolver = {
          */
         async inventory(parent: Product) {
             return inventoryService.getInventory({ productId: parent.id });
+        },
+
+        /**
+         * Retrieves aggregated sales performance metrics for the product.
+         */
+        async performanceMetrics(parent: Product) {
+            return productService.getProductPerformanceMetrics(parent.id);
+        },
+
+        /**
+         * Retrieves the 7-day daily sales trend for the product directly via saleService.
+         */
+        async salesTrend(parent: Product) {
+            return saleService.getSalesOverview(SalesOverviewPeriod.DAILY, parent.id);
         },
 
     }),

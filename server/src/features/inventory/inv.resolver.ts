@@ -86,6 +86,20 @@ export const inventoryResolver = {
             return userService.getUser({ id: parent.userId });
         },
 
+        /**
+         * Resolves the date of the last restock stock movement for this product.
+         */
+        lastRestockDate: async (parent: Inventory) => {
+            return inventoryService.getLastRestockDate(parent.productId);
+        },
+
+        /**
+         * Resolves estimated days of stock remaining based on recent sales velocity.
+         */
+        estimatedDaysOfStock: async (parent: Inventory) => {
+            return inventoryService.getEstimatedDaysOfStock(parent.productId, parent.quantityOnHand);
+        },
+
     }),
 
     Mutation: composeResolvers(

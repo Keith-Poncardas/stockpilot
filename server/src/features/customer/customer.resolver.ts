@@ -7,12 +7,14 @@ import {
 import { customerService } from "./customer.service";
 import {
     CreateCustomerInput,
+    EditCustomerInput,
     PaginatedCustomersInput,
     SearchCustomersInfiniteInput
 } from "./types";
 import { UUIDInput, uuidSchema } from "@/schemas";
 import {
     createCustomerSchema,
+    editCustomerSchema,
     paginatedCustomersSchema,
     searchCustomersInfiniteSchema
 } from "./customer.validation";
@@ -137,6 +139,20 @@ export const customerResolver = {
             return customerService.createCustomer(input);
         }),
 
+        /**
+         * Updates an existing customer record.
+         *
+         * @param _ - The parent resolver object (unused).
+         * @param args - The input data for updating the customer.
+         * @returns The updated customer record.
+         */
+        editCustomer: composeResolvers(
+            validate(editCustomerSchema)
+        )(async (_: unknown, { input }: { input: EditCustomerInput }) => {
+            return customerService.editCustomer(input);
+        }),
+
     })
 
 };
+

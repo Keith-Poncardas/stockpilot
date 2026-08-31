@@ -2,6 +2,7 @@ import z from "zod";
 import {
     paginatedCustomersSchema,
     createCustomerSchema,
+    editCustomerSchema,
     searchCustomersInfiniteSchema
 } from "./customer.validation";
 
@@ -22,9 +23,18 @@ export type CreateCustomerInput = z.infer<
 >;
 
 /**
+ * Type representing the input for editing an existing customer.
+ * Inferred from the editCustomerSchema.
+ */
+export type EditCustomerInput = z.infer<
+    typeof editCustomerSchema
+>;
+
+/**
  * Type representing the input for infinite scroll customer searches.
  * Inferred from the searchCustomersInfiniteSchema.
  */
 export type SearchCustomersInfiniteInput = z.infer<
     typeof searchCustomersInfiniteSchema
 >;
+

@@ -1,6 +1,6 @@
 import type { SaleCellProps } from "../cells.types";
 import { UserInfoCell } from "@/components";
-import { useViewCustomerSheet } from "@/features/customer-refactor";
+import { useViewCustomerSheet } from "@/features/customer";
 
 /**
  * Renders the Customer UserInfoCell in the Sales Table.

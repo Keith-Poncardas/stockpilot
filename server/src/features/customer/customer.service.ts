@@ -10,6 +10,7 @@ import { Prisma } from '@/generated/client.js';
 import {
     PaginatedCustomersInput,
     CreateCustomerInput,
+    EditCustomerInput,
     SearchCustomersInfiniteInput,
 } from "./types";
 import { CustomerOrderBy } from "./constants";
@@ -32,11 +33,17 @@ export class CustomerService {
      * Ensures that the provided phone number is unique across all customers.
      * 
      * @param phone - The phone number to check.
+     * @param excludeCustomerId - Optional customer ID to exclude from uniqueness check (for edits).
      * @throws {ConflictError} If a customer with the phone number already exists.
      */
-    private async ensurePhoneNumberUnique(phone?: string) {
+    private async ensurePhoneNumberUnique(phone?: string, excludeCustomerId?: string) {
         if (!phone) return;
-        const customer = await prisma.customer.findUnique({ where: { phone } });
+        const customer = await prisma.customer.findFirst({
+            where: {
+                phone,
+                ...(excludeCustomerId && { NOT: { id: excludeCustomerId } }),
+            },
+        });
         if (customer) throwConflict(
             'A customer with this phone number already exists.'
         );
@@ -46,11 +53,17 @@ export class CustomerService {
      * Ensures that the provided email address is unique across all customers.
      * 
      * @param email - The email address to check.
+     * @param excludeCustomerId - Optional customer ID to exclude from uniqueness check (for edits).
      * @throws {ConflictError} If a customer with the email address already exists.
      */
-    private async ensureEmailUnique(email?: string) {
+    private async ensureEmailUnique(email?: string, excludeCustomerId?: string) {
         if (!email) return;
-        const customer = await prisma.customer.findUnique({ where: { email } });
+        const customer = await prisma.customer.findFirst({
+            where: {
+                email,
+                ...(excludeCustomerId && { NOT: { id: excludeCustomerId } }),
+            },
+        });
         if (customer) throwConflict(
             'A customer with this email address already exists.'
         );
@@ -189,14 +202,14 @@ export class CustomerService {
     async createCustomer(input: CreateCustomerInput) {
         const { provinceCode, cityCode, barangayCode, country, ...rest } = input;
 
-        const phone = rest.phone?.trim() || undefined;
-        const email = rest.email?.trim() || undefined;
-        const addressLine1 = rest.addressLine1?.trim() || undefined;
-        const addressLine2 = rest.addressLine2?.trim() || undefined;
-        const postalCode = rest.postalCode?.trim() || undefined;
+        const phone = rest.phone?.trim() || null;
+        const email = rest.email?.trim() || null;
+        const addressLine1 = rest.addressLine1?.trim() || null;
+        const addressLine2 = rest.addressLine2?.trim() || null;
+        const postalCode = rest.postalCode?.trim() || null;
 
-        await this.ensurePhoneNumberUnique(phone);
-        await this.ensureEmailUnique(email);
+        await this.ensurePhoneNumberUnique(phone ?? undefined);
+        await this.ensureEmailUnique(email ?? undefined);
 
         const data = {
             firstName: rest.firstName,
@@ -214,6 +227,51 @@ export class CustomerService {
 
         return await prisma.customer.create({ data });
     }
+
+    /**
+     * Updates an existing customer record after validating existence and uniqueness of phone and email.
+     * 
+     * @param input - The data required to edit an existing customer.
+     * @returns The updated customer record.
+     */
+    async editCustomer(input: EditCustomerInput) {
+        const { id, provinceCode, cityCode, barangayCode, country, ...rest } = input;
+
+        await this.getCustomer({ id });
+
+        const phone = rest.phone?.trim() || null;
+        const email = rest.email?.trim() || null;
+        const addressLine1 = rest.addressLine1?.trim() || null;
+        const addressLine2 = rest.addressLine2?.trim() || null;
+        const postalCode = rest.postalCode?.trim() || null;
+
+        if (phone) {
+            await this.ensurePhoneNumberUnique(phone, id);
+        }
+        if (email) {
+            await this.ensureEmailUnique(email, id);
+        }
+
+        const data = {
+            firstName: rest.firstName,
+            lastName: rest.lastName,
+            phone,
+            email,
+            addressLine1,
+            addressLine2,
+            province: provinceCode,
+            city: cityCode,
+            barangay: barangayCode,
+            postalCode,
+            country: country || "Philippines",
+        };
+
+        return await prisma.customer.update({
+            where: { id },
+            data,
+        });
+    }
+
 
     /**
      * Searches for customers using a cursor-based infinite scroll approach.

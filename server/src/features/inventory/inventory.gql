@@ -29,7 +29,9 @@ type Inventory {
   maxStock: Int!
   updatedAt: String!
   createdAt: String!
-  stockStatus: StockStatusCustom!
+  # Analytics & Computed
+  lastRestockDate: String
+  estimatedDaysOfStock: Int
 
   # Relations
   product: Product!
@@ -77,9 +79,9 @@ input AdjustStockInput {
 
 # Inventory Input Type
 input InventoryInput {
-  quantity: Int!
-  reorderLevel: Int!
-  maxStock: Int!
+  quantityOnHand: Int
+  reorderLevel: Int
+  maxStock: Int
 }
 
 # Create Inventory Input Type

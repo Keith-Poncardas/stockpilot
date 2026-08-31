@@ -85,19 +85,22 @@ export const adjustStockSchema = z.object({
  */
 export const inventorySchemaObject = z.object({
     quantityOnHand: z.coerce
-        .number({ message: "Starting quantity is required" })
+        .number()
         .int("Quantity must be a whole number")
-        .min(1, "Starting quantity must be at least 1"),
+        .nonnegative("Starting quantity cannot be negative")
+        .default(0),
 
     reorderLevel: z.coerce
-        .number({ message: "Reorder level is required" })
+        .number()
         .int("Reorder level must be a whole number")
-        .nonnegative("Reorder level cannot be negative"),
+        .nonnegative("Reorder level cannot be negative")
+        .default(10),
 
     maxStock: z.coerce
-        .number({ message: "Max stock is required" })
+        .number()
         .int("Max stock must be a whole number")
-        .nonnegative("Max stock cannot be negative"),
+        .nonnegative("Max stock cannot be negative")
+        .default(100),
 });
 
 /**

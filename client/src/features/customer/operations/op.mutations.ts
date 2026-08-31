@@ -15,6 +15,7 @@ export const CREATE_CUSTOMER = gql`
       email
       provinceCode
       cityCode
+      barangayCode
       postalCode
       country
       createdAt
@@ -22,3 +23,28 @@ export const CREATE_CUSTOMER = gql`
     }
   }
 `;
+
+/**
+ * Updates an existing customer.
+ */
+export const EDIT_CUSTOMER = gql`
+  mutation EditCustomer($input: EditCustomerInput!) {
+    editCustomer(input: $input) {
+      id
+      firstName
+      lastName
+      phone
+      email
+      addressLine1
+      addressLine2
+      provinceCode
+      cityCode
+      barangayCode
+      postalCode
+      country
+      createdAt
+      updatedAt
+    }
+  }
+`;
+

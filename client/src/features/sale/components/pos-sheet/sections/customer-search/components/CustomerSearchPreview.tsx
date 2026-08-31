@@ -1,5 +1,5 @@
-import type { ICustomer } from "@/features/customer-refactor";
-import { formatLocation, formatCustomerName } from "@/features/customer-refactor";
+import type { ICustomer } from "@/features/customer";
+import { formatLocation, formatCustomerName } from "@/features/customer";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";

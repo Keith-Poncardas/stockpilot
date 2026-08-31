@@ -30,15 +30,17 @@ export function SelectFilter({
   options,
   placeholder,
   className,
-  defaultValue = "all",
+  defaultValue,
   disabled,
   loading,
 }: SelectFilterProps) {
-  // Map an empty string to the defaultValue (usually "all")
-  const selectValue = value || defaultValue
+  // Map an empty string to defaultValue only if defaultValue is explicitly provided.
+  // Otherwise, leave as undefined so that Radix Select displays the placeholder.
+  const selectValue = value ? value : (defaultValue ? defaultValue : undefined)
+  const selectedOption = options.find((opt) => opt.value === selectValue)
 
   const handleValueChange = (val: string) => {
-    if (val === defaultValue) {
+    if (defaultValue && val === defaultValue) {
       onChange?.("")
     } else {
       onChange?.(val)
@@ -48,7 +50,9 @@ export function SelectFilter({
   return (
     <Select value={selectValue} onValueChange={handleValueChange} disabled={disabled}>
       <SelectTrigger className={className} loading={loading}>
-        <SelectValue placeholder={placeholder} />
+        <SelectValue placeholder={placeholder}>
+          {selectedOption ? selectedOption.label : undefined}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent position="popper" className="w-(--radix-select-trigger-width)">
         {options.map((option) => (

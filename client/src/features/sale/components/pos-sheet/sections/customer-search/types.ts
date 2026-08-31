@@ -1,4 +1,4 @@
-import type { ICustomer } from "@/features/customer-refactor";
+import type { ICustomer } from "@/features/customer";
 
 export type SelectedCustomer = ICustomer;
 

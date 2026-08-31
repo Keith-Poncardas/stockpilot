@@ -28,11 +28,16 @@ const paymentMethodSchema = z.enum(PaymentMethod);
  */
 const saleStatusSchema = z.enum(SaleStatus);
 
-/**
- * SALES OVERVIEW PERIOD SCHEMA
- * Validates the sales overview period using the SalesOverviewPeriod enum.
- */
 export const salesOverviewPeriodSchema = z.enum(SalesOverviewPeriod);
+
+/**
+ * SALES OVERVIEW QUERY SCHEMA
+ * Validates the sales overview query parameters including period and optional productId.
+ */
+export const salesOverviewQuerySchema = z.object({
+    period: salesOverviewPeriodSchema,
+    productId: uuidSchema.optional().nullable(),
+});
 
 /**
  * FILTER SALES SCHEMA

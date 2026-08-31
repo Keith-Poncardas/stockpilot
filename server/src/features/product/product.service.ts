@@ -1,7 +1,7 @@
 import { prisma } from "@/lib";
-import { buildSearchQuery, createInfiniteScroller, createPaginator, throwConflict } from "@/utils";
+import { buildSearchQuery, createInfiniteScroller, createPaginator, generateSku, throwConflict } from "@/utils";
 import { MovementType, Prisma, SaleStatus } from '@/generated/client.js';
-import { ProductStatus, SortOrder } from "@/enums";
+import { ProductStatus } from "@/enums";
 import { ensureNotDiscontinued, calculateRankedProducts } from "./product.util";
 import {
     AddProductInput,
@@ -40,6 +40,7 @@ export class ProductService {
      * @template K A product field that can be used for filtering.
      * @param field The product field to check (e.g. `sku`, `name`).
      * @param value The value to search for.
+     * @param excludeId Optional product ID to exclude from the check (e.g. on edit).
      * @param message Optional custom conflict error message.
      * @throws {ConflictError} If a matching product already exists.
      */
@@ -48,6 +49,7 @@ export class ProductService {
     >(
         field: K,
         value: string,
+        excludeId?: string,
         message?: string
     ) {
         const exists = await prisma.product.findFirst({
@@ -56,6 +58,9 @@ export class ProductService {
                     equals: value,
                     mode: "insensitive",
                 },
+                ...(excludeId && {
+                    id: { not: excludeId }
+                }),
             } as Prisma.ProductWhereInput,
         });
 
@@ -69,24 +74,21 @@ export class ProductService {
     /**
      * Retrieves a single product by a unique identifier.
      *
-     * Uses Prisma's `findUniqueOrThrow()`, which throws an error if the
-     * product does not exist instead of returning `null`.
-     *
      * @param where Unique criteria used to locate the product (e.g. `id`, `sku`).
      * @returns The matching product.
      * @throws {Prisma.PrismaClientKnownRequestError} If no matching product is found.
      */
     async getProduct(where: Prisma.ProductWhereUniqueInput) {
         return await prisma.product.findUniqueOrThrow({
-            where
+            where,
+            include: {
+                inventory: true,
+            },
         });
     }
 
     /**
      * Retrieves a list of products matching the given criteria.
-     *
-     * @param args The filter criteria and pagination options.
-     * @returns A collection of products matching the criteria.
      */
     get findProducts() {
         return prisma.product.findMany;
@@ -105,9 +107,6 @@ export class ProductService {
     /**
      * Retrieves summary metrics for products.
      *
-     * Returns the total number of products, along with counts for
-     * active and draft products.
-     *
      * @returns An object containing product metrics.
      */
     async getProductMetrics() {
@@ -122,7 +121,7 @@ export class ProductService {
     /**
      * Retrieves a list of top-selling products.
      *
-     * @param sort The sort order for the products.
+     * @param input The sort order for the products.
      * @returns A list of top-selling products.
      */
     async getTopSellingProducts(
@@ -163,16 +162,14 @@ export class ProductService {
     /**
      * Retrieves an infinite-scroll list of products.
      *
-     * Returns products that are not discontinued. Supports keyword searching
-     * by product name or SKU and uses cursor-based pagination.
-     *
      * @param input The search criteria and pagination options.
      * @returns A paginated collection of products with cursor pagination metadata.
      */
     async searchProductsInfinite(input: SearchProductsInfiniteInput) {
         const { search, cursor, limit } = input;
         const { params, buildResult } = createInfiniteScroller({
-            cursor, limit
+            cursor,
+            limit
         });
 
         const where: Prisma.ProductWhereInput = {
@@ -192,6 +189,9 @@ export class ProductService {
                 skip: 1,
             }),
             orderBy: { createdAt: 'desc' },
+            include: {
+                inventory: true,
+            },
         });
 
         return buildResult(products);
@@ -200,14 +200,10 @@ export class ProductService {
     /**
      * Retrieves a paginated list of products with filtering and sorting.
      *
-     * Supports filtering by status, search keyword, price range, and
-     * creation date range. Results can also be sorted and paginated.
-     *
      * @param args Pagination, filtering, and sorting options.
      * @returns A paginated collection of products with pagination metadata.
      */
     async getProducts(args: PaginatedProductsInput) {
-
         const { limit, page, filter } = args;
         const { params, buildMeta } = createPaginator({ limit, page });
 
@@ -223,7 +219,6 @@ export class ProductService {
         } = filter;
 
         const where: Prisma.ProductWhereInput = {
-
             /** Filtering by status */
             ...(status && { status }),
 
@@ -249,11 +244,9 @@ export class ProductService {
                     ...(dateTo && { lte: dateTo }),
                 },
             }),
-
         };
 
         const [products, total] = await Promise.all([
-
             this.findProducts({
                 where,
                 skip: params.skip,
@@ -261,25 +254,21 @@ export class ProductService {
                 orderBy: {
                     [orderBy]: orderDirection
                 },
+                include: {
+                    inventory: true,
+                },
             }),
-
             this.productCount(where),
-
         ]);
 
         return {
             data: products,
             meta: buildMeta(total),
         };
-
     }
 
     /**
      * Creates a new product and optionally initializes its inventory.
-     *
-     * Ensures the product does not already exist, then creates the product
-     * within a transaction. If an initial stock quantity is provided, an
-     * inventory record is created and an initial stock movement is recorded.
      *
      * @param userId The ID of the user performing the operation.
      * @param input The validated product and inventory data.
@@ -287,37 +276,45 @@ export class ProductService {
      * @throws {ConflictError} If a product with the same SKU already exists.
      */
     async createProduct(userId: UUIDInput, input: AddProductInput) {
-
         const { product, inventory } = input;
+        const sku = product.sku?.trim() || generateSku(product.name);
         const hasInitialInventory = inventory && inventory.quantityOnHand > 0;
 
         const { createInventoryInternal } = inventoryService;
         const { recordStockMovement } = stockMovementsService;
 
-        await this.ensureNoDuplication("sku", product.sku);
+        await this.ensureNoDuplication("sku", sku);
 
         return await prisma.$transaction(async (tx) => {
-
             const prod = await tx.product.create({
-                data: product,
+                data: {
+                    name: product.name,
+                    sku,
+                    description: product.description,
+                    unitPrice: product.unitPrice,
+                    costPrice: product.costPrice,
+                    status: product.status,
+                },
             });
 
-            if (hasInitialInventory) {
-
+            if (inventory) {
                 await createInventoryInternal(tx, {
                     productId: prod.id,
                     userId,
-                    ...inventory
+                    quantityOnHand: inventory.quantityOnHand || 0,
+                    reorderLevel: inventory.reorderLevel ?? 10,
+                    maxStock: inventory.maxStock ?? 100,
                 });
 
-                await recordStockMovement(tx, "IN", {
-                    productId: prod.id,
-                    userId,
-                    type: MovementType.IN,
-                    quantity: inventory.quantityOnHand,
-                    notes: 'Initial stock on product creation',
-                });
-
+                if (hasInitialInventory) {
+                    await recordStockMovement(tx, "IN", {
+                        productId: prod.id,
+                        userId,
+                        type: MovementType.IN,
+                        quantity: inventory.quantityOnHand,
+                        notes: 'Initial stock on product creation',
+                    });
+                }
             }
 
             return prod;
@@ -333,23 +330,52 @@ export class ProductService {
      * @throws {Prisma.PrismaClientKnownRequestError} If the product does not exist.
      */
     async editProduct(input: EditProductInput) {
-
-        const { productId, product } = input;
+        const { productId, product, inventory } = input;
         await this.ensureProductExist(productId);
 
-        return await prisma.product.update({
-            where: { id: productId },
-            data: product
-        });
+        if (product.sku) {
+            await this.ensureNoDuplication("sku", product.sku, productId);
+        }
 
+        return await prisma.$transaction(async (tx) => {
+            const updatedProduct = await tx.product.update({
+                where: { id: productId },
+                data: {
+                    name: product.name,
+                    ...(product.sku && { sku: product.sku }),
+                    description: product.description,
+                    unitPrice: product.unitPrice,
+                    costPrice: product.costPrice,
+                    status: product.status,
+                },
+            });
+
+            if (inventory) {
+                await tx.inventory.upsert({
+                    where: { productId },
+                    update: {
+                        reorderLevel: inventory.reorderLevel,
+                        maxStock: inventory.maxStock,
+                        ...(inventory.quantityOnHand !== undefined && {
+                            quantityOnHand: inventory.quantityOnHand,
+                        }),
+                    },
+                    create: {
+                        productId,
+                        userId: (await tx.inventory.findFirst({ where: { productId } }))?.userId || updatedProduct.id,
+                        quantityOnHand: inventory.quantityOnHand || 0,
+                        reorderLevel: inventory.reorderLevel ?? 10,
+                        maxStock: inventory.maxStock ?? 100,
+                    },
+                });
+            }
+
+            return updatedProduct;
+        });
     }
 
     /**
      * Changes the status of an existing product.
-     *
-     * Ensures the product exists and is not already discontinued.
-     * Throws an error if the product is discontinued or if the
-     * product ID does not exist.
      *
      * @param input The product ID and the new status.
      * @returns The updated product.
@@ -357,7 +383,6 @@ export class ProductService {
      * @throws {Prisma.PrismaClientKnownRequestError} If the product does not exist.
      */
     async changeStatus(input: ChangeProductStatusInput) {
-
         const { productId, status } = input;
         const product = await this.ensureProductExist(productId);
 
@@ -367,10 +392,97 @@ export class ProductService {
             where: { id: productId },
             data: { status },
         });
+    }
 
+    /**
+     * Calculates performance metrics for a specific product based on completed sales.
+     */
+    async getProductPerformanceMetrics(productId: string) {
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+        const [allItems, currentMonthItems, prevMonthItems, inventory] = await Promise.all([
+            prisma.saleItem.findMany({
+                where: {
+                    productId,
+                    sale: { status: SaleStatus.COMPLETED },
+                },
+                include: {
+                    sale: { select: { id: true, saleDate: true } },
+                },
+            }),
+            prisma.saleItem.findMany({
+                where: {
+                    productId,
+                    sale: {
+                        status: SaleStatus.COMPLETED,
+                        saleDate: { gte: thirtyDaysAgo },
+                    },
+                },
+            }),
+            prisma.saleItem.findMany({
+                where: {
+                    productId,
+                    sale: {
+                        status: SaleStatus.COMPLETED,
+                        saleDate: { gte: sixtyDaysAgo, lt: thirtyDaysAgo },
+                    },
+                },
+            }),
+            prisma.inventory.findUnique({
+                where: { productId },
+                select: { quantityOnHand: true },
+            }),
+        ]);
+
+        const unitsSold = allItems.reduce((sum, item) => sum + item.quantity, 0);
+        const revenue = allItems.reduce(
+            (sum, item) => sum + item.quantity * Number(item.unitPrice),
+            0
+        );
+        const transactionIds = new Set(allItems.map((item) => item.sale.id));
+        const transactions = transactionIds.size;
+        const avgPerSale = transactions > 0 ? Number((revenue / transactions).toFixed(2)) : 0;
+
+        const currentStock = inventory?.quantityOnHand ?? 0;
+        const totalStockHandled = unitsSold + currentStock;
+        const sellThroughRate =
+            totalStockHandled > 0
+                ? Number(((unitsSold / totalStockHandled) * 100).toFixed(1))
+                : 0;
+
+        const currentMonthUnits = currentMonthItems.reduce((sum, item) => sum + item.quantity, 0);
+        const prevMonthUnits = prevMonthItems.reduce((sum, item) => sum + item.quantity, 0);
+        const unitsSoldTrend =
+            prevMonthUnits > 0
+                ? Number((((currentMonthUnits - prevMonthUnits) / prevMonthUnits) * 100).toFixed(1))
+                : currentMonthUnits > 0 ? 100 : 0;
+
+        const currentMonthRevenue = currentMonthItems.reduce(
+            (sum, item) => sum + item.quantity * Number(item.unitPrice),
+            0
+        );
+        const prevMonthRevenue = prevMonthItems.reduce(
+            (sum, item) => sum + item.quantity * Number(item.unitPrice),
+            0
+        );
+        const revenueTrend =
+            prevMonthRevenue > 0
+                ? Number((((currentMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100).toFixed(1))
+                : currentMonthRevenue > 0 ? 100 : 0;
+
+        return {
+            unitsSold,
+            unitsSoldTrend,
+            revenue: Number(revenue.toFixed(2)),
+            revenueTrend,
+            transactions,
+            avgPerSale,
+            sellThroughRate,
+        };
     }
 
 }
 
 export const productService = new ProductService();
-
