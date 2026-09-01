@@ -77,6 +77,8 @@ export const ProductTableToolbar = React.memo(function ProductTableToolbar({
                         value={statusFilter}
                         onChange={setStatusFilter}
                         options={PRODUCT_STATUS_OPTIONS}
+                        defaultValue="all"
+                        placeholder="All Statuses"
                         className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
                     />
                     <SelectFilter

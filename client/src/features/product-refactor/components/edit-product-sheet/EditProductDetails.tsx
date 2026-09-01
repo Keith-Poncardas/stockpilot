@@ -105,7 +105,7 @@ function EditProductForm({ productId, product, onClose }: EditProductFormProps) 
                 </div>
             </div>
 
-            <div className="border-t border-slate-200 bg-white p-4 flex gap-3 justify-end items-center">
+            <div className="px-4 sm:px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-end gap-3 sticky bottom-0 z-10 shrink-0">
                 <Button
                     type="button"
                     variant="outline"
@@ -120,7 +120,7 @@ function EditProductForm({ productId, product, onClose }: EditProductFormProps) 
                     form="edit-product-form"
                     loading={updatingProduct}
                     disabled={isSubmitDisabled}
-                    className="h-11 px-8 text-sm font-semibold"
+                    className="h-11 flex-1 text-sm font-semibold"
                 >
                     Update product
                 </ButtonLoading>

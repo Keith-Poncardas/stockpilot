@@ -34,7 +34,7 @@ export function ViewProductDetailsLayout({
 
             {/* Sticky Actions Footer */}
             {actions && (
-                <div className="px-4 sm:px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-end gap-3 sticky bottom-0 z-10 shrink-0">
+                <div className="px-4 sm:px-6 py-4 border-t border-slate-200 bg-white flex items-center gap-3 sticky bottom-0 z-10 shrink-0">
                     {actions}
                 </div>
             )}

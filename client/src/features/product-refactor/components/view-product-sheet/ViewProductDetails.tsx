@@ -153,7 +153,7 @@ export function ViewProductDetails({ productId }: ViewProductDetailsProps) {
                             variant="outline"
                             onClick={handleAdjustStock}
                             disabled={isNotEditable}
-                            className="font-semibold text-sm h-11 px-6"
+                            className="font-semibold text-sm h-11 flex-1"
                         >
                             <SlidersHorizontal data-icon="inline-start" className="mr-2 h-4 w-4" />
                             Adjust Stock
@@ -164,7 +164,7 @@ export function ViewProductDetails({ productId }: ViewProductDetailsProps) {
                         variant="default"
                         onClick={handleEditClick}
                         disabled={isNotEditable}
-                        className="font-semibold text-sm h-11 px-6"
+                        className="font-semibold text-sm h-11 flex-1"
                     >
                         <SquarePen data-icon="inline-start" className="mr-2 h-4 w-4" />
                         Edit Product
