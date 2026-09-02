@@ -2,22 +2,20 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { formatCurrency } from "@/lib/utils";
 import { ItemCount } from "@/features/sale/components/common";
 import type { SaleItem } from "@/features/sale/types";
+import { ItemCell, FreeItemsCell } from "./cells";
 
 export const columns: ColumnDef<SaleItem>[] = [
     {
         id: "name",
         header: "Item",
-        cell: ({ row }) => (
-            <div>
-                <div className="font-semibold text-gray-900 dark:text-gray-100">
-                    {row.original.product.name}
-                </div>
-                <div className="text-xs text-gray-400 font-mono mt-0.5">
-                    {row.original.product.sku}
-                </div>
-            </div>
-        ),
+        cell: ({ row }) => <ItemCell row={row} />,
         size: 240,
+    },
+    {
+        id: "freeItems",
+        header: "Free Items",
+        cell: ({ row }) => <FreeItemsCell row={row} />,
+        size: 170,
     },
     {
         accessorKey: "unitPrice",
@@ -27,13 +25,13 @@ export const columns: ColumnDef<SaleItem>[] = [
                 {formatCurrency(row.original.unitPrice)}
             </div>
         ),
-        size: 120,
+        size: 110,
     },
     {
         accessorKey: "quantity",
         header: () => <div className="text-center">Qty</div>,
         cell: ({ row }) => <ItemCount count={row.original.quantity} />,
-        size: 80,
+        size: 70,
     },
     {
         id: "totalPrice",
@@ -43,7 +41,7 @@ export const columns: ColumnDef<SaleItem>[] = [
                 {formatCurrency(row.original.quantity * row.original.unitPrice)}
             </div>
         ),
-        size: 130,
+        size: 120,
     },
 ];
 

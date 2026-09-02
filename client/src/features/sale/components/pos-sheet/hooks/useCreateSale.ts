@@ -2,6 +2,7 @@ import { useMutation, ApolloError } from '@apollo/client';
 import { CREATE_POS_SALE } from '../../../operations/op.mutations';
 import { toast } from 'sonner';
 import type { CartItem } from '../sections/cart/types';
+import { calculateItemLinePrice } from '../sections/cart/hook/useCart';
 
 export interface CompleteSaleParams {
   items: CartItem[];
@@ -46,11 +47,14 @@ export function useCreateSale() {
             customerId: customerId || null,
             paymentMethod,
             status: "COMPLETED",
-            items: items.map((item) => ({
-              productId: item.productId,
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-            })),
+            items: items.map((item) => {
+              const { unitPrice } = calculateItemLinePrice(item);
+              return {
+                productId: item.productId,
+                quantity: item.quantity,
+                unitPrice: unitPrice,
+              };
+            }),
           },
         },
       });

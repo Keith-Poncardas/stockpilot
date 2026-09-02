@@ -1,12 +1,42 @@
 import type { IUserWithInfo } from "@/features/user";
 import type { SalePaymentMethod, SaleStatus } from "./union.types";
 
+export interface ISaleBundleItem {
+    id: string;
+    parentProductId: string;
+    bundledProductId: string;
+    quantity: number;
+    product?: {
+        id: string;
+        name: string;
+        sku?: string;
+    } | null;
+}
+
+export interface ISalePricingTier {
+    id: string;
+    minQuantity: number;
+    maxQuantity?: number | null;
+    tierPrice: number;
+    freeProductId?: string | null;
+    freeQuantity?: number;
+    freeProduct?: {
+        id: string;
+        name: string;
+        sku?: string;
+    } | null;
+}
+
 export interface ISaleProduct {
     id: string;
     sku: string;
     name: string;
     unitPrice: number;
+    regularPrice?: number | null;
+    productType?: string;
     status: string;
+    bundleItems?: ISaleBundleItem[] | null;
+    pricingTiers?: ISalePricingTier[] | null;
 }
 
 export interface ISaleCustomer {

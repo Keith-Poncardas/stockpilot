@@ -126,19 +126,28 @@ export function useInfiniteScroll<TData, TItem>({
     const [loading, setLoading]                 = useState(false);
     const [isFetchingMore, setIsFetchingMore]   = useState(false);
 
+    /** Store function and object references in refs to prevent render-loop triggers */
+    const buildVariablesRef = useRef(buildVariables);
+    buildVariablesRef.current = buildVariables;
+
+    const getResultRef = useRef(getResult);
+    getResultRef.current = getResult;
+
+    const extraVariablesRef = useRef(extraVariables);
+    extraVariablesRef.current = extraVariables;
+
     /** Incremented on every search reset; stale responses check against this. */
     const requestIdRef = useRef(0);
 
     /** Builds the variables for a given cursor. */
     const makeVariables = useCallback(
         (cursor: string | null) => {
-            if (buildVariables) {
-                return buildVariables(search ?? "", cursor, pageSize);
+            if (buildVariablesRef.current) {
+                return buildVariablesRef.current(search ?? "", cursor, pageSize);
             }
-            return { ...extraVariables, search: search ?? "", cursor, limit: pageSize };
+            return { ...extraVariablesRef.current, search: search ?? "", cursor, limit: pageSize };
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [search, pageSize, buildVariables]
+        [search, pageSize]
     );
 
     // ─── Initial fetch / search reset ─────────────────────────────────────────
@@ -158,7 +167,7 @@ export function useInfiniteScroll<TData, TItem>({
             })
             .then(({ data }) => {
                 if (requestId !== requestIdRef.current) return; // stale — discard
-                const page = getResult(data);
+                const page = getResultRef.current(data);
                 setItems(page.data);
                 setNextCursor(page.meta.nextCursor ?? null);
                 setHasNextPage(page.meta.hasNextPage);
@@ -170,9 +179,6 @@ export function useInfiniteScroll<TData, TItem>({
             .finally(() => {
                 if (requestId === requestIdRef.current) setLoading(false);
             });
-        // NOTE: extraVariables and buildVariables are intentionally excluded from deps.
-        // Callers should memoize them or pass stable references to avoid re-fetches.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search, query, pageSize, client, makeVariables]);
 
     // ─── Load next page ───────────────────────────────────────────────────────
@@ -187,7 +193,7 @@ export function useInfiniteScroll<TData, TItem>({
                 fetchPolicy: "network-only",
             });
 
-            const page = getResult(data);
+            const page = getResultRef.current(data);
             setItems((prev) => [...prev, ...page.data]);
             setNextCursor(page.meta.nextCursor ?? null);
             setHasNextPage(page.meta.hasNextPage);
@@ -196,7 +202,6 @@ export function useInfiniteScroll<TData, TItem>({
         } finally {
             setIsFetchingMore(false);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hasNextPage, isFetchingMore, nextCursor, client, query, makeVariables]);
 
     return { items, loading, isFetchingMore, hasNextPage, loadMore };

@@ -27,13 +27,16 @@ interface SearchProductsInfiniteData {
  *   searchProductsInfinite(input: SearchProductsInfiniteInput!)
  * where pagination fields are wrapped in an `input` object.
  */
+const getResult = (data: SearchProductsInfiniteData) => data.searchProductsInfinite;
+const buildVariables = (search: string, cursor: string | null, limit: number) => ({
+    input: { search, cursor, limit },
+});
+
 export function useInfiniteProductSearch(search: string) {
     return useInfiniteScroll<SearchProductsInfiniteData, ProductSearchItem>({
         query: SEARCH_PRODUCTS_INFINITE,
         search,
-        getResult: (data) => data.searchProductsInfinite,
-        buildVariables: (search, cursor, limit) => ({
-            input: { search, cursor, limit },
-        }),
+        getResult,
+        buildVariables,
     });
 }

@@ -38,19 +38,37 @@ function EditProductForm({ productId, product, onClose }: EditProductFormProps) 
         return {
             name: product.name || '',
             sku: product.sku || '',
+            productType: product.productType || 'SIMPLE',
             status: (product.status as 'DRAFT' | 'ACTIVE' | 'INACTIVE') || 'DRAFT',
             description: product.description || '',
             unitPrice: product.unitPrice,
             costPrice: product.costPrice || undefined,
+            regularPrice: product.regularPrice || undefined,
             quantityOnHand: product.inventory?.quantityOnHand ?? 1,
             reorderLevel: product.inventory?.reorderLevel ?? 0,
             maxStock: product.inventory?.maxStock ?? 100,
+            bundleItems: product.bundleItems
+                ? product.bundleItems.map((b) => ({
+                      productId: b.bundledProductId || b.product?.id,
+                      quantity: b.quantity,
+                  }))
+                : [],
+            pricingTiers: product.pricingTiers
+                ? product.pricingTiers.map((t) => ({
+                      minQuantity: t.minQuantity,
+                      maxQuantity: t.maxQuantity,
+                      tierPrice: t.tierPrice,
+                      freeProductId: t.freeProductId,
+                      freeQuantity: t.freeQuantity,
+                  }))
+                : [],
         };
     }, [product]);
 
     const {
         control,
         handleSubmit,
+        setValue,
         formState: { isDirty },
     } = useForm<ProductFormValues>({
         resolver: zodResolver(productSchema),
@@ -65,16 +83,29 @@ function EditProductForm({ productId, product, onClose }: EditProductFormProps) 
             product: {
                 name: formData.name,
                 sku: formData.sku ? formData.sku.trim() : undefined,
+                productType: formData.productType || 'SIMPLE',
                 status: formData.status,
                 description: formData.description ? formData.description.trim() : undefined,
                 unitPrice: formData.unitPrice,
                 costPrice: formData.costPrice,
+                regularPrice: formData.regularPrice,
             },
             inventory: {
                 quantityOnHand: formData.quantityOnHand,
                 reorderLevel: formData.reorderLevel,
                 maxStock: formData.maxStock,
             },
+            bundleItems: (formData.bundleItems || []).map((b) => ({
+                productId: b.productId,
+                quantity: b.quantity,
+            })),
+            pricingTiers: (formData.pricingTiers || []).map((t) => ({
+                minQuantity: t.minQuantity,
+                maxQuantity: t.maxQuantity || null,
+                tierPrice: t.tierPrice,
+                freeProductId: t.freeProductId || null,
+                freeQuantity: t.freeQuantity || 0,
+            })),
         };
 
         try {
@@ -98,9 +129,13 @@ function EditProductForm({ productId, product, onClose }: EditProductFormProps) 
                     <ProductForm
                         id="edit-product-form"
                         control={control}
+                        setValue={setValue}
                         onSubmit={handleSubmit(onSubmit)}
                         isEditMode={true}
                         showInventorySetup={false}
+                        currentProductId={productId}
+                        initialBundleItems={product.bundleItems}
+                        initialPricingTiers={product.pricingTiers}
                     />
                 </div>
             </div>

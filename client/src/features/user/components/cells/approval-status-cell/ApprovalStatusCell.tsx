@@ -28,7 +28,7 @@ export function ApprovalStatusCell({ row }: UserRowInfoCellProps) {
     const { mutate } = useOptimisticMutation();
     const { approvalStatus, id } = row.original;
 
-    const isLocked = isStatusLocked(user, row.original);
+    const isLocked = isStatusLocked(user?.id ?? '', row.original);
 
     const handleUpdate = React.useCallback(
         async (newStatus: UserApprovalStatusType) => {

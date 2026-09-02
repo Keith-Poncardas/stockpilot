@@ -17,6 +17,8 @@ export function ProductsPage() {
         setGlobalFilter,
         statusFilter,
         setStatusFilter,
+        productTypeFilter,
+        setProductTypeFilter,
         orderByFilter,
         setOrderByFilter,
         orderDirectionFilter,
@@ -77,6 +79,8 @@ export function ProductsPage() {
                 setGlobalFilter={setGlobalFilter}
                 statusFilter={statusFilter}
                 setStatusFilter={setStatusFilter}
+                productTypeFilter={productTypeFilter}
+                setProductTypeFilter={setProductTypeFilter}
                 orderByFilter={orderByFilter}
                 setOrderByFilter={setOrderByFilter}
                 orderDirectionFilter={orderDirectionFilter}

@@ -118,6 +118,47 @@ export function ReceiptPreviewSection({ sale }: ReceiptPreviewSectionProps) {
                                             {formatCurrency(item.quantity * item.unitPrice)}
                                         </span>
                                     </div>
+                                    {/* Bundle Components or Free items breakdown */}
+                                    {item.product?.productType === 'BUNDLE' ? (
+                                        <div className="mt-1 pl-2 border-l-2 border-gray-400 text-[10px] text-gray-600 space-y-0.5 font-mono">
+                                            <div className="font-bold text-[9px] uppercase tracking-wider text-gray-700">Bundle Components:</div>
+                                            {item.product.bundleItems?.map((b) => (
+                                                <div key={b.id} className="flex justify-between">
+                                                    <span className="truncate pr-2">• {b.product?.name || 'Component'}</span>
+                                                    <span className="font-bold shrink-0">{item.quantity * (b.quantity || 1)}x</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        item.product?.bundleItems && item.product.bundleItems.length > 0 && (
+                                            <div className="mt-1 pl-2 border-l-2 border-gray-300 text-[10px] text-gray-600 space-y-0.5 font-mono">
+                                                {item.product.bundleItems.map((b) => (
+                                                    <div key={b.id} className="flex justify-between">
+                                                        <span className="truncate pr-2">+ FREE: {b.product?.name || 'Free Item'}</span>
+                                                        <span className="font-bold shrink-0">{item.quantity * (b.quantity || 1)}x</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )
+                                    )}
+
+                                    {/* Volume tier free gift */}
+                                    {(() => {
+                                        const matchedTier = item.product?.pricingTiers?.find((t) => {
+                                            if (item.quantity < t.minQuantity) return false;
+                                            if (t.maxQuantity && item.quantity > t.maxQuantity) return false;
+                                            return true;
+                                        });
+                                        if (matchedTier?.freeProduct && matchedTier.freeQuantity && matchedTier.freeQuantity > 0) {
+                                            return (
+                                                <div className="mt-1 pl-2 border-l-2 border-gray-400 text-[10px] text-gray-700 font-mono flex justify-between">
+                                                    <span className="truncate pr-2">+ FREE GIFT: {matchedTier.freeProduct.name}</span>
+                                                    <span className="font-bold shrink-0">{matchedTier.freeQuantity}x</span>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
                                 </div>
                             ))}
                         </div>

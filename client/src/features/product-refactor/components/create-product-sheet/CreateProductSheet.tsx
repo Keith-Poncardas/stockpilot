@@ -32,6 +32,7 @@ export function CreateProductSheet() {
     const {
         control,
         handleSubmit,
+        setValue,
         reset,
         formState: { isDirty },
     } = useForm<ProductFormValues>({
@@ -52,16 +53,38 @@ export function CreateProductSheet() {
             product: {
                 name: data.name,
                 sku: data.sku ? data.sku.trim() : undefined,
+                productType: data.productType || 'SIMPLE',
                 status: data.status,
                 description: data.description ? data.description.trim() : undefined,
                 unitPrice: data.unitPrice,
                 costPrice: data.costPrice,
+                regularPrice: data.regularPrice,
             },
-            inventory: {
-                quantityOnHand: data.quantityOnHand,
-                reorderLevel: data.reorderLevel,
-                maxStock: data.maxStock,
-            },
+            inventory:
+                data.productType === 'BUNDLE' && !data.quantityOnHand
+                    ? undefined
+                    : {
+                        quantityOnHand: data.quantityOnHand || 0,
+                        reorderLevel: data.reorderLevel ?? 10,
+                        maxStock: data.maxStock ?? 100,
+                    },
+            bundleItems:
+                data.bundleItems && data.bundleItems.length > 0
+                    ? data.bundleItems.map((b) => ({
+                        productId: b.productId,
+                        quantity: b.quantity,
+                    }))
+                    : undefined,
+            pricingTiers:
+                data.pricingTiers && data.pricingTiers.length > 0
+                    ? data.pricingTiers.map((t) => ({
+                        minQuantity: t.minQuantity,
+                        maxQuantity: t.maxQuantity || null,
+                        tierPrice: t.tierPrice,
+                        freeProductId: t.freeProductId || null,
+                        freeQuantity: t.freeQuantity || 0,
+                    }))
+                    : undefined,
         };
 
         try {
@@ -113,6 +136,7 @@ export function CreateProductSheet() {
                     <ProductForm
                         id="create-product-form"
                         control={control}
+                        setValue={setValue}
                         onSubmit={handleSubmit(onSubmit)}
                         isEditMode={false}
                         showInventorySetup={true}

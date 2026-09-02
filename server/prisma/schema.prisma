@@ -30,6 +30,11 @@ enum ProductStatus {
     ARCHIVED
 }
 
+enum ProductType {
+    SIMPLE
+    BUNDLE
+}
+
 enum UserApprovalStatus {
     PENDING
     APPROVED
@@ -119,34 +124,40 @@ model PendingRegistration {
 }
 
 model Product {
-    id          String        @id @default(uuid()) @db.Uuid
-    sku         String        @unique @db.VarChar
-    name        String        @db.VarChar
-    description String?       @db.Text
-    unitPrice   Decimal       @map("unit_price") @db.Decimal(10, 2)
-    costPrice   Decimal?      @map("cost_price") @db.Decimal(10, 2)
-    status      ProductStatus @default(DRAFT)
-    createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
-    updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamp(6)
+    id           String        @id @default(uuid()) @db.Uuid
+    sku          String        @unique @db.VarChar
+    name         String        @db.VarChar
+    description  String?       @db.Text
+    unitPrice    Decimal       @map("unit_price") @db.Decimal(10, 2)
+    costPrice    Decimal?      @map("cost_price") @db.Decimal(10, 2)
+    regularPrice Decimal?      @map("regular_price") @db.Decimal(10, 2)
+    productType  ProductType   @default(SIMPLE) @map("product_type")
+    status       ProductStatus @default(DRAFT)
+    createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+    updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamp(6)
 
     inventory      Inventory?
     saleItems      SaleItem[]
     stockMovements StockMovement[]
+    bundleItems    ProductBundleItem[]  @relation("ParentProductBundles")
+    bundledIn      ProductBundleItem[]  @relation("BundledProducts")
+    pricingTiers   ProductPricingTier[] @relation("ProductPricingTiers")
+    tieredFreeIn   ProductPricingTier[] @relation("TierFreeProduct")
 
     @@map("products")
 }
 
 model Inventory {
-    id             String   @id @default(uuid()) @db.Uuid
-    productId      String   @unique @map("product_id") @db.Uuid
-    userId         String   @map("user_id") @db.Uuid
-    quantityOnHand Int      @default(0) @map("quantity_on_hand")
+    id               String @id @default(uuid()) @db.Uuid
+    productId        String @unique @map("product_id") @db.Uuid
+    userId           String @map("user_id") @db.Uuid
+    quantityOnHand   Int    @default(0) @map("quantity_on_hand")
     quantityReserved Int    @default(0) @map("quantity_reserved")
 
-    reorderLevel   Int      @default(10) @map("reorder_level")
-    maxStock       Int      @default(100) @map("max_stock")
-    updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
-    createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+    reorderLevel Int      @default(10) @map("reorder_level")
+    maxStock     Int      @default(100) @map("max_stock")
+    updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+    createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(6)
 
     author  User    @relation(fields: [userId], references: [id])
     product Product @relation(fields: [productId], references: [id])
@@ -231,4 +242,40 @@ model StockMovement {
     @@index([userId])
     @@index([type])
     @@map("stock_movements")
+}
+
+model ProductBundleItem {
+    id               String   @id @default(uuid()) @db.Uuid
+    parentProductId  String   @map("parent_product_id") @db.Uuid
+    bundledProductId String   @map("bundled_product_id") @db.Uuid
+    quantity         Int      @default(1)
+    createdAt        DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+    updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+    parentProduct  Product @relation("ParentProductBundles", fields: [parentProductId], references: [id], onDelete: Cascade)
+    bundledProduct Product @relation("BundledProducts", fields: [bundledProductId], references: [id], onDelete: Restrict)
+
+    @@unique([parentProductId, bundledProductId])
+    @@index([parentProductId])
+    @@index([bundledProductId])
+    @@map("product_bundle_items")
+}
+
+model ProductPricingTier {
+    id            String   @id @default(uuid()) @db.Uuid
+    productId     String   @map("product_id") @db.Uuid
+    minQuantity   Int      @map("min_quantity")
+    maxQuantity   Int?     @map("max_quantity")
+    tierPrice     Decimal  @map("tier_price") @db.Decimal(10, 2)
+    freeProductId String?  @map("free_product_id") @db.Uuid
+    freeQuantity  Int      @default(0) @map("free_quantity")
+    createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+    updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+    product     Product  @relation("ProductPricingTiers", fields: [productId], references: [id], onDelete: Cascade)
+    freeProduct Product? @relation("TierFreeProduct", fields: [freeProductId], references: [id], onDelete: SetNull)
+
+    @@index([productId])
+    @@index([freeProductId])
+    @@map("product_pricing_tiers")
 }

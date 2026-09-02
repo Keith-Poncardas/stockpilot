@@ -92,7 +92,7 @@ export function ViewProductDetails({ productId }: ViewProductDetailsProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <MetricCard
                 value={formatCurrency(product.unitPrice)}
-                label="Selling Price"
+                label={product.productType === 'BUNDLE' ? 'Bundle SRP' : 'SRP'}
                 icon={<DollarSign className="w-5 h-5" />}
                 iconContainerClass="bg-emerald-50 text-emerald-600"
             />
@@ -127,7 +127,11 @@ export function ViewProductDetails({ productId }: ViewProductDetailsProps) {
                             description: product.description,
                             unitPrice: product.unitPrice,
                             costPrice: product.costPrice,
+                            regularPrice: product.regularPrice,
+                            productType: product.productType,
                             margin: computedMargin ?? product.margin ?? product.grossMargin,
+                            bundleItems: product.bundleItems,
+                            pricingTiers: product.pricingTiers,
                         }}
                     />
                     <PerformanceMetricsSection data={performanceMetrics} />

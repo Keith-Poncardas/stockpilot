@@ -59,7 +59,9 @@ export const ModelName = {
   Customer: 'Customer',
   Sale: 'Sale',
   SaleItem: 'SaleItem',
-  StockMovement: 'StockMovement'
+  StockMovement: 'StockMovement',
+  ProductBundleItem: 'ProductBundleItem',
+  ProductPricingTier: 'ProductPricingTier'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -127,6 +129,8 @@ export const ProductScalarFieldEnum = {
   description: 'description',
   unitPrice: 'unitPrice',
   costPrice: 'costPrice',
+  regularPrice: 'regularPrice',
+  productType: 'productType',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -209,6 +213,33 @@ export const StockMovementScalarFieldEnum = {
 } as const
 
 export type StockMovementScalarFieldEnum = (typeof StockMovementScalarFieldEnum)[keyof typeof StockMovementScalarFieldEnum]
+
+
+export const ProductBundleItemScalarFieldEnum = {
+  id: 'id',
+  parentProductId: 'parentProductId',
+  bundledProductId: 'bundledProductId',
+  quantity: 'quantity',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProductBundleItemScalarFieldEnum = (typeof ProductBundleItemScalarFieldEnum)[keyof typeof ProductBundleItemScalarFieldEnum]
+
+
+export const ProductPricingTierScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  minQuantity: 'minQuantity',
+  maxQuantity: 'maxQuantity',
+  tierPrice: 'tierPrice',
+  freeProductId: 'freeProductId',
+  freeQuantity: 'freeQuantity',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProductPricingTierScalarFieldEnum = (typeof ProductPricingTierScalarFieldEnum)[keyof typeof ProductPricingTierScalarFieldEnum]
 
 
 export const SortOrder = {

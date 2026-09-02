@@ -87,7 +87,7 @@ export const stockMovementsResolver = {
          * of the stock movement.
          */
         inventory: async (stockMovement: StockMovement) => {
-            return inventoryService.getInventory({
+            return inventoryService.findInventory({
                 productId: stockMovement.productId
             });
         },

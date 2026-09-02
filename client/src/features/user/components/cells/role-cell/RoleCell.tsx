@@ -28,7 +28,7 @@ export function RoleCell({ row }: UserRowInfoCellProps) {
   const { mutate } = useOptimisticMutation();
   const { role, approvalStatus, id } = row.original;
 
-  const isRoleDisabled = isRoleLocked(user, row.original);
+  const isRoleDisabled = isRoleLocked(user?.id ?? '', row.original);
 
   const handleUpdate = React.useCallback(async (newRole: UserRoleType) => {
     await mutate(getRoleMutationConfig(id, newRole));

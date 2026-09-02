@@ -19,6 +19,7 @@ export function useProductsPage() {
 
     const [filters, setFilters] = useState<IProductFilters>({
         status: '',
+        productType: '',
         orderBy: '',
         orderDirection: '',
         dateFrom: '',
@@ -54,6 +55,7 @@ export function useProductsPage() {
             return cleanObject({
                 search: activeFilters.search,
                 status: activeFilters.status || undefined,
+                productType: activeFilters.productType || undefined,
                 minPrice:
                     priceError || !debouncedMinPrice ? undefined : Number(debouncedMinPrice),
                 maxPrice:
@@ -105,6 +107,7 @@ export function useProductsPage() {
     const resetFilters = useCallback(() => {
         setFilters({
             status: '',
+            productType: '',
             orderBy: '',
             orderDirection: '',
             dateFrom: '',
@@ -117,6 +120,7 @@ export function useProductsPage() {
 
     const hasActiveFilters = !!(
         filters.status ||
+        filters.productType ||
         filters.dateFrom ||
         filters.dateTo ||
         filters.minPrice ||

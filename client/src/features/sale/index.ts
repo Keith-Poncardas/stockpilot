@@ -3,5 +3,13 @@ export * from "./pages";
 export * from "./operations";
 export * from "./components";
 export * from "./constants";
-export type * from "./types";
-export type { SaleStatus, SalePaymentMethod, SaleOrderBy } from "./types";
+export type {
+    ISale,
+    SaleItem,
+    ISaleProduct,
+    ISaleCustomer,
+    ISaleDetails,
+    ISaleBundleItem,
+    ISalePricingTier,
+} from "./types";
+

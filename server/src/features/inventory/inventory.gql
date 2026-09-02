@@ -29,6 +29,7 @@ type Inventory {
   maxStock: Int!
   updatedAt: String!
   createdAt: String!
+  stockStatus: StockStatusCustom!
   # Analytics & Computed
   lastRestockDate: String
   estimatedDaysOfStock: Int

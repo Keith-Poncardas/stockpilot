@@ -7,7 +7,7 @@ interface OptimisticMutationOptions<TVariables extends OperationVariables, TOpti
     entityId: string;
     optimisticFields: TOptimisticFields;
     buildVariables: (fields: TOptimisticFields) => TVariables;
-    refetchQueries?: any[];
+    refetchQueries?: (DocumentNode | string)[];
 }
 
 export function buildSnapshotFragment(typename: string, fields: string[]): DocumentNode {
@@ -18,17 +18,17 @@ export function buildSnapshotFragment(typename: string, fields: string[]): Docum
   `;
 }
 
-export function useOptimisticMutation<TVariables extends OperationVariables, TOptimisticFields extends Record<string, unknown>>() {
+export function useOptimisticMutation<TVariables extends OperationVariables = OperationVariables, TOptimisticFields extends Record<string, unknown> = Record<string, unknown>>() {
     const client = useApolloClient();
 
-    const mutate = async ({
+    const mutate = async <TOpt extends TOptimisticFields = TOptimisticFields, TVars extends TVariables = TVariables>({
         mutation,
         typename,
         entityId,
         optimisticFields,
         buildVariables,
         refetchQueries,
-    }: OptimisticMutationOptions<TVariables, TOptimisticFields>) => {
+    }: OptimisticMutationOptions<TVars, TOpt>) => {
         // Snapshot current cache values for rollback
         const snapshot = client.cache.readFragment<TOptimisticFields>({
             id: client.cache.identify({ __typename: typename, id: entityId }),

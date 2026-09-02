@@ -13,6 +13,17 @@ const PAYMENT_METHODS = [
   { id: "DEBIT_CARD", label: "Debit Card", icon: Wallet, colorClass: "text-teal-500", bgClass: "bg-teal-50", borderClass: "border-teal-200" },
 ];
 
+export interface PaymentActionsSectionProps {
+  paymentMethod: string;
+  onSelectPaymentMethod: (method: string) => void;
+  subtotal: number;
+  totalDue: number;
+  totalItemsCount: number;
+  onCompleteSale: () => void;
+  isSubmitting?: boolean;
+  validationError?: string | null;
+}
+
 export const PaymentActionsSection = ({
   paymentMethod,
   onSelectPaymentMethod,
@@ -20,9 +31,9 @@ export const PaymentActionsSection = ({
   totalDue,
   totalItemsCount,
   onCompleteSale,
-  isSubmitting,
+  isSubmitting = false,
   validationError,
-}) => {
+}: PaymentActionsSectionProps) => {
   return (
     <div className="bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 w-full flex flex-col gap-5">
       {/* Header */}

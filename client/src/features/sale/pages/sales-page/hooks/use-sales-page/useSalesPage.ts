@@ -51,20 +51,22 @@ export function useSalesPage() {
         });
     }, [dateFrom, dateTo]);
 
+    const pageFilters = useMemo(() => ({
+        search: debouncedSearch,
+        ...filters,
+    }), [debouncedSearch, filters]);
+
     const {
         table,
         loading,
         error,
         refetch,
         isEmpty,
-    } = usePaginatedQuery({
+    } = usePaginatedQuery<any, any, typeof pageFilters>({
         query: GET_SALES,
         columns,
         initialPageSize: 10,
-        filters: {
-            search: debouncedSearch,
-            ...filters,
-        },
+        filters: pageFilters,
         buildVariables: useCallback(({ queryParams, filters }) => ({
             args: {
                 page: queryParams.page,

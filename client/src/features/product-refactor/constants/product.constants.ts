@@ -48,16 +48,39 @@ export const ProductOrderBy = {
     UNIT_PRICE: 'unitPrice',
 } as const;
 
+/**
+ * Product Type representation: Single catalog product vs Bundle / Combo pack.
+ */
+export const ProductType = {
+    SIMPLE: 'SIMPLE',
+    BUNDLE: 'BUNDLE',
+} as const;
+
+export const PRODUCT_TYPE_LABELS: Record<string, string> = {
+    SIMPLE: 'Single Product',
+    BUNDLE: 'Product Bundle (Combo / Kit)',
+};
+
 export const DEFAULT_PRODUCT_FORM_VALUES = {
     name: '',
     sku: '',
+    productType: ProductType.SIMPLE,
     status: ProductStatus.DRAFT,
     description: '',
     unitPrice: '' as unknown as number,
     costPrice: '' as unknown as number,
+    regularPrice: '' as unknown as number,
     quantityOnHand: '' as unknown as number,
     reorderLevel: '' as unknown as number,
     maxStock: '' as unknown as number,
+    bundleItems: [] as { productId: string; quantity: number }[],
+    pricingTiers: [] as {
+        minQuantity: number;
+        maxQuantity?: number | null;
+        tierPrice: number;
+        freeProductId?: string | null;
+        freeQuantity?: number;
+    }[],
 };
 
 export const PRODUCT_STATUS_OPTIONS = [
@@ -67,6 +90,12 @@ export const PRODUCT_STATUS_OPTIONS = [
     { value: ProductStatus.DISCONTINUED, label: 'Discontinued' },
     { value: ProductStatus.DRAFT, label: 'Draft' },
     { value: ProductStatus.ARCHIVED, label: 'Archived' },
+];
+
+export const PRODUCT_TYPE_OPTIONS = [
+    { value: 'all', label: 'All Product Types' },
+    { value: ProductType.SIMPLE, label: 'Single Product' },
+    { value: ProductType.BUNDLE, label: 'Product Bundle' },
 ];
 
 export const PRODUCT_ORDER_BY_OPTIONS = [

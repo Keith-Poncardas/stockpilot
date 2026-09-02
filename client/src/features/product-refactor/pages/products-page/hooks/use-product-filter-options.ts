@@ -1,8 +1,9 @@
 import { useCallback } from 'react';
-import type { ProductOrderBy, ProductStatus } from '../../../types';
+import type { ProductOrderBy, ProductStatus, ProductType } from '../../../types';
 
 export interface IProductFilters {
     status: ProductStatus | '';
+    productType: ProductType | '';
     orderBy: ProductOrderBy | '';
     orderDirection: 'asc' | 'desc' | '';
     dateFrom: string;
@@ -20,6 +21,16 @@ export function useProductFilterOptions(
             setFilters((prev) => ({
                 ...prev,
                 status: (status === 'all' ? '' : status) as ProductStatus | '',
+            }));
+        },
+        [setFilters]
+    );
+
+    const setProductTypeFilter = useCallback(
+        (productType: string) => {
+            setFilters((prev) => ({
+                ...prev,
+                productType: (productType === 'all' ? '' : productType) as ProductType | '',
             }));
         },
         [setFilters]
@@ -76,6 +87,8 @@ export function useProductFilterOptions(
     return {
         statusFilter: filters.status,
         setStatusFilter,
+        productTypeFilter: filters.productType,
+        setProductTypeFilter,
         orderByFilter: filters.orderBy,
         setOrderByFilter,
         orderDirectionFilter: filters.orderDirection,

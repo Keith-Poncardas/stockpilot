@@ -12,7 +12,7 @@ import {
     excludeEnumValue,
     minMaxRefineMessage
 } from "@/utils";
-import { ProductStatus } from '@/generated/client.js';
+import { ProductStatus, ProductType } from '@/generated/client.js';
 import z from "zod";
 import { refineProductSchema } from "./product.util";
 import { inventorySchemaObject } from "../inventory/inv.validation";
@@ -23,6 +23,11 @@ import { inventorySchemaObject } from "../inventory/inv.validation";
  * Accepts only values defined in the `ProductStatus` enum.
  */
 const productStatusSchema = z.enum(ProductStatus);
+
+/**
+ * Validates the product type filter for product-related operations.
+ */
+const productTypeSchema = z.enum(ProductType);
 
 /**
  * Validates the field used to sort product query results.
@@ -58,6 +63,7 @@ const assignableProductStatusSchema = z.enum(
 export const filterProductsSchema = dateRangeSchema.extend({
     search: searchSchema,
     status: productStatusSchema.optional(),
+    productType: productTypeSchema.optional(),
     minPrice: minMaxSchema.optional(),
     maxPrice: minMaxSchema.optional(),
     orderBy: productOrderBySchema.default(ProductOrderBy.CREATED_AT),
@@ -104,6 +110,12 @@ export const baseProductSchemaObject = z.object({
         .nonnegative({ message: "Cost price must be a non-negative number" })
         .optional()
         .nullable(),
+    regularPrice: z.coerce
+        .number()
+        .nonnegative({ message: "Regular price must be a non-negative number" })
+        .optional()
+        .nullable(),
+    productType: z.enum(["SIMPLE", "BUNDLE"]).default("SIMPLE"),
     sku: z
         .string()
         .trim()
@@ -114,16 +126,47 @@ export const baseProductSchemaObject = z.object({
 });
 
 /**
+ * Validation schema for a single bundled item input.
+ */
+export const bundleItemInputSchema = z.object({
+    productId: uuidSchema,
+    quantity: z.coerce.number().int().positive({ message: "Quantity must be at least 1" }),
+});
+
+/**
+ * Validation schema for a pricing and gift tier.
+ */
+export const pricingTierInputSchema = z.object({
+    minQuantity: z.coerce.number().int().positive({ message: "Min quantity must be at least 1" }),
+    maxQuantity: z.coerce.number().int().positive({ message: "Max quantity must be positive" }).optional().nullable(),
+    tierPrice: z.coerce.number().nonnegative({ message: "Tier price must be non-negative" }),
+    freeProductId: uuidSchema.optional().nullable(),
+    freeQuantity: z.coerce.number().int().nonnegative().default(0),
+});
+
+/**
  * Validation schema for creating a new product.
  */
 export const addProductSchema = z.object({
     product: baseProductSchemaObject,
     inventory: inventorySchemaObject.optional().nullable(),
+    bundleItems: z.array(bundleItemInputSchema).optional().nullable(),
+    pricingTiers: z.array(pricingTierInputSchema).optional().nullable(),
 }).refine(
     refineProductSchema,
     {
         message: "costPrice must be less than or equal to unitPrice",
         path: ["product", "costPrice"]
+    }
+).refine(
+    (data) => {
+        if (!data.bundleItems || data.bundleItems.length <= 1) return true;
+        const ids = data.bundleItems.map((b) => b.productId);
+        return new Set(ids).size === ids.length;
+    },
+    {
+        message: "Duplicate bundled products are not allowed",
+        path: ["bundleItems"]
     }
 );
 
@@ -134,11 +177,32 @@ export const editProductSchema = z.object({
     productId: uuidSchema,
     product: baseProductSchemaObject,
     inventory: inventorySchemaObject.optional().nullable(),
+    bundleItems: z.array(bundleItemInputSchema).optional().nullable(),
+    pricingTiers: z.array(pricingTierInputSchema).optional().nullable(),
 }).refine(
     refineProductSchema,
     {
         message: "costPrice must be less than or equal to unitPrice",
         path: ["product", "costPrice"]
+    }
+).refine(
+    (data) => {
+        if (!data.bundleItems) return true;
+        return !data.bundleItems.some((b) => b.productId === data.productId);
+    },
+    {
+        message: "A product cannot be bundled with itself",
+        path: ["bundleItems"]
+    }
+).refine(
+    (data) => {
+        if (!data.bundleItems || data.bundleItems.length <= 1) return true;
+        const ids = data.bundleItems.map((b) => b.productId);
+        return new Set(ids).size === ids.length;
+    },
+    {
+        message: "Duplicate bundled products are not allowed",
+        path: ["bundleItems"]
     }
 );
 

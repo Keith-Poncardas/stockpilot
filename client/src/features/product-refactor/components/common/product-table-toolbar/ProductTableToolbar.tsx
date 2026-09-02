@@ -6,6 +6,7 @@ import { SelectFilter } from '@/components/ui/select-filter';
 import { DatePicker } from '@/components/ui/date-picker';
 import {
     PRODUCT_STATUS_OPTIONS,
+    PRODUCT_TYPE_OPTIONS,
     PRODUCT_ORDER_BY_OPTIONS,
     PRODUCT_ORDER_DIRECTION_OPTIONS,
 } from '../../../constants';
@@ -15,6 +16,8 @@ interface ProductTableToolbarProps {
     setGlobalFilter: (val: string) => void;
     statusFilter: string;
     setStatusFilter: (val: string) => void;
+    productTypeFilter: string;
+    setProductTypeFilter: (val: string) => void;
     orderByFilter: string;
     setOrderByFilter: (val: string) => void;
     orderDirectionFilter: string;
@@ -39,6 +42,8 @@ export const ProductTableToolbar = React.memo(function ProductTableToolbar({
     setGlobalFilter,
     statusFilter,
     setStatusFilter,
+    productTypeFilter,
+    setProductTypeFilter,
     orderByFilter,
     setOrderByFilter,
     orderDirectionFilter,
@@ -67,8 +72,8 @@ export const ProductTableToolbar = React.memo(function ProductTableToolbar({
             onResetFilters={onResetFilters}
         >
             <FilterPopover
-                title="Status & Sort"
-                description="Filter products by status and sort order."
+                title="Status, Type & Sort"
+                description="Filter products by status, product type, and sort order."
                 icon={Filter}
                 contentClassName="w-96 p-4"
             >
@@ -79,6 +84,14 @@ export const ProductTableToolbar = React.memo(function ProductTableToolbar({
                         options={PRODUCT_STATUS_OPTIONS}
                         defaultValue="all"
                         placeholder="All Statuses"
+                        className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
+                    />
+                    <SelectFilter
+                        value={productTypeFilter}
+                        onChange={setProductTypeFilter}
+                        options={PRODUCT_TYPE_OPTIONS}
+                        defaultValue="all"
+                        placeholder="All Product Types"
                         className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
                     />
                     <SelectFilter
@@ -93,7 +106,7 @@ export const ProductTableToolbar = React.memo(function ProductTableToolbar({
                         onChange={setOrderDirectionFilter}
                         options={PRODUCT_ORDER_DIRECTION_OPTIONS}
                         defaultValue="desc"
-                        className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200 col-span-2"
+                        className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
                     />
                 </div>
             </FilterPopover>

@@ -123,14 +123,38 @@ export const GET_SALE = gql`
           sku
           name
           unitPrice
+          regularPrice
+          productType
           status
+          bundleItems {
+            id
+            parentProductId
+            bundledProductId
+            quantity
+            product {
+              id
+              name
+              sku
+            }
+          }
+          pricingTiers {
+            id
+            minQuantity
+            maxQuantity
+            tierPrice
+            freeProductId
+            freeQuantity
+            freeProduct {
+              id
+              name
+              sku
+            }
+          }
         }
       }
     }
   }
 `;
-
-
 
 export const GET_SELLABLE_PRODUCTS = gql`
   query GetSellableProducts($input: GetInventoriesInput!) {
@@ -150,7 +174,34 @@ export const GET_SELLABLE_PRODUCTS = gql`
           description
           unitPrice
           costPrice
+          regularPrice
+          productType
           status
+          bundleItems {
+            id
+            parentProductId
+            bundledProductId
+            quantity
+            product {
+              id
+              name
+              sku
+              unitPrice
+            }
+          }
+          pricingTiers {
+            id
+            minQuantity
+            maxQuantity
+            tierPrice
+            freeProductId
+            freeQuantity
+            freeProduct {
+              id
+              name
+              sku
+            }
+          }
         }
       }
       meta {

@@ -2,13 +2,15 @@ import type { Row } from '@tanstack/react-table';
 import type {
     ProductStatus as ProductStatusConstant,
     ProductOrderBy as ProductOrderByConstant,
+    ProductType as ProductTypeConstant,
 } from '../constants/product.constants';
 
 /**
- * Union types representing Product Status and Product OrderBy
+ * Union types representing Product Status, Product OrderBy, and Product Type
  */
 export type ProductStatus = typeof ProductStatusConstant[keyof typeof ProductStatusConstant];
 export type ProductOrderBy = typeof ProductOrderByConstant[keyof typeof ProductOrderByConstant];
+export type ProductType = typeof ProductTypeConstant[keyof typeof ProductTypeConstant];
 
 export interface IProductInventory {
     id: string;
@@ -37,6 +39,30 @@ export interface IProductSalesTrendPoint {
     isActive: boolean;
 }
 
+export interface IProductBundleItem {
+    id: string;
+    parentProductId: string;
+    bundledProductId: string;
+    quantity: number;
+    product: IProduct;
+}
+
+export interface IProductPricingTier {
+    id?: string;
+    productId?: string;
+    minQuantity: number;
+    maxQuantity?: number | null;
+    tierPrice: number;
+    freeProductId?: string | null;
+    freeQuantity?: number;
+    freeProduct?: {
+        id: string;
+        name: string;
+        sku: string;
+        unitPrice?: number;
+    } | null;
+}
+
 export interface IProduct {
     id: string;
     sku: string;
@@ -45,12 +71,16 @@ export interface IProduct {
     description?: string | null;
     unitPrice: number;
     costPrice?: number | null;
+    regularPrice?: number | null;
+    productType: ProductType;
     margin?: number | null;
     grossMargin?: number | null;
     status: ProductStatus;
     createdAt: string;
     updatedAt: string;
     inventory?: IProductInventory | null;
+    bundleItems?: IProductBundleItem[] | null;
+    pricingTiers?: IProductPricingTier[] | null;
     performanceMetrics?: IProductPerformanceMetrics | null;
     salesTrend?: IProductSalesTrendPoint[] | null;
 }
@@ -68,6 +98,7 @@ export interface ProductRowInfoCellProps {
 export interface ProductFilterInput {
     search?: string;
     status?: ProductStatus;
+    productType?: ProductType;
     stockStatus?: string;
     minPrice?: number;
     maxPrice?: number;

@@ -17,6 +17,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const reorder = product.reorderLevel ?? 0;
   const isOutOfStock = qty <= 0;
   const isLowStock = !isOutOfStock && (qty <= reorder || qty <= 10);
+  const isBundle = product.productType === 'BUNDLE';
+  const hasBundles = product.bundleItems && product.bundleItems.length > 0;
+  const hasTiers = product.pricingTiers && product.pricingTiers.length > 0;
 
   return (
     <div
@@ -25,8 +28,23 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         : "hover:border-indigo-300 hover:shadow-sm bg-white border-slate-200"
         }`}
     >
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-sm font-semibold text-slate-500">
-        {initials}
+      <div className="flex items-center justify-between">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-sm font-semibold text-slate-500">
+          {initials}
+        </div>
+        {isBundle ? (
+          <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">
+            BUNDLE
+          </span>
+        ) : hasTiers ? (
+          <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+            Deals
+          </span>
+        ) : hasBundles ? (
+          <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+            +Free Item
+          </span>
+        ) : null}
       </div>
 
       <p
@@ -63,9 +81,16 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       </div>
 
       <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-3.5 gap-2">
-        <span className="text-sm font-semibold text-slate-900 truncate">
-          {formatCurrency(product.unitPrice)}
-        </span>
+        <div className="flex flex-col min-w-0">
+          {product.regularPrice && product.regularPrice > product.unitPrice && (
+            <span className="text-[10px] font-medium text-slate-400 line-through font-mono">
+              {formatCurrency(product.regularPrice)}
+            </span>
+          )}
+          <span className="text-sm font-semibold text-slate-900 truncate">
+            {formatCurrency(product.unitPrice)}
+          </span>
+        </div>
 
         <Button
           type="button"
@@ -79,7 +104,11 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               sku: product.sku,
               name: product.name,
               unitPrice: product.unitPrice,
+              regularPrice: product.regularPrice,
+              productType: product.productType,
               quantityOnHand: qty,
+              bundleItems: product.bundleItems,
+              pricingTiers: product.pricingTiers,
             })
           }
         >

@@ -92,6 +92,7 @@ function FormField<TFieldValues extends FieldValues>({
                             ) : type === "textarea" ? (
                                 <Textarea
                                     {...field}
+                                    value={field.value ?? ''}
                                     id={name}
                                     placeholder={placeholder}
                                     aria-invalid={fieldState.invalid}

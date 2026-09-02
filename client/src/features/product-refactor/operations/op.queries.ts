@@ -13,6 +13,8 @@ export const GET_PRODUCT = gql`
       description
       unitPrice
       costPrice
+      regularPrice
+      productType
       status
       createdAt
       updatedAt
@@ -24,6 +26,39 @@ export const GET_PRODUCT = gql`
         updatedAt
         lastRestockDate
         estimatedDaysOfStock
+      }
+      bundleItems {
+        id
+        parentProductId
+        bundledProductId
+        quantity
+        product {
+          id
+          name
+          sku
+          unitPrice
+          costPrice
+          status
+          inventory {
+            id
+            quantityOnHand
+          }
+        }
+      }
+      pricingTiers {
+        id
+        productId
+        minQuantity
+        maxQuantity
+        tierPrice
+        freeProductId
+        freeQuantity
+        freeProduct {
+          id
+          name
+          sku
+          unitPrice
+        }
       }
       performanceMetrics {
         unitsSold
@@ -65,9 +100,35 @@ export const GET_PRODUCTS = gql`
         description
         unitPrice
         costPrice
+        regularPrice
+        productType
         status
         createdAt
         updatedAt
+        bundleItems {
+          id
+          parentProductId
+          bundledProductId
+          quantity
+          product {
+            id
+            name
+            sku
+          }
+        }
+        pricingTiers {
+          id
+          minQuantity
+          maxQuantity
+          tierPrice
+          freeProductId
+          freeQuantity
+          freeProduct {
+            id
+            name
+            sku
+          }
+        }
       }
       meta {
         page
@@ -109,6 +170,8 @@ export const SEARCH_PRODUCTS_INFINITE = gql`
         description
         unitPrice
         costPrice
+        regularPrice
+        productType
         status
         createdAt
         updatedAt
@@ -118,6 +181,31 @@ export const SEARCH_PRODUCTS_INFINITE = gql`
           reorderLevel
           maxStock
           updatedAt
+        }
+        bundleItems {
+          id
+          parentProductId
+          bundledProductId
+          quantity
+          product {
+            id
+            name
+            sku
+            unitPrice
+          }
+        }
+        pricingTiers {
+          id
+          minQuantity
+          maxQuantity
+          tierPrice
+          freeProductId
+          freeQuantity
+          freeProduct {
+            id
+            name
+            sku
+          }
         }
       }
       meta {

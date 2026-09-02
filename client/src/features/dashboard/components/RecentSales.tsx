@@ -13,8 +13,8 @@ import { useNavigate } from "react-router-dom";
 import { PATHS } from "@/routes";
 import { ActionCellContent } from "@/components/common/action-cell-content/ActionCellContent";
 import { SALE_STATUS_COLORS } from "@/features/sale/constants";
+import type { SaleStatus } from "@/features/sale/types";
 
-export type SaleStatus = "COMPLETED" | "PENDING" | "REFUNDED" | "VOIDED" | string;
 
 export interface RecentSaleItem {
     /** Unique transaction ID (e.g. "#TXN-0284") */
@@ -28,7 +28,7 @@ export interface RecentSaleItem {
     /** Number of units sold */
     quantity: number;
     /** Transaction status */
-    status: SaleStatus;
+    status: SaleStatus | string;
 }
 
 export interface RecentSalesProps {

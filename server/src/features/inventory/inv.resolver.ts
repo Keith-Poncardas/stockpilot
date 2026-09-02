@@ -5,6 +5,7 @@ import {
     validate
 } from "@/graphql/helpers";
 import { inventoryService } from "./inv.service";
+import { resolveStockStatus } from "./inv.utils";
 import { UUIDInput, uuidSchema } from "@/schemas";
 import {
     adjustStockSchema,
@@ -98,6 +99,14 @@ export const inventoryResolver = {
          */
         estimatedDaysOfStock: async (parent: Inventory) => {
             return inventoryService.getEstimatedDaysOfStock(parent.productId, parent.quantityOnHand);
+        },
+
+        /**
+         * Resolves the computed stock status for this inventory record.
+         */
+        stockStatus: (parent: any) => {
+            if (parent.stockStatus) return parent.stockStatus;
+            return resolveStockStatus(parent.quantityOnHand, parent.reorderLevel);
         },
 
     }),

@@ -73,15 +73,15 @@ export function UserPage() {
             ...filters,
         },
         buildVariables: React
-            .useCallback(({ queryParams, filters }) => ({
+            .useCallback(({ queryParams, filters }: { queryParams: any; filters: UserFilters & { search: string } }) => ({
                 args: {
                     page: queryParams.page,
                     limit: queryParams.limit,
                     filter: buildUserQueryFilter(
                         filters,
                         queryParams,
-                        dateFrom,
-                        dateTo
+                        dateFrom ? String(dateFrom) : undefined,
+                        dateTo ? String(dateTo) : undefined
                     )
                 }
             }), [dateFrom, dateTo]),

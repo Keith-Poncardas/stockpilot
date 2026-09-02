@@ -41,6 +41,14 @@ export const ProductStatus = {
 export type ProductStatus = (typeof ProductStatus)[keyof typeof ProductStatus]
 
 
+export const ProductType = {
+  SIMPLE: 'SIMPLE',
+  BUNDLE: 'BUNDLE'
+} as const
+
+export type ProductType = (typeof ProductType)[keyof typeof ProductType]
+
+
 export const UserApprovalStatus = {
   PENDING: 'PENDING',
   APPROVED: 'APPROVED',

@@ -1,7 +1,7 @@
 import { FormSection } from "@/components/ui/form-section";
 import { Package, Search, X } from "lucide-react";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+
 import type { IInventory } from "@/features/inventory/inventory.types";
 import type { PosProductItem } from "./types";
 import { ProductCard } from "./components/ProductCard";
@@ -82,27 +82,36 @@ export const ProductCatalogGrid = ({
         {!loading && (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
             {products.map((inv: IInventory) => {
-              const flatProduct = {
-                id: inv.productId || inv.product?.id || inv.id,
-                sku: inv.product?.sku ?? "",
-                name: inv.product?.name ?? "Unknown Product",
-                unitPrice: Number(inv.product?.unitPrice ?? 0),
+              const prod = inv.product as any;
+              const flatProduct: PosProductItem = {
+                id: inv.productId || prod?.id || inv.id,
+                sku: prod?.sku ?? "",
+                name: prod?.name ?? "Unknown Product",
+                unitPrice: Number(prod?.unitPrice ?? 0),
+                regularPrice: prod?.regularPrice ? Number(prod.regularPrice) : null,
+                productType: prod?.productType,
                 quantityOnHand: inv.quantityOnHand ?? 0,
                 reorderLevel: inv.reorderLevel ?? 0,
-                status: inv.product?.status ?? "",
+                status: prod?.status ?? "",
+                bundleItems: prod?.bundleItems,
+                pricingTiers: prod?.pricingTiers,
               };
 
               return (
                 <ProductCard
                   key={flatProduct.id}
-                  product={flatProduct as PosProductItem}
-                  onAddToCart={() => {
+                  product={flatProduct}
+                  onAddToCart={(p) => {
                     addItem({
-                      productId: flatProduct.id,
-                      name: flatProduct.name,
-                      sku: flatProduct.sku,
-                      unitPrice: flatProduct.unitPrice,
-                      stockQuantity: flatProduct.quantityOnHand || 0,
+                      productId: p.id,
+                      name: p.name,
+                      sku: p.sku,
+                      unitPrice: p.unitPrice,
+                      regularPrice: p.regularPrice,
+                      productType: p.productType,
+                      stockQuantity: p.quantityOnHand || 0,
+                      bundleItems: p.bundleItems,
+                      pricingTiers: p.pricingTiers,
                     });
                   }}
                 />

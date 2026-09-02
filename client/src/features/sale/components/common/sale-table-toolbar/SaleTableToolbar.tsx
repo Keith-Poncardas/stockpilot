@@ -35,11 +35,11 @@ export const SaleTableToolbar = React.memo(function SaleTableToolbar({
     );
 
     const handleDateFromChange = React.useCallback((val: string | undefined) => {
-        setFilters(prev => ({ ...prev, dateFrom: val }));
+        setFilters(prev => ({ ...prev, dateFrom: val || '' }));
     }, [setFilters]);
 
     const handleDateToChange = React.useCallback((val: string | undefined) => {
-        setFilters(prev => ({ ...prev, dateTo: val }));
+        setFilters(prev => ({ ...prev, dateTo: val || '' }));
     }, [setFilters]);
 
     const datePickers = buildDatePicker(

@@ -5,6 +5,7 @@ import { ProductStatus } from "@/enums";
 import { ensureNotDiscontinued, calculateRankedProducts } from "./product.util";
 import {
     AddProductInput,
+    BundleItemInput,
     ChangeProductStatusInput,
     EditProductInput,
     getTopSellingProductsInput,
@@ -83,6 +84,23 @@ export class ProductService {
             where,
             include: {
                 inventory: true,
+                bundleItems: {
+                    include: {
+                        bundledProduct: {
+                            include: {
+                                inventory: true,
+                            },
+                        },
+                    },
+                },
+                pricingTiers: {
+                    orderBy: { minQuantity: 'asc' },
+                    include: {
+                        freeProduct: {
+                            include: { inventory: true },
+                        },
+                    },
+                },
             },
         });
     }
@@ -191,6 +209,21 @@ export class ProductService {
             orderBy: { createdAt: 'desc' },
             include: {
                 inventory: true,
+                bundleItems: {
+                    include: {
+                        bundledProduct: {
+                            include: { inventory: true },
+                        },
+                    },
+                },
+                pricingTiers: {
+                    orderBy: { minQuantity: 'asc' },
+                    include: {
+                        freeProduct: {
+                            include: { inventory: true },
+                        },
+                    },
+                },
             },
         });
 
@@ -209,6 +242,7 @@ export class ProductService {
 
         const {
             status,
+            productType,
             search,
             minPrice,
             maxPrice,
@@ -221,6 +255,9 @@ export class ProductService {
         const where: Prisma.ProductWhereInput = {
             /** Filtering by status */
             ...(status && { status }),
+
+            /** Filtering by productType */
+            ...(productType && { productType }),
 
             /** Filtering by search */
             ...(search && buildSearchQuery(search, [
@@ -256,6 +293,21 @@ export class ProductService {
                 },
                 include: {
                     inventory: true,
+                    bundleItems: {
+                        include: {
+                            bundledProduct: {
+                                include: { inventory: true },
+                            },
+                        },
+                    },
+                    pricingTiers: {
+                        orderBy: { minQuantity: 'asc' },
+                        include: {
+                            freeProduct: {
+                                include: { inventory: true },
+                            },
+                        },
+                    },
                 },
             }),
             this.productCount(where),
@@ -268,15 +320,15 @@ export class ProductService {
     }
 
     /**
-     * Creates a new product and optionally initializes its inventory.
+     * Creates a new product and optionally initializes its inventory and bundle items.
      *
      * @param userId The ID of the user performing the operation.
-     * @param input The validated product and inventory data.
+     * @param input The validated product, inventory, and bundle items data.
      * @returns The newly created product.
      * @throws {ConflictError} If a product with the same SKU already exists.
      */
     async createProduct(userId: UUIDInput, input: AddProductInput) {
-        const { product, inventory } = input;
+        const { product, inventory, bundleItems, pricingTiers } = input;
         const sku = product.sku?.trim() || generateSku(product.name);
         const hasInitialInventory = inventory && inventory.quantityOnHand > 0;
 
@@ -293,6 +345,8 @@ export class ProductService {
                     description: product.description,
                     unitPrice: product.unitPrice,
                     costPrice: product.costPrice,
+                    regularPrice: product.regularPrice,
+                    productType: product.productType || 'SIMPLE',
                     status: product.status,
                 },
             });
@@ -317,6 +371,29 @@ export class ProductService {
                 }
             }
 
+            if (bundleItems && bundleItems.length > 0) {
+                await tx.productBundleItem.createMany({
+                    data: bundleItems.map((item: BundleItemInput) => ({
+                        parentProductId: prod.id,
+                        bundledProductId: item.productId,
+                        quantity: item.quantity,
+                    })),
+                });
+            }
+
+            if (pricingTiers && pricingTiers.length > 0) {
+                await tx.productPricingTier.createMany({
+                    data: pricingTiers.map((tier) => ({
+                        productId: prod.id,
+                        minQuantity: tier.minQuantity,
+                        maxQuantity: tier.maxQuantity || null,
+                        tierPrice: tier.tierPrice,
+                        freeProductId: tier.freeProductId || null,
+                        freeQuantity: tier.freeQuantity || 0,
+                    })),
+                });
+            }
+
             return prod;
         });
     }
@@ -324,18 +401,20 @@ export class ProductService {
     /**
      * Edits an existing product.
      *
-     * @param input The validated product and inventory data.
+     * @param input The validated product, inventory, and bundle items data.
      * @returns The updated product.
      * @throws {ConflictError} If a product with the same SKU already exists.
      * @throws {Prisma.PrismaClientKnownRequestError} If the product does not exist.
      */
-    async editProduct(input: EditProductInput) {
-        const { productId, product, inventory } = input;
+    async editProduct(userId: UUIDInput, input: EditProductInput) {
+        const { productId, product, inventory, bundleItems, pricingTiers } = input;
         await this.ensureProductExist(productId);
 
         if (product.sku) {
             await this.ensureNoDuplication("sku", product.sku, productId);
         }
+
+        const { createInventoryInternal } = inventoryService;
 
         return await prisma.$transaction(async (tx) => {
             const updatedProduct = await tx.product.update({
@@ -346,28 +425,81 @@ export class ProductService {
                     description: product.description,
                     unitPrice: product.unitPrice,
                     costPrice: product.costPrice,
+                    regularPrice: product.regularPrice,
+                    ...(product.productType && { productType: product.productType }),
                     status: product.status,
                 },
             });
 
             if (inventory) {
-                await tx.inventory.upsert({
+                const existingInventory = await tx.inventory.findFirst({
                     where: { productId },
-                    update: {
-                        reorderLevel: inventory.reorderLevel,
-                        maxStock: inventory.maxStock,
-                        ...(inventory.quantityOnHand !== undefined && {
-                            quantityOnHand: inventory.quantityOnHand,
-                        }),
-                    },
-                    create: {
-                        productId,
-                        userId: (await tx.inventory.findFirst({ where: { productId } }))?.userId || updatedProduct.id,
-                        quantityOnHand: inventory.quantityOnHand || 0,
-                        reorderLevel: inventory.reorderLevel ?? 10,
-                        maxStock: inventory.maxStock ?? 100,
-                    },
                 });
+
+                if (existingInventory) {
+                    await tx.inventory.update({
+                        where: { productId },
+                        data: {
+                            reorderLevel: inventory.reorderLevel,
+                            maxStock: inventory.maxStock,
+                            ...(inventory.quantityOnHand !== undefined && {
+                                quantityOnHand: inventory.quantityOnHand,
+                            }),
+                        },
+                    });
+                } else {
+                    let resolvedUserId: string | undefined = userId;
+                    if (!resolvedUserId) {
+                        const fallbackUser = await tx.user.findFirst({ select: { id: true } });
+                        if (fallbackUser) {
+                            resolvedUserId = fallbackUser.id;
+                        }
+                    }
+                    if (resolvedUserId) {
+                        await createInventoryInternal(tx, {
+                            productId,
+                            userId: resolvedUserId,
+                            quantityOnHand: inventory.quantityOnHand || 0,
+                            reorderLevel: inventory.reorderLevel ?? 10,
+                            maxStock: inventory.maxStock ?? 100,
+                        });
+                    }
+                }
+            }
+
+            if (bundleItems !== undefined && bundleItems !== null) {
+                await tx.productBundleItem.deleteMany({
+                    where: { parentProductId: productId },
+                });
+
+                if (bundleItems.length > 0) {
+                    await tx.productBundleItem.createMany({
+                        data: bundleItems.map((item: BundleItemInput) => ({
+                            parentProductId: productId,
+                            bundledProductId: item.productId,
+                            quantity: item.quantity,
+                        })),
+                    });
+                }
+            }
+
+            if (pricingTiers !== undefined && pricingTiers !== null) {
+                await tx.productPricingTier.deleteMany({
+                    where: { productId },
+                });
+
+                if (pricingTiers.length > 0) {
+                    await tx.productPricingTier.createMany({
+                        data: pricingTiers.map((tier) => ({
+                            productId,
+                            minQuantity: tier.minQuantity,
+                            maxQuantity: tier.maxQuantity || null,
+                            tierPrice: tier.tierPrice,
+                            freeProductId: tier.freeProductId || null,
+                            freeQuantity: tier.freeQuantity || 0,
+                        })),
+                    });
+                }
             }
 
             return updatedProduct;

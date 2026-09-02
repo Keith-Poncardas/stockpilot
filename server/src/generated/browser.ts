@@ -62,3 +62,13 @@ export type SaleItem = Prisma.SaleItemModel
  * 
  */
 export type StockMovement = Prisma.StockMovementModel
+/**
+ * Model ProductBundleItem
+ * 
+ */
+export type ProductBundleItem = Prisma.ProductBundleItemModel
+/**
+ * Model ProductPricingTier
+ * 
+ */
+export type ProductPricingTier = Prisma.ProductPricingTierModel

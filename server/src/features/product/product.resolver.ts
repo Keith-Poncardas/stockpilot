@@ -10,18 +10,22 @@ import {
     addProductSchema,
     changeProductStatusSchema,
     editProductSchema,
-    paginatedProductsSchema
+    paginatedProductsSchema,
+    searchProductsInfiniteSchema
 } from "./product.validation";
 import {
     AddProductInput,
     ChangeProductStatusInput,
     EditProductInput,
-    PaginatedProductsInput
+    PaginatedProductsInput,
+    SearchProductsInfiniteInput
 } from "./types";
 import { GraphQLContext } from "@/types";
 import { Product } from '@/generated/client.js';
+import { prisma } from "@/lib";
 import { stockMovementsService } from "../stockMovements";
 import { inventoryService } from "../inventory";
+import { resolveStockStatus } from "../inventory/inv.utils";
 import { saleService } from "../sale";
 import { SalesOverviewPeriod } from "../sale/constants";
 
@@ -58,6 +62,15 @@ export const productResolver = {
         }),
 
         /**
+         * Retrieves an infinite-scroll list of products for search dropdowns.
+         */
+        searchProductsInfinite: composeResolvers(
+            validate(searchProductsInfiniteSchema)
+        )(async (_: unknown, { input }: { input: SearchProductsInfiniteInput }) => {
+            return productService.searchProductsInfinite(input);
+        }),
+
+        /**
          * Retrieves the total number of products
          * currently stored in the system.
          */
@@ -87,8 +100,46 @@ export const productResolver = {
         /**
          * Retrieves the inventory associated with the product.
          */
-        async inventory(parent: Product) {
-            return inventoryService.getInventory({ productId: parent.id });
+        async inventory(parent: any) {
+            if (parent.inventory !== undefined) {
+                if (!parent.inventory) return null;
+                return {
+                    ...parent.inventory,
+                    stockStatus: resolveStockStatus(parent.inventory.quantityOnHand, parent.inventory.reorderLevel),
+                };
+            }
+            return inventoryService.findInventory({ productId: parent.id });
+        },
+
+        /**
+         * Retrieves the bundled items attached to the product.
+         */
+        async bundleItems(parent: any) {
+            if (parent.bundleItems) return parent.bundleItems;
+            return prisma.productBundleItem.findMany({
+                where: { parentProductId: parent.id },
+                include: {
+                    bundledProduct: {
+                        include: { inventory: true },
+                    },
+                },
+            });
+        },
+
+        /**
+         * Retrieves the volume pricing and gift tiers attached to the product.
+         */
+        async pricingTiers(parent: any) {
+            if (parent.pricingTiers) return parent.pricingTiers;
+            return prisma.productPricingTier.findMany({
+                where: { productId: parent.id },
+                orderBy: { minQuantity: 'asc' },
+                include: {
+                    freeProduct: {
+                        include: { inventory: true },
+                    },
+                },
+            });
         },
 
         /**
@@ -105,6 +156,27 @@ export const productResolver = {
             return saleService.getSalesOverview(SalesOverviewPeriod.DAILY, parent.id);
         },
 
+    }),
+
+    ProductBundleItem: applyErrorHandling({
+        async product(parent: any) {
+            if (parent.bundledProduct) return parent.bundledProduct;
+            return prisma.product.findUniqueOrThrow({
+                where: { id: parent.bundledProductId },
+                include: { inventory: true },
+            });
+        },
+    }),
+
+    ProductPricingTier: applyErrorHandling({
+        async freeProduct(parent: any) {
+            if (parent.freeProduct) return parent.freeProduct;
+            if (!parent.freeProductId) return null;
+            return prisma.product.findUnique({
+                where: { id: parent.freeProductId },
+                include: { inventory: true },
+            });
+        },
     }),
 
     Mutation: composeResolvers(
@@ -136,8 +208,12 @@ export const productResolver = {
          */
         editProduct: composeResolvers(
             validate(editProductSchema)
-        )(async (_: unknown, { input }: { input: EditProductInput }) => {
-            return productService.editProduct(input);
+        )(async (
+            _: unknown,
+            { input }: { input: EditProductInput },
+            ctx: GraphQLContext
+        ) => {
+            return productService.editProduct(ctx.user?.id!, input);
         }),
 
         /**

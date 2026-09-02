@@ -1,5 +1,5 @@
 import { prisma } from "@/lib";
-import { createPaginator } from "@/utils";
+import { createPaginator, throwConflict } from "@/utils";
 import {
     Prisma,
     SaleStatus,
@@ -130,11 +130,11 @@ export class SaleService {
 
     /**
      * Ensures that all products referenced by sale items exist and
-     * validates the sale items against the retrieved product data.
+     * validates the sale items (and any bundled products) against the retrieved product data.
      *
      * @param items - Sale items containing the product IDs to validate.
      * @param status - Current sale status used during item validation.
-     * @throws {Error} If a referenced product does not exist or a sale item
+     * @throws {Error} If a referenced product does not exist or a sale item / bundled item
      * fails validation.
      */
     private async ensureSaleItemProductExist(
@@ -148,16 +148,113 @@ export class SaleService {
             where: {
                 id: { in: productIds },
             },
-            include: { inventory: { select: { quantityOnHand: true, quantityReserved: true } } },
+            include: {
+                inventory: { select: { quantityOnHand: true, quantityReserved: true } },
+                bundleItems: {
+                    include: {
+                        bundledProduct: {
+                            include: { inventory: { select: { quantityOnHand: true, quantityReserved: true } } },
+                        },
+                    },
+                },
+                pricingTiers: {
+                    orderBy: { minQuantity: 'asc' },
+                    include: {
+                        freeProduct: {
+                            include: { inventory: { select: { quantityOnHand: true, quantityReserved: true } } },
+                        },
+                    },
+                },
+            },
         });
 
         const productMap = new Map(products.map((p) => [p.id, p]));
         validateSaleItems(items, productMap, status);
+
+        // Validate stock for bundled items and tiered free items if sale is completed or pending
+        if (status === SaleStatus.COMPLETED || status === SaleStatus.PENDING) {
+            for (const item of items) {
+                const parent = productMap.get(item.productId);
+                if (parent?.bundleItems) {
+                    for (const bundle of parent.bundleItems) {
+                        const requiredQty = item.quantity * bundle.quantity;
+                        const bp = bundle.bundledProduct;
+                        const available = (bp?.inventory?.quantityOnHand ?? 0) - (bp?.inventory?.quantityReserved ?? 0);
+                        if (requiredQty > available) {
+                            throwConflict(
+                                `Insufficient stock for bundled component "${bp.name}" included with "${parent.name}". Required: ${requiredQty}, Available: ${available}`
+                            );
+                        }
+                    }
+                }
+
+                // Check pricing tier free gifts
+                if (parent?.pricingTiers) {
+                    const matchedTier = parent.pricingTiers.find(
+                        (t: any) => item.quantity >= t.minQuantity && (!t.maxQuantity || item.quantity <= t.maxQuantity)
+                    ) || parent.pricingTiers.slice().reverse().find((t: any) => item.quantity >= t.minQuantity);
+
+                    if (matchedTier && matchedTier.freeProductId && matchedTier.freeQuantity > 0) {
+                        const fp = matchedTier.freeProduct;
+                        const available = (fp?.inventory?.quantityOnHand ?? 0) - (fp?.inventory?.quantityReserved ?? 0);
+                        if (matchedTier.freeQuantity > available) {
+                            throwConflict(
+                                `Insufficient stock for free gift "${fp?.name || 'Free Item'}" for tier on "${parent.name}". Required: ${matchedTier.freeQuantity}, Available: ${available}`
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Helper to load products, their bundle items, and pricing tiers for the given sale items.
+     */
+    private async getProductsWithBundles(items: SaleItemData[]) {
+        const productIds = items.map((i) => i.productId);
+        const products = await prisma.product.findMany({
+            where: { id: { in: productIds } },
+            include: {
+                inventory: true,
+                bundleItems: {
+                    include: {
+                        bundledProduct: true,
+                    },
+                },
+                pricingTiers: {
+                    orderBy: { minQuantity: 'asc' },
+                    include: {
+                        freeProduct: true,
+                    },
+                },
+            },
+        });
+        return new Map(products.map((p) => [p.id, p]));
+    }
+
+    /**
+     * Helper to get applicable tier free gift for an item.
+     */
+    private getTierFreeGift(product: any, quantity: number) {
+        if (!product?.pricingTiers || product.pricingTiers.length === 0) return null;
+        const matched = product.pricingTiers.find(
+            (t: any) => quantity >= t.minQuantity && (!t.maxQuantity || quantity <= t.maxQuantity)
+        ) || product.pricingTiers.slice().reverse().find((t: any) => quantity >= t.minQuantity);
+
+        if (matched && matched.freeProductId && matched.freeQuantity > 0) {
+            return {
+                freeProductId: matched.freeProductId,
+                freeQuantity: matched.freeQuantity,
+                freeProduct: matched.freeProduct,
+            };
+        }
+        return null;
     }
 
     /**
      * Processes inventory changes for a completed sale by deducting the
-     * sold quantity from each product's inventory and recording the
+     * sold quantity from each product's inventory (and bundled/free items) and recording the
      * corresponding stock movements.
      *
      * @param tx - Prisma transaction client used to execute all inventory
@@ -173,26 +270,69 @@ export class SaleService {
     ) {
         const { inventoryUpdateInternal } = inventoryService;
         const { recordStockMovement } = stockMovementsService;
+        const productMap = await this.getProductsWithBundles(items);
 
         for (const item of items) {
+            const product = productMap.get(item.productId);
 
-            await inventoryUpdateInternal(tx, item.productId, {
-                quantityOnHand: {
-                    decrement: item.quantity,
-                },
-            });
+            if (product?.inventory) {
+                await inventoryUpdateInternal(tx, item.productId, {
+                    quantityOnHand: {
+                        decrement: item.quantity,
+                    },
+                });
 
-            await recordStockMovement(tx, "SALE", (ref) => ({
-                productId: item.productId,
-                userId,
-                type: MovementType.OUT,
-                quantity: item.quantity,
-                reason: MovementReason.SALE,
-                notes: notesCallback
-                    ? notesCallback(ref)
-                    : `Sold via POS — Sale #${ref}`,
-            }));
+                await recordStockMovement(tx, "SALE", (ref) => ({
+                    productId: item.productId,
+                    userId,
+                    type: MovementType.OUT,
+                    quantity: item.quantity,
+                    reason: MovementReason.SALE,
+                    notes: notesCallback
+                        ? notesCallback(ref)
+                        : `Sold via POS — Sale #${ref}`,
+                }));
+            }
 
+            // Deduct bundled items
+            if (product?.bundleItems) {
+                for (const bundle of product.bundleItems) {
+                    const bundleQty = item.quantity * bundle.quantity;
+                    await inventoryUpdateInternal(tx, bundle.bundledProductId, {
+                        quantityOnHand: {
+                            decrement: bundleQty,
+                        },
+                    });
+
+                    await recordStockMovement(tx, "SALE", (ref) => ({
+                        productId: bundle.bundledProductId,
+                        userId,
+                        type: MovementType.OUT,
+                        quantity: bundleQty,
+                        reason: MovementReason.SALE,
+                        notes: `Bundled component with "${product.name}" — Sale #${ref}`,
+                    }));
+                }
+            }
+
+            // Deduct volume tier free gifts
+            const tierGift = this.getTierFreeGift(product, item.quantity);
+            if (tierGift) {
+                await inventoryUpdateInternal(tx, tierGift.freeProductId, {
+                    quantityOnHand: {
+                        decrement: tierGift.freeQuantity,
+                    },
+                });
+
+                await recordStockMovement(tx, "SALE", (ref) => ({
+                    productId: tierGift.freeProductId,
+                    userId,
+                    type: MovementType.OUT,
+                    quantity: tierGift.freeQuantity,
+                    reason: MovementReason.SALE,
+                    notes: `Volume Tier Free Gift (${tierGift.freeQuantity}x) for "${product?.name}" — Sale #${ref}`,
+                }));
+            }
         }
     }
 
@@ -213,19 +353,34 @@ export class SaleService {
     }
 
     /**
-     * Reserves stock for a list of items by incrementing the quantityReserved.
+     * Reserves stock for a list of items (and bundled items) by incrementing the quantityReserved.
      */
     private async reserve(
         tx: Prisma.TransactionClient,
         items: SaleItemData[]
     ) {
         const { inventoryUpdateInternal } = inventoryService;
+        const productMap = await this.getProductsWithBundles(items);
+
         for (const item of items) {
+            const product = productMap.get(item.productId);
+
             await inventoryUpdateInternal(tx, item.productId, {
                 quantityReserved: {
                     increment: item.quantity,
                 },
             });
+
+            if (product?.bundleItems) {
+                for (const bundle of product.bundleItems) {
+                    const bundleQty = item.quantity * bundle.quantity;
+                    await inventoryUpdateInternal(tx, bundle.bundledProductId, {
+                        quantityReserved: {
+                            increment: bundleQty,
+                        },
+                    });
+                }
+            }
         }
     }
 
@@ -240,8 +395,11 @@ export class SaleService {
     ) {
         const { inventoryUpdateInternal } = inventoryService;
         const { recordStockMovement } = stockMovementsService;
+        const productMap = await this.getProductsWithBundles(items);
 
         for (const item of items) {
+            const product = productMap.get(item.productId);
+
             await inventoryUpdateInternal(tx, item.productId, {
                 quantityOnHand: {
                     decrement: item.quantity,
@@ -259,6 +417,29 @@ export class SaleService {
                 reason: MovementReason.SALE,
                 notes: `Sold in POS sale #${saleId} (Status updated from PENDING to COMPLETED)`,
             }));
+
+            if (product?.bundleItems) {
+                for (const bundle of product.bundleItems) {
+                    const bundleQty = item.quantity * bundle.quantity;
+                    await inventoryUpdateInternal(tx, bundle.bundledProductId, {
+                        quantityOnHand: {
+                            decrement: bundleQty,
+                        },
+                        quantityReserved: {
+                            decrement: bundleQty,
+                        },
+                    });
+
+                    await recordStockMovement(tx, "SALE", () => ({
+                        productId: bundle.bundledProductId,
+                        userId,
+                        type: MovementType.OUT,
+                        quantity: bundleQty,
+                        reason: MovementReason.SALE,
+                        notes: `Bundled free item with "${product.name}" in POS sale #${saleId}`,
+                    }));
+                }
+            }
         }
     }
 
@@ -270,17 +451,32 @@ export class SaleService {
         items: SaleItemData[]
     ) {
         const { inventoryUpdateInternal } = inventoryService;
+        const productMap = await this.getProductsWithBundles(items);
+
         for (const item of items) {
+            const product = productMap.get(item.productId);
+
             await inventoryUpdateInternal(tx, item.productId, {
                 quantityReserved: {
                     decrement: item.quantity,
                 },
             });
+
+            if (product?.bundleItems) {
+                for (const bundle of product.bundleItems) {
+                    const bundleQty = item.quantity * bundle.quantity;
+                    await inventoryUpdateInternal(tx, bundle.bundledProductId, {
+                        quantityReserved: {
+                            decrement: bundleQty,
+                        },
+                    });
+                }
+            }
         }
     }
 
     /**
-     * Restocks completed items back to physical inventory and logs an IN movement.
+     * Restocks completed items (and bundled items) back to physical inventory and logs an IN movement.
      */
     private async restock(
         tx: Prisma.TransactionClient,
@@ -291,11 +487,14 @@ export class SaleService {
     ) {
         const { inventoryUpdateInternal } = inventoryService;
         const { recordStockMovement } = stockMovementsService;
+        const productMap = await this.getProductsWithBundles(items);
 
         const isRefunded = status === SaleStatus.REFUNDED;
         const reason = isRefunded ? MovementReason.RETURN : MovementReason.ADJUSTMENT;
 
         for (const item of items) {
+            const product = productMap.get(item.productId);
+
             await inventoryUpdateInternal(tx, item.productId, {
                 quantityOnHand: {
                     increment: item.quantity,
@@ -310,6 +509,26 @@ export class SaleService {
                 reason,
                 notes: `Restocked from ${status.toLowerCase()} sale #${saleId}`,
             }));
+
+            if (product?.bundleItems) {
+                for (const bundle of product.bundleItems) {
+                    const bundleQty = item.quantity * bundle.quantity;
+                    await inventoryUpdateInternal(tx, bundle.bundledProductId, {
+                        quantityOnHand: {
+                            increment: bundleQty,
+                        },
+                    });
+
+                    await recordStockMovement(tx, "SALE", () => ({
+                        productId: bundle.bundledProductId,
+                        userId,
+                        type: MovementType.IN,
+                        quantity: bundleQty,
+                        reason,
+                        notes: `Restocked bundled free item with "${product.name}" from ${status.toLowerCase()} sale #${saleId}`,
+                    }));
+                }
+            }
         }
     }
 
@@ -324,8 +543,11 @@ export class SaleService {
     ) {
         const { inventoryUpdateInternal } = inventoryService;
         const { recordStockMovement } = stockMovementsService;
+        const productMap = await this.getProductsWithBundles(items);
 
         for (const item of items) {
+            const product = productMap.get(item.productId);
+
             await inventoryUpdateInternal(tx, item.productId, {
                 quantityOnHand: {
                     increment: item.quantity,
@@ -343,6 +565,29 @@ export class SaleService {
                 reason: MovementReason.ADJUSTMENT,
                 notes: `Returned to pending state from completed sale #${saleId}`,
             }));
+
+            if (product?.bundleItems) {
+                for (const bundle of product.bundleItems) {
+                    const bundleQty = item.quantity * bundle.quantity;
+                    await inventoryUpdateInternal(tx, bundle.bundledProductId, {
+                        quantityOnHand: {
+                            increment: bundleQty,
+                        },
+                        quantityReserved: {
+                            increment: bundleQty,
+                        },
+                    });
+
+                    await recordStockMovement(tx, "SALE", () => ({
+                        productId: bundle.bundledProductId,
+                        userId,
+                        type: MovementType.IN,
+                        quantity: bundleQty,
+                        reason: MovementReason.ADJUSTMENT,
+                        notes: `Returned bundled free item with "${product.name}" to pending state from sale #${saleId}`,
+                    }));
+                }
+            }
         }
     }
 

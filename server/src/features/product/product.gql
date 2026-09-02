@@ -10,6 +10,14 @@ enum ProductStatus {
 }
 
 """
+Product Type representation: single product vs bundle / combo kit.
+"""
+enum ProductType {
+  SIMPLE
+  BUNDLE
+}
+
+"""
 Defines the fields by which products can be ordered.
 """
 enum ProductOrderBy {
@@ -42,6 +50,31 @@ type ProductSalesTrendPoint {
 }
 
 """
+Represents a bundled item linked to a parent product.
+"""
+type ProductBundleItem {
+  id: ID!
+  parentProductId: ID!
+  bundledProductId: ID!
+  quantity: Int!
+  product: Product!
+}
+
+"""
+Represents a volume pricing & free gift tier for a product.
+"""
+type ProductPricingTier {
+  id: ID!
+  productId: ID!
+  minQuantity: Int!
+  maxQuantity: Int
+  tierPrice: Float!
+  freeProductId: ID
+  freeQuantity: Int!
+  freeProduct: Product
+}
+
+"""
 Represents a product item in the inventory catalog.
 """
 type Product {
@@ -51,6 +84,8 @@ type Product {
   description: String
   unitPrice: Float!
   costPrice: Float
+  regularPrice: Float
+  productType: ProductType!
   status: ProductStatus!
   createdAt: String!
   updatedAt: String!
@@ -58,6 +93,8 @@ type Product {
   # Relations & Analytics
   inventory: Inventory
   stockMovement: StockMovement
+  bundleItems: [ProductBundleItem!]!
+  pricingTiers: [ProductPricingTier!]!
   performanceMetrics: ProductPerformanceMetrics!
   salesTrend: [ProductSalesTrendPoint!]!
 }
@@ -104,6 +141,7 @@ Input parameters for filtering and sorting the product list.
 input GetProductsInput {
   search: String
   status: ProductStatus
+  productType: ProductType
   stockStatus: String
   minPrice: Float
   maxPrice: Float
@@ -131,7 +169,28 @@ input BaseProductMutationInput {
   sku: String
   unitPrice: Float!
   costPrice: Float
+  regularPrice: Float
+  productType: ProductType
   status: ProductStatus!
+}
+
+"""
+Input data representing a bundled product item with its quantity.
+"""
+input BundleItemInput {
+  productId: ID!
+  quantity: Int!
+}
+
+"""
+Input data representing a volume pricing tier and complimentary gift.
+"""
+input PricingTierInput {
+  minQuantity: Int!
+  maxQuantity: Int
+  tierPrice: Float!
+  freeProductId: ID
+  freeQuantity: Int
 }
 
 """
@@ -140,6 +199,8 @@ Input data required to create a new product and its initial stock.
 input CreateProductInput {
   product: BaseProductMutationInput!
   inventory: InventoryInput
+  bundleItems: [BundleItemInput!]
+  pricingTiers: [PricingTierInput!]
 }
 
 """
@@ -149,6 +210,8 @@ input EditProductInput {
   productId: ID!
   product: BaseProductMutationInput!
   inventory: InventoryInput
+  bundleItems: [BundleItemInput!]
+  pricingTiers: [PricingTierInput!]
 }
 
 """

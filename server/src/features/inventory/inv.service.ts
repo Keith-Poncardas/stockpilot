@@ -52,6 +52,21 @@ export class InventoryService {
     }
 
     /**
+     * Retrieves an inventory record by its unique identifier, or null if not found.
+     *
+     * @param where Unique criteria used to locate the inventory record.
+     * @returns The matching inventory record with resolved stockStatus, or null.
+     */
+    async findInventory(where: Prisma.InventoryWhereUniqueInput) {
+        const inventory = await prisma.inventory.findUnique({ where });
+        if (!inventory) return null;
+        return {
+            ...inventory,
+            stockStatus: resolveStockStatus(inventory.quantityOnHand, inventory.reorderLevel)
+        };
+    }
+
+    /**
      * Counts inventory records that satisfy a raw SQL condition.
      *
      * Executes a raw `COUNT(*)` query using the provided SQL condition

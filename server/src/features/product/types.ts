@@ -1,6 +1,8 @@
 import z from "zod";
 import {
     addProductSchema,
+    bundleItemInputSchema,
+    pricingTierInputSchema,
     changeProductStatusSchema,
     editProductSchema,
     filterProductsSchema,
@@ -9,6 +11,20 @@ import {
     paginatedProductsSchema,
     searchProductsInfiniteSchema
 } from "./product.validation";
+
+/**
+ * Type representing a single bundled product input item.
+ */
+export type BundleItemInput = z.infer<
+    typeof bundleItemInputSchema
+>;
+
+/**
+ * Type representing a pricing and gift tier input item.
+ */
+export type PricingTierInput = z.infer<
+    typeof pricingTierInputSchema
+>;
 
 /**
  * Type representing a product's sales ranking.

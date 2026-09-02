@@ -41,6 +41,8 @@ export interface IUser {
     updatedAt: string;
 }
 
+export type IUserIdentify = Pick<IUser, 'id' | 'firstName' | 'lastName' | 'email' | 'role' | 'status'>;
+
 /**
  * Type representing a user with additional information.
  */

@@ -25,29 +25,37 @@ export function BasicDetailsSection({ control, isEditMode = false }: BasicDetail
                         name="name"
                         control={control}
                         label="Product Name"
-                        placeholder="e.g. Stainless Steel Water Bottle 750ml"
+                        placeholder="e.g. SPECIAL BUNDLE | 1 GOS Tablet & 1 GOS Powder 50g"
                         required
                     />
                 </div>
                 <div>
-                    <FormField
-                        name="sku"
+                    <Controller
+                        name="productType"
                         control={control}
-                        disabled={isEditMode}
-                        label={
-                            isEditMode ? (
-                                <>
-                                    SKU <span className="text-slate-400 font-normal">(not editable)</span>
-                                </>
-                            ) : (
-                                <>
-                                    SKU <span className="text-slate-400 font-normal">(optional)</span>
-                                </>
-                            )
-                        }
-                        placeholder={isEditMode ? '' : 'Leave blank to auto-generate'}
-                        description={isEditMode ? 'The SKU cannot be changed after creation.' : 'Must be unique across all products'}
-                        icon={<Barcode className="w-4 h-4 text-slate-300" strokeWidth={2} />}
+                        render={({ field, fieldState }) => (
+                            <Field data-invalid={fieldState.invalid}>
+                                <FieldLabel className="text-[13px] font-semibold text-gray-700 m-0">
+                                    Product Type
+                                </FieldLabel>
+                                <SelectFilter
+                                    value={field.value || 'SIMPLE'}
+                                    onChange={field.onChange}
+                                    options={[
+                                        { value: 'SIMPLE', label: 'Single Product' },
+                                        { value: 'BUNDLE', label: 'Product Bundle (Combo / Kit)' },
+                                    ]}
+                                    defaultValue="SIMPLE"
+                                    className="w-full h-9"
+                                />
+                                {fieldState.invalid && (
+                                    <FieldError
+                                        errors={[fieldState.error]}
+                                        className="text-xs font-medium text-rose-600"
+                                    />
+                                )}
+                            </Field>
+                        )}
                     />
                 </div>
                 <div>
@@ -78,6 +86,27 @@ export function BasicDetailsSection({ control, isEditMode = false }: BasicDetail
                                 )}
                             </Field>
                         )}
+                    />
+                </div>
+                <div className="sm:col-span-2">
+                    <FormField
+                        name="sku"
+                        control={control}
+                        disabled={isEditMode}
+                        label={
+                            isEditMode ? (
+                                <>
+                                    SKU <span className="text-slate-400 font-normal">(not editable)</span>
+                                </>
+                            ) : (
+                                <>
+                                    SKU <span className="text-slate-400 font-normal">(optional)</span>
+                                </>
+                            )
+                        }
+                        placeholder={isEditMode ? '' : 'Leave blank to auto-generate'}
+                        description={isEditMode ? 'The SKU cannot be changed after creation.' : 'Must be unique across all products'}
+                        icon={<Barcode className="w-4 h-4 text-slate-300" strokeWidth={2} />}
                     />
                 </div>
                 <div className="sm:col-span-2">
