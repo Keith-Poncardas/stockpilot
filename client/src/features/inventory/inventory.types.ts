@@ -1,5 +1,5 @@
 import type { Row } from "@tanstack/react-table"
-import type { ProductStatus } from "@/features/product/product.constants"
+import type { ProductStatus } from "@/features/product/types"
 
 export type StockStatus = 'WELL_STOCKED' | 'LOW_STOCK' | 'CRITICAL_OUT' | 'ALL'
 export type MovementType = 'IN' | 'OUT' | 'ADJUSTMENT'

@@ -2,9 +2,7 @@ import { gql } from '@apollo/client';
 
 /**
  * Fetch a single product by ID.
- * Returns the flat Product fields plus the nested inventory relation
- * (quantityOnHand, reorderLevel, maxStock) which maps to the backend
- * Product.inventory resolver.
+ * Returns the flat Product fields plus inventory, performanceMetrics, and salesTrend.
  */
 export const GET_PRODUCT = gql`
   query GetProduct($productId: ID!) {
@@ -13,8 +11,12 @@ export const GET_PRODUCT = gql`
       sku
       name
       description
+      imageUrl
+      imagePublicId
       unitPrice
       costPrice
+      regularPrice
+      productType
       status
       createdAt
       updatedAt
@@ -24,7 +26,70 @@ export const GET_PRODUCT = gql`
         reorderLevel
         maxStock
         updatedAt
+        lastRestockDate
+        estimatedDaysOfStock
       }
+      bundleItems {
+        id
+        parentProductId
+        bundledProductId
+        quantity
+        product {
+          id
+          name
+          sku
+          imageUrl
+          unitPrice
+          costPrice
+          status
+          inventory {
+            id
+            quantityOnHand
+          }
+        }
+      }
+      pricingTiers {
+        id
+        productId
+        minQuantity
+        maxQuantity
+        tierPrice
+        freeProductId
+        freeQuantity
+        freeProduct {
+          id
+          name
+          sku
+          imageUrl
+          unitPrice
+        }
+      }
+      performanceMetrics {
+        unitsSold
+        unitsSoldTrend
+        revenue
+        revenueTrend
+        transactions
+        avgPerSale
+        sellThroughRate
+      }
+      salesTrend {
+        label
+        date
+        sales
+        isActive
+      }
+    }
+  }
+`;
+
+export const GET_PRODUCT_SALES_OVERVIEW = gql`
+  query GetProductSalesOverview($period: SalesOverviewPeriod!, $productId: ID) {
+    getSalesOverview(period: $period, productId: $productId) {
+      label
+      date
+      sales
+      isActive
     }
   }
 `;
@@ -37,11 +102,41 @@ export const GET_PRODUCTS = gql`
         sku
         name
         description
+        imageUrl
+        imagePublicId
         unitPrice
         costPrice
+        regularPrice
+        productType
         status
         createdAt
         updatedAt
+        bundleItems {
+          id
+          parentProductId
+          bundledProductId
+          quantity
+          product {
+            id
+            name
+            sku
+            imageUrl
+          }
+        }
+        pricingTiers {
+          id
+          minQuantity
+          maxQuantity
+          tierPrice
+          freeProductId
+          freeQuantity
+          freeProduct {
+            id
+            name
+            sku
+            imageUrl
+          }
+        }
       }
       meta {
         page
@@ -58,72 +153,77 @@ export const GET_PRODUCTS = gql`
 `;
 
 export const GET_TOTAL_PRODUCTS_COUNT = gql`
-    query GetTotalProductsCount {
-        getTotalProductsCount
-    }
+  query GetTotalProductsCount {
+    getTotalProductsCount
+  }
 `;
 
 export const GET_PRODUCT_METRICS = gql`
-    query GetProductMetrics {
-        getProductMetrics {
-            total
-            active
-            draft
-        }
+  query GetProductMetrics {
+    getProductMetrics {
+      total
+      active
+      draft
     }
+  }
 `;
 
-export const CHANGE_PRODUCT_STATUS = gql`
-    mutation ChangeProductStatus($input: ChangeProductStatusInput!) {
-        changeProductStatus(input: $input) {
-            id
-            status
-        }
-    }
-`;
-
-export const CREATE_PRODUCT = gql`
-    mutation CreateProduct($input: CreateProductInput!) {
-        createProduct(input: $input) {
-            id
-            name
-            sku
-            status
-        }
-    }
-`;
-
-export const EDIT_PRODUCT = gql`
-    mutation EditProduct($input: EditProductInput!) {
-        editProduct(input: $input) {
-            id
-            name
-            sku
-            status
-        }
-    }
-`;
-
-/**
- * Cursor-based infinite scroll search across all products.
- * Corresponds to the backend `searchProductsInfinite` query.
- */
 export const SEARCH_PRODUCTS_INFINITE = gql`
-    query SearchProductsInfinite($input: SearchProductsInfiniteInput!) {
-        searchProductsInfinite(input: $input) {
-            data {
-                id
-                sku
-                name
-                description
-                unitPrice
-                costPrice
-                status
-            }
-            meta {
-                nextCursor
-                hasNextPage
-            }
+  query SearchProductsInfinite($input: SearchProductsInfiniteInput!) {
+    searchProductsInfinite(input: $input) {
+      data {
+        id
+        sku
+        name
+        description
+        imageUrl
+        imagePublicId
+        unitPrice
+        costPrice
+        regularPrice
+        productType
+        status
+        createdAt
+        updatedAt
+        inventory {
+          id
+          quantityOnHand
+          reorderLevel
+          maxStock
+          updatedAt
         }
+        bundleItems {
+          id
+          parentProductId
+          bundledProductId
+          quantity
+          product {
+            id
+            name
+            sku
+            imageUrl
+            unitPrice
+          }
+        }
+        pricingTiers {
+          id
+          minQuantity
+          maxQuantity
+          tierPrice
+          freeProductId
+          freeQuantity
+          freeProduct {
+            id
+            name
+            sku
+            imageUrl
+          }
+        }
+      }
+      meta {
+        nextCursor
+        hasNextPage
+      }
     }
+  }
 `;

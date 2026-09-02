@@ -1,1 +1,1 @@
-export * from "./product.validation";
+export * from './product.validation';

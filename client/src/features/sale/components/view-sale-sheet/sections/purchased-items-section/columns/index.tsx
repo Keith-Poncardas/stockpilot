@@ -2,7 +2,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { formatCurrency } from "@/lib/utils";
 import { ItemCount } from "@/features/sale/components/common";
 import type { SaleItem } from "@/features/sale/types";
-import { ProductCell, BundledItemsCell } from "@/features/product-refactor/pages/products-page/cells";
+import { ProductCell, BundledItemsCell } from "@/features/product/pages/products-page/cells";
 
 export const columns: ColumnDef<SaleItem>[] = [
     {

@@ -65,6 +65,16 @@ export const inventoryResolver = {
             return inventoryService.getInventories(input);
         }),
 
+        /**
+         * Generates an intelligent, context-aware stock replenishment recommendation
+         * using the reusable Vercel AI SDK wrapper.
+         */
+        getAiStockRecommendation: composeResolvers(
+            validate(uuidSchema)
+        )(async (_: unknown, { inventoryId }: { inventoryId: UUIDInput }) => {
+            return inventoryService.getAiStockRecommendation(inventoryId);
+        }),
+
     }),
 
     Inventory: protectResolvers({

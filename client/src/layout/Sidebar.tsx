@@ -57,7 +57,7 @@ const NAV_SECTIONS: NavSectionConfig[] = [
         items: [
             { label: 'Products', icon: <Box size={16} />, route: PATHS.products.root },
             { label: 'Inventory', icon: <Warehouse size={16} />, badgeDanger: true, route: PATHS.inventory.root },
-            { label: 'Stock Movements', icon: <ArrowUpDown size={16} />, route: PATHS.stockMovement.root },
+            { label: 'Movements', icon: <ArrowUpDown size={16} />, route: PATHS.stockMovement.root },
         ],
     },
     {

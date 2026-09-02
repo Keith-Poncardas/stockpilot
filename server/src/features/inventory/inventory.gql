@@ -91,11 +91,34 @@ input CreateInventoryInput {
   inventory: InventoryInput!
 }
 
+# AI Stock Recommendation Types
+type AiStockRecommendationFinancialImpact {
+  estimatedRestockCost: Float
+  potentialRevenue: Float
+  projectedProfit: Float
+}
+
+type AiStockRecommendation {
+  recommendedQuantity: Int!
+  urgencyLevel: String!
+  headline: String!
+  reasoning: [String!]!
+  targetDaysOfCoverage: Int!
+  stockoutRiskAssessment: String!
+  salesVelocityDaily: Float!
+  currentStock: Int!
+  reorderLevel: Int!
+  maxStock: Int!
+  financialImpact: AiStockRecommendationFinancialImpact
+  calculatedAt: String!
+}
+
 # Query
 type Query {
   getInventoryStatuses: InventoryStatuses!
   getInventory(inventoryId: ID!): Inventory!
   getInventories(input: GetInventoriesInput): PaginatedInventories!
+  getAiStockRecommendation(inventoryId: ID!): AiStockRecommendation!
 }
 
 # Mutation Type
@@ -103,3 +126,4 @@ type Mutation {
   adjustStock(input: AdjustStockInput!): Inventory!
   createInventory(input: CreateInventoryInput!): Inventory!
 }
+

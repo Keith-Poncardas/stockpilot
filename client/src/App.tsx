@@ -18,8 +18,9 @@ import {
   ViewProductSheet,
   InventoryLayout,
   InventoryPage,
-  AdjustStockPage,
-  InventoryRecordPage,
+  CreateInventorySheet,
+  AdjustStockSheet,
+  ReorderLevelSheet,
   StockMovementLayout,
   StockMovementPage,
   StockMovementDetailsPage,
@@ -51,6 +52,9 @@ function App() {
       <CreateProductSheet />
       <EditProductSheet />
       <ViewProductSheet />
+      <CreateInventorySheet />
+      <AdjustStockSheet />
+      <ReorderLevelSheet />
       <Routes>
 
         <Route element={<PublicRoute />}>
@@ -71,7 +75,7 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route index element={<Dashboard />} />
 
             <Route path="/users" element={<UserLayout />}>
               <Route index element={<UserPage />} />
@@ -84,8 +88,6 @@ function App() {
 
             <Route path="/inventory" element={<InventoryLayout />}>
               <Route index element={<InventoryPage />} />
-              <Route path=":inventoryId/adjust" element={<AdjustStockPage />} />
-              <Route path="record" element={<InventoryRecordPage />} />
             </Route>
 
             <Route path="/stock-movement" element={<StockMovementLayout />}>

@@ -1,4 +1,5 @@
-import { prisma } from "@/lib";
+import { prisma, aiService } from "@/lib";
+import { z } from "zod";
 import {
     createPaginator,
     throwConflict
@@ -487,6 +488,160 @@ export class InventoryService {
         return quantityOnHand > 0 ? 90 : 0;
     }
 
+    /**
+     * Generates an intelligent, context-aware stock replenishment recommendation
+     * using the reusable Vercel AI SDK wrapper.
+     *
+     * Gathers all essential supply-chain context strictly via Prisma (NO SQL GENERATION BY AI):
+     * - Current on-hand quantity, reorder alert level, warehouse capacity limit
+     * - Sales velocity / run-rate across 30-day and 7-day completed sales items
+     * - Estimated depletion days and last restock timestamp
+     * - Profit margin and financial capital commitment
+     *
+     * @param inventoryId The unique inventory ID.
+     * @returns AI-generated or deterministic fallback stock recommendation.
+     */
+    async getAiStockRecommendation(inventoryId: UUIDInput) {
+        const inventory = await prisma.inventory.findUniqueOrThrow({
+            where: { id: inventoryId },
+            include: {
+                product: true,
+            },
+        });
+
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+        const [sold30DaysAgg, sold7DaysAgg] = await Promise.all([
+            prisma.saleItem.aggregate({
+                where: {
+                    productId: inventory.productId,
+                    sale: { status: SaleStatus.COMPLETED, saleDate: { gte: thirtyDaysAgo } },
+                },
+                _sum: { quantity: true },
+            }),
+            prisma.saleItem.aggregate({
+                where: {
+                    productId: inventory.productId,
+                    sale: { status: SaleStatus.COMPLETED, saleDate: { gte: sevenDaysAgo } },
+                },
+                _sum: { quantity: true },
+            }),
+        ]);
+
+        const unitsSoldLast30Days = sold30DaysAgg._sum.quantity ?? 0;
+        const unitsSoldLast7Days = sold7DaysAgg._sum.quantity ?? 0;
+        const salesVelocity30 = Number((unitsSoldLast30Days / 30).toFixed(2));
+        const salesVelocity7 = Number((unitsSoldLast7Days / 7).toFixed(2));
+        const salesVelocityDaily = salesVelocity7 > 0 ? salesVelocity7 : (salesVelocity30 > 0 ? salesVelocity30 : 0.5);
+
+        const estimatedDaysOfStock = await this.getEstimatedDaysOfStock(inventory.productId, inventory.quantityOnHand);
+        const lastRestockDate = await this.getLastRestockDate(inventory.productId);
+
+        const isCritical = inventory.quantityOnHand <= 0;
+        const isHighUrgency = inventory.quantityOnHand <= Math.floor(inventory.reorderLevel / 2);
+        const defaultUrgency: 'CRITICAL' | 'HIGH' | 'MODERATE' = isCritical
+            ? 'CRITICAL'
+            : isHighUrgency
+                ? 'HIGH'
+                : 'MODERATE';
+
+        // Deterministic calculation for fallback or sanity bounds
+        const targetDaysOfCoverage = 18;
+        const desiredStock = Math.min(
+            inventory.maxStock > 0 ? Math.round(inventory.maxStock * 0.85) : inventory.reorderLevel * 3,
+            Math.max(Math.round(salesVelocityDaily * targetDaysOfCoverage), inventory.reorderLevel * 2)
+        );
+        const rawRecommended = desiredStock - inventory.quantityOnHand;
+        const maxCanAdd = Math.max(inventory.maxStock - inventory.quantityOnHand, 0);
+        const fallbackQuantity = Math.max(Math.min(rawRecommended > 0 ? rawRecommended : 15, maxCanAdd > 0 ? maxCanAdd : 15), 5);
+
+        const schema = z.object({
+            recommendedQuantity: z.number().int().min(0).describe('Optimal number of units to restock or produce (can be 0 if already well stocked)'),
+            urgencyLevel: z.enum(['CRITICAL', 'HIGH', 'MODERATE']).describe('Replenishment urgency assessment'),
+            headline: z.string().describe('Short 1-sentence executive headline for the direct supplier'),
+            reasoning: z.array(z.string()).describe('2 to 3 concise, highly readable bullet points explaining the strategic rationale'),
+            targetDaysOfCoverage: z.number().int().describe('How many days of client demand this restock batch will cover'),
+            stockoutRiskAssessment: z.string().describe('Clear assessment of stockout vulnerability'),
+        });
+
+        const fallbackGenerator = () => ({
+            recommendedQuantity: fallbackQuantity,
+            urgencyLevel: defaultUrgency,
+            headline: `Optimal restock batch of +${fallbackQuantity} units to maintain ${targetDaysOfCoverage}-day buffer coverage.`,
+            reasoning: [
+                `Restores on-hand inventory (${inventory.quantityOnHand} units) to safe operational buffer of ${inventory.quantityOnHand + fallbackQuantity} units.`,
+                `Based on run-rate of ${salesVelocityDaily} units/day, this batch secures ${targetDaysOfCoverage} days of sustained order fulfillment.`,
+                `Maintains inventory safely within maximum warehouse storage capacity (${inventory.maxStock} units).`,
+            ],
+            targetDaysOfCoverage,
+            stockoutRiskAssessment: isCritical
+                ? 'Stockout is already active. Immediate replenishment required.'
+                : `Depletion anticipated within ~${estimatedDaysOfStock} days at current demand velocity.`,
+        });
+
+        const prompt = `
+PRODUCT AND INVENTORY CONTEXT (Direct Supplier / Wholesaler Model):
+- Product Name: ${inventory.product.name} (SKU: ${inventory.product.sku})
+- Product Type: ${inventory.product.productType}
+- Unit Selling Price: PHP ${Number(inventory.product.unitPrice).toFixed(2)}
+- Cost Price: ${inventory.product.costPrice ? `PHP ${Number(inventory.product.costPrice).toFixed(2)}` : 'N/A'}
+- Current Stock On-Hand: ${inventory.quantityOnHand} units
+- Reorder Alert Level: ${inventory.reorderLevel} units
+- Warehouse Maximum Capacity: ${inventory.maxStock} units
+- Last 30-Day Completed Sales: ${unitsSoldLast30Days} units
+- Last 7-Day Completed Sales: ${unitsSoldLast7Days} units
+- Daily Sales Run-Rate / Velocity: ${salesVelocityDaily} units/day
+- Business Model: Direct Supplier / In-House Fulfillment (No external vendor lead times).
+- Goal: Recommend the optimal production/restock quantity to achieve 14-21 days of coverage while respecting warehouse limits.
+${inventory.quantityOnHand <= inventory.reorderLevel
+                ? `
+CRITICAL REORDER POLICY RULE:
+- The product is currently AT or BELOW the user-defined reorder threshold (${inventory.quantityOnHand} <= ${inventory.reorderLevel}).
+- Even if daily sales velocity is low, the business policy dictates restoring inventory safely ABOVE the reorder level.
+- Therefore, DO NOT recommend 0 units. Recommend at least enough units to lift the stock back to a safe buffer above the reorder level (minimum suggested post-stock: ${Math.min(inventory.reorderLevel + Math.max(Math.round(inventory.reorderLevel * 0.15), 5), inventory.maxStock > 0 ? inventory.maxStock : inventory.reorderLevel + 10)} units, requiring approx +${Math.max(inventory.reorderLevel - inventory.quantityOnHand + 5, 5)} units), ensuring it does not exceed max capacity of ${inventory.maxStock}.
+`
+                : ''
+            }
+`;
+
+        const result = await aiService.generateStructured({
+            schema,
+            system: 'You are an elite inventory intelligence copilot for a direct supplier and distributor. Always provide realistic, integer unit recommendations that prevent stockouts without exceeding warehouse capacity.',
+            prompt,
+            fallback: fallbackGenerator,
+        });
+
+        // Ensure recommendation does not exceed warehouse capacity if maxStock > 0
+        const boundedQuantity = inventory.maxStock > 0
+            ? Math.min(result.recommendedQuantity, Math.max(inventory.maxStock - inventory.quantityOnHand, 5))
+            : result.recommendedQuantity;
+
+        const costPrice = inventory.product.costPrice ? Number(inventory.product.costPrice) : null;
+        const unitPrice = Number(inventory.product.unitPrice);
+        const estimatedRestockCost = costPrice ? Number((costPrice * boundedQuantity).toFixed(2)) : null;
+        const potentialRevenue = Number((unitPrice * boundedQuantity).toFixed(2));
+        const projectedProfit = estimatedRestockCost !== null ? Number((potentialRevenue - estimatedRestockCost).toFixed(2)) : null;
+
+        return {
+            recommendedQuantity: boundedQuantity,
+            urgencyLevel: result.urgencyLevel,
+            headline: result.headline,
+            reasoning: result.reasoning,
+            targetDaysOfCoverage: result.targetDaysOfCoverage,
+            stockoutRiskAssessment: result.stockoutRiskAssessment,
+            salesVelocityDaily,
+            currentStock: inventory.quantityOnHand,
+            reorderLevel: inventory.reorderLevel,
+            maxStock: inventory.maxStock,
+            financialImpact: {
+                estimatedRestockCost,
+                potentialRevenue,
+                projectedProfit,
+            },
+            calculatedAt: new Date().toISOString(),
+        };
+    }
 }
 
 export const inventoryService = new InventoryService()

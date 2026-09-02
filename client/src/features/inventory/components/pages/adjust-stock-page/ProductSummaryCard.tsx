@@ -1,6 +1,6 @@
 import { Package } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
-import type { ProductStatus } from "@/features/product/product.constants";
+import type { ProductStatus } from "@/features/product/types";
 
 export interface ProductSummaryCardProps {
     name: string;
