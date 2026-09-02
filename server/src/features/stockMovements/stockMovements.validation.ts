@@ -80,7 +80,8 @@ export const paginatedStockMovementsSchema = paginationSchema.extend({
  * reorderLevel that is applied to the linked Inventory record.
  */
 export const baseMovementSchema = z.object({
-    type: movementTypeSchema,
+    movementType: movementTypeSchema.optional(),
+    type: movementTypeSchema.optional(),
     quantity: z.coerce
         .number()
         .int("Quantity must be a whole number")
@@ -90,9 +91,19 @@ export const baseMovementSchema = z.object({
         .trim()
         .max(500, "Notes must not exceed 500 characters")
         .optional(),
-    reorderLevel: z
+    reason: movementReasonSchema.optional(),
+    reorderLevel: z.coerce
         .number()
         .int("Reorder level must be a whole number")
         .nonnegative("Reorder level must be 0 or greater")
         .optional(),
-});
+    maxStock: z.coerce
+        .number()
+        .int("Max stock must be a whole number")
+        .nonnegative("Max stock must be 0 or greater")
+        .optional(),
+}).transform((val) => ({
+    ...val,
+    movementType: val.movementType ?? val.type ?? MovementType.ADJUSTMENT,
+    type: val.movementType ?? val.type ?? MovementType.ADJUSTMENT,
+}));

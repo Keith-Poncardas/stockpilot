@@ -2,19 +2,19 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { formatCurrency } from "@/lib/utils";
 import { ItemCount } from "@/features/sale/components/common";
 import type { SaleItem } from "@/features/sale/types";
-import { ItemCell, FreeItemsCell } from "./cells";
+import { ProductCell, BundledItemsCell } from "@/features/product-refactor/pages/products-page/cells";
 
 export const columns: ColumnDef<SaleItem>[] = [
     {
         id: "name",
         header: "Item",
-        cell: ({ row }) => <ItemCell row={row} />,
+        cell: ({ row }) => <ProductCell row={row} />,
         size: 240,
     },
     {
         id: "freeItems",
-        header: "Free Items",
-        cell: ({ row }) => <FreeItemsCell row={row} />,
+        header: "Bundles & Deals",
+        cell: ({ row }) => <BundledItemsCell row={row} />,
         size: 170,
     },
     {

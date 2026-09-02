@@ -46,6 +46,7 @@ These rules override everything else in this file when in conflict:
 - No features beyond what was asked.
 - No abstractions for single-use code. No configurability, flexibility, or hooks that were not requested.
 - No error handling for impossible scenarios. Handle the failures that can actually happen.
+- Avoid redundant components: before creating a new component or table cell, search and inspect the codebase for existing implementations to reuse or extend (e.g. domain cells like `ProductCell`, `BundledItemsCell`). Never reinvent what already exists; only create new components when no reusable candidate exists.
 - If the solution runs 200 lines and could be 50, rewrite it before showing it.
 - If you find yourself adding "for future extensibility", stop. Future extensibility is a future decision.
 - Bias toward deleting code over adding code. Shipping less is almost always better.
@@ -262,6 +263,7 @@ When requested to refactor an existing feature (e.g., `product`, `customer`, `sa
 - Do not use outdated nested constant patterns like `{ ACTIVE: { a: 'ACTIVE', b: 'ACTIVATE' } }`. Always use clean flat `as const` object definitions (e.g., `export const SaleStatus = { PENDING: 'PENDING', ... } as const;`) paired with separate `<FEATURE>_STATUS_LABELS` and `<FEATURE>_STATUS_COLORS` record maps, matching `client/src/features/sale/constants/sale.constants.ts`.
 - Do not create generic spreadsheet-like tables with single-line truncated descriptions. Always implement rich entity cells (with thumbnail/icon placeholders + sub-badges) and word-wrapped readable text.
 - Do not dump bulky inline JSX directly inside column definitions in `<feature>.columns.tsx`. Always extract cell UI into dedicated cell components stored in the feature's `cells/` directory.
+- Do not create redundant, duplicate UI components or table cells across features when an existing component can be reused or cleanly extended (e.g., never create redundant cells like `ItemCell` or `FreeItemsCell` when `ProductCell` and `BundledItemsCell` already exist).
 
 ---
 
@@ -276,6 +278,7 @@ When the user corrects your approach, append a one-line rule here before ending 
 - Always use clean flat `as const` constant definitions with separate `<FEATURE>_STATUS_LABELS` and `<FEATURE>_STATUS_COLORS` record maps (following `sale.constants.ts`), and never use outdated nested `{ a: '...', b: '...' }` objects.
 - Always design rich, standout table columns: include an image/thumbnail placeholder container with sub-badges (e.g., SKU/phone) in the primary entity column, and allow full word-wrapping (`break-words whitespace-normal`) for description columns instead of single-line truncation.
 - Always extract table column cell layouts into modular components under the feature's `cells/` directory instead of dumping inline JSX directly into `<feature>.columns.tsx`.
+- Always avoid component redundancy by actively inspecting, reusing, and adapting existing codebase components (e.g. domain table cells like `ProductCell`, `BundledItemsCell`) across features instead of inventing duplicate cells for the same entity display.
 
 ---
 

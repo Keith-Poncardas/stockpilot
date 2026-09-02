@@ -13,6 +13,11 @@ export const GET_SALES = gql`
         userId
         status
         totalAmount
+        vatableSales
+        vatAmount
+        vatExemptSales
+        zeroRatedSales
+        taxRate
         paymentMethod
         saleDate
         createdAt
@@ -65,6 +70,7 @@ export const GET_SALE_METRICS = gql`
   query GetSaleMetrics {
     getSalesMetrics {
       totalRevenue
+      totalTaxCollected
       totalTransactions
       completedSales
       refundedOrVoidedCount
@@ -84,6 +90,11 @@ export const GET_SALE = gql`
       userId
       status
       totalAmount
+      vatableSales
+      vatAmount
+      vatExemptSales
+      zeroRatedSales
+      taxRate
       paymentMethod
       saleDate
       createdAt
@@ -122,6 +133,7 @@ export const GET_SALE = gql`
           id
           sku
           name
+          imageUrl
           unitPrice
           regularPrice
           productType
@@ -135,6 +147,7 @@ export const GET_SALE = gql`
               id
               name
               sku
+              imageUrl
             }
           }
           pricingTiers {
@@ -148,6 +161,7 @@ export const GET_SALE = gql`
               id
               name
               sku
+              imageUrl
             }
           }
         }
@@ -171,6 +185,7 @@ export const GET_SELLABLE_PRODUCTS = gql`
           id
           sku
           name
+          imageUrl
           description
           unitPrice
           costPrice
@@ -186,6 +201,7 @@ export const GET_SELLABLE_PRODUCTS = gql`
               id
               name
               sku
+              imageUrl
               unitPrice
             }
           }
@@ -200,6 +216,7 @@ export const GET_SELLABLE_PRODUCTS = gql`
               id
               name
               sku
+              imageUrl
             }
           }
         }

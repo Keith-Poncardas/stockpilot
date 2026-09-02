@@ -87,6 +87,7 @@ export const ProductCatalogGrid = ({
                 id: inv.productId || prod?.id || inv.id,
                 sku: prod?.sku ?? "",
                 name: prod?.name ?? "Unknown Product",
+                imageUrl: prod?.imageUrl ?? null,
                 unitPrice: Number(prod?.unitPrice ?? 0),
                 regularPrice: prod?.regularPrice ? Number(prod.regularPrice) : null,
                 productType: prod?.productType,

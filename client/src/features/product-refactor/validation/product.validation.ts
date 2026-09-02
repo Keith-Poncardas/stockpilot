@@ -11,6 +11,8 @@ export const productSchema = z.object({
         message: 'Please select a status',
     }),
     description: z.string().max(500, 'Description is too long').optional(),
+    imageUrl: z.string().optional().nullable().or(z.literal('')),
+    imagePublicId: z.string().optional().nullable().or(z.literal('')),
     unitPrice: z.coerce
         .number({ message: 'Selling price is required' })
         .min(0, 'Price cannot be negative'),
@@ -22,21 +24,34 @@ export const productSchema = z.object({
         .number({ message: 'Must be a valid number' })
         .min(0, 'Regular price cannot be negative')
         .optional(),
-    quantityOnHand: z.coerce
-        .number({ message: 'Starting quantity is required' })
-        .min(0, 'Quantity cannot be negative')
-        .int('Quantity must be a whole number')
-        .optional(),
-    reorderLevel: z.coerce
-        .number({ message: 'Reorder level is required' })
-        .min(0, 'Reorder level cannot be negative')
-        .int('Reorder level must be a whole number')
-        .optional(),
-    maxStock: z.coerce
-        .number({ message: 'Max stock is required' })
-        .min(0, 'Max stock cannot be negative')
-        .int('Max stock must be a whole number')
-        .optional(),
+    trackInventory: z.boolean().default(false),
+    quantityOnHand: z.preprocess(
+        (val) => (val === '' || val === null || val === undefined ? undefined : val),
+        z.coerce
+            .number({ message: 'Starting quantity is required' })
+            .min(0, 'Quantity cannot be negative')
+            .int('Quantity must be a whole number')
+            .optional()
+            .nullable()
+    ),
+    reorderLevel: z.preprocess(
+        (val) => (val === '' || val === null || val === undefined ? undefined : val),
+        z.coerce
+            .number({ message: 'Reorder level is required' })
+            .min(0, 'Reorder level cannot be negative')
+            .int('Reorder level must be a whole number')
+            .optional()
+            .nullable()
+    ),
+    maxStock: z.preprocess(
+        (val) => (val === '' || val === null || val === undefined ? undefined : val),
+        z.coerce
+            .number({ message: 'Max stock is required' })
+            .min(0, 'Max stock cannot be negative')
+            .int('Max stock must be a whole number')
+            .optional()
+            .nullable()
+    ),
     bundleItems: z
         .array(
             z.object({

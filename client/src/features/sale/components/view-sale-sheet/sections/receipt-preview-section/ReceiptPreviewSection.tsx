@@ -164,18 +164,43 @@ export function ReceiptPreviewSection({ sale }: ReceiptPreviewSectionProps) {
                         </div>
                     </div>
 
-                    {/* Totals Section */}
+                    {/* Totals & BIR VAT Breakdown */}
                     <div className="py-3 border-b border-dashed border-gray-400 space-y-1.5 text-[11px]">
                         <div className="flex justify-between text-gray-700">
                             <span>TOTAL ITEMS:</span>
                             <span>{totalItemsCount}</span>
                         </div>
                         <div className="flex justify-between text-gray-700">
-                            <span>SUBTOTAL:</span>
+                            <span>SUBTOTAL (VAT-INC):</span>
                             <span>{formatCurrency(sale.totalAmount)}</span>
                         </div>
-                        <div className="flex justify-between font-bold text-sm text-black pt-1.5 border-t border-gray-200">
-                            <span>TOTAL DUE:</span>
+
+                        {/* BIR Standard VAT Breakdown */}
+                        <div className="py-1.5 my-1 border-y border-dashed border-gray-300 space-y-1 text-[10.5px] text-gray-600 font-mono">
+                            <div className="flex justify-between">
+                                <span>VATable Sales:</span>
+                                <span className="font-semibold text-black">
+                                    {formatCurrency(sale.vatableSales ?? (sale.totalAmount / 1.12))}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>VAT-Exempt Sales:</span>
+                                <span>{formatCurrency(sale.vatExemptSales ?? 0)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Zero-Rated Sales:</span>
+                                <span>{formatCurrency(sale.zeroRatedSales ?? 0)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>VAT Amount (12%):</span>
+                                <span className="font-semibold text-black">
+                                    {formatCurrency(sale.vatAmount ?? (sale.totalAmount - (sale.totalAmount / 1.12)))}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-between font-bold text-sm text-black pt-1">
+                            <span>TOTAL AMOUNT DUE:</span>
                             <span>{formatCurrency(sale.totalAmount)}</span>
                         </div>
                         <div className="flex justify-between text-gray-700">

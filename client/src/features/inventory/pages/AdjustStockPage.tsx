@@ -57,13 +57,14 @@ export function AdjustStockPage() {
                 variables: {
                     input: {
                         inventoryId,
-                        movementType: MOVEMENT_TYPE[formData.adjustmentType],
-                        quantity: formData.quantity,
-                        reorderLevel,
-                        maxStock,
-                        reason: formData.reason,
-                        reference: formData.reference || undefined,
-                        notes: formData.notes || undefined,
+                        movement: {
+                            movementType: MOVEMENT_TYPE[formData.adjustmentType],
+                            quantity: Number(formData.quantity) || 0,
+                            reorderLevel,
+                            maxStock,
+                            reason: formData.reason,
+                            notes: formData.notes || undefined,
+                        },
                     },
                 },
             });

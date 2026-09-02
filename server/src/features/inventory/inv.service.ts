@@ -1,6 +1,7 @@
 import { prisma } from "@/lib";
 import {
-    createPaginator
+    createPaginator,
+    throwConflict
 } from "@/utils";
 import { MovementReason, MovementType, Prisma, ProductStatus, SaleStatus } from '@/generated/client.js';
 import {
@@ -295,25 +296,33 @@ export class InventoryService {
     async adjustStock(userId: UUIDInput, input: AdjustStockInput) {
 
         const { inventoryId, movement } = input;
-        const { quantity, type, notes } = movement;
+        const movementType = (movement as any).movementType ?? (movement as any).type ?? MovementType.ADJUSTMENT;
+        const { quantity, notes } = movement;
+        const reason = (movement as any).reason ?? MovementReason.ADJUSTMENT;
+        const reorderLevel = (movement as any).reorderLevel;
+        const maxStock = (movement as any).maxStock;
 
         const { recordStockMovement } = stockMovementsService;
-        const quantityOnHand = calculateQuantityUpdate(type, quantity);
+        const quantityOnHand = calculateQuantityUpdate(movementType, quantity);
 
         const inventory = await prisma.$transaction(async (tx) => {
 
             const inv = await tx.inventory.update({
                 where: { id: inventoryId },
-                data: { quantityOnHand },
+                data: {
+                    quantityOnHand,
+                    ...(reorderLevel !== undefined && { reorderLevel }),
+                    ...(maxStock !== undefined && { maxStock }),
+                },
             });
 
             await recordStockMovement(tx, "ADJ", {
                 productId: inv.productId,
                 userId,
-                type,
+                type: movementType,
                 quantity,
-                reason: MovementReason.ADJUSTMENT,
-                notes
+                reason,
+                notes,
             });
 
             return inv;
@@ -393,7 +402,14 @@ export class InventoryService {
         const { quantityOnHand, reorderLevel, maxStock } = data;
 
         await this.ensureProductExist(productId);
-        await this.ensureInventoryExist(productId);
+
+        const existingInventory = await prisma.inventory.findUnique({
+            where: { productId },
+        });
+
+        if (existingInventory) {
+            throwConflict("Inventory record for this product already exists.");
+        }
 
         const { recordStockMovement } = stockMovementsService;
 

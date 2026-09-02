@@ -1,11 +1,15 @@
 import { ErrorCode } from "@/constants";
 import { useAuthStore } from "@/store";
-import { ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
+import { ApolloClient, InMemoryCache } from "@apollo/client";
+import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
 
-const httpLink = createHttpLink({
+const httpLink = createUploadLink({
     uri: import.meta.env.VITE_GRAPHQL_URI,
+    headers: {
+        "Apollo-Require-Preflight": "true",
+    },
 });
 
 const authLink = setContext((_, { headers }) => {

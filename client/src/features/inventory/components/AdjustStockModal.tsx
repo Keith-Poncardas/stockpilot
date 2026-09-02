@@ -110,12 +110,13 @@ export function AdjustStockModal({ open, onClose, inventory }: AdjustStockModalP
             variables: {
                 input: {
                     inventoryId: inventory!.id,
-                    movementType,
-                    quantity: qty,
-                    reorderLevel: rl,
-                    maxStock: ms,
-                    reference: reference || undefined,
-                    notes: notes || undefined,
+                    movement: {
+                        movementType,
+                        quantity: qty,
+                        reorderLevel: rl,
+                        maxStock: ms,
+                        notes: notes || undefined,
+                    },
                 }
             }
         })

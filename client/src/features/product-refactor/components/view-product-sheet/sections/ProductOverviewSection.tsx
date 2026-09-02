@@ -1,16 +1,20 @@
-import { Image, Gift, Barcode, Package, Layers, Tag, Percent } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { useState } from 'react';
+import { Image, Gift, Barcode, Package, Layers, Tag, Percent, ZoomIn } from 'lucide-react';
+import { formatCurrency, cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { getOptimizedImageUrl } from '@/lib/cloudinary';
+import { ProductImageLightboxDialog } from '../ProductImageLightboxDialog';
 import type { IProduct, IProductBundleItem, IProductPricingTier } from '../../../types';
 
 interface ProductOverviewSectionProps {
-    product: Pick<IProduct, 'description' | 'unitPrice' | 'costPrice' | 'regularPrice' | 'productType' | 'margin'> & {
+    product: Pick<IProduct, 'name' | 'sku' | 'imageUrl' | 'description' | 'unitPrice' | 'costPrice' | 'regularPrice' | 'productType' | 'margin'> & {
         bundleItems?: IProductBundleItem[] | null;
         pricingTiers?: IProductPricingTier[] | null;
     };
 }
 
 export function ProductOverviewSection({ product }: ProductOverviewSectionProps) {
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const isBundle = product.productType === 'BUNDLE';
     const hasBundleItems = product.bundleItems && product.bundleItems.length > 0;
     const hasPricingTiers = product.pricingTiers && product.pricingTiers.length > 0;
@@ -25,13 +29,35 @@ export function ProductOverviewSection({ product }: ProductOverviewSectionProps)
     return (
         <section className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-6">
             <div className="flex flex-col sm:flex-row gap-6">
-                <div className="w-full sm:w-36 sm:h-36 h-44 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
-                    {isBundle ? (
+                <div
+                    onClick={() => product.imageUrl && setIsLightboxOpen(true)}
+                    className={cn(
+                        "w-full sm:w-36 sm:h-36 h-44 rounded-xl border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden relative group",
+                        product.imageUrl ? "cursor-pointer bg-slate-50 hover:border-blue-400 shadow-2xs" : "bg-slate-100"
+                    )}
+                    title={product.imageUrl ? "Click to view full size" : undefined}
+                >
+                    {product.imageUrl ? (
+                        <>
+                            <img
+                                src={getOptimizedImageUrl(product.imageUrl, { width: 320, height: 320, crop: 'fill' })}
+                                alt={product.name || 'Product'}
+                                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-semibold backdrop-blur-[2px]">
+                                <ZoomIn className="w-4 h-4" />
+                                <span>View</span>
+                            </div>
+                        </>
+                    ) : isBundle ? (
                         <div className="w-12 h-12 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
                             <Layers className="w-7 h-7" strokeWidth={1.8} />
                         </div>
                     ) : (
-                        <Image className="w-10 h-10 text-slate-400" strokeWidth={1.5} />
+                        <div className="flex flex-col items-center gap-1 text-slate-400">
+                            <Image className="w-8 h-8" strokeWidth={1.5} />
+                            <span className="text-[11px] font-medium">No image</span>
+                        </div>
                     )}
                 </div>
 
@@ -56,7 +82,7 @@ export function ProductOverviewSection({ product }: ProductOverviewSectionProps)
                         {/* Column 1: Selling Price / Bundle Price */}
                         <div className="min-w-0">
                             <p className="text-xs uppercase tracking-wide text-slate-400 font-semibold truncate">
-                                {isBundle ? 'Bundle SRP' : numRegular > numUnit ? 'Discounted SRP' : 'SRP'}
+                                {isBundle ? 'Bundle SRP (VAT-Inc)' : numRegular > numUnit ? 'Discounted SRP (VAT-Inc)' : 'SRP (VAT-Inc)'}
                             </p>
                             <div className="flex flex-wrap items-baseline gap-1.5 mt-1">
                                 <span className="text-xl font-bold text-slate-900 font-mono">
@@ -159,8 +185,17 @@ export function ProductOverviewSection({ product }: ProductOverviewSectionProps)
                                 className="flex items-center justify-between p-3 rounded-xl border border-purple-200/80 bg-purple-50/30 gap-3"
                             >
                                 <div className="flex items-center gap-2.5 min-w-0">
-                                    <div className="w-8 h-8 rounded-lg bg-white border border-purple-200 flex items-center justify-center shrink-0 text-purple-700">
-                                        <Package className="w-4 h-4" />
+                                    <div className="w-9 h-9 rounded-lg bg-white border border-purple-200 flex items-center justify-center shrink-0 text-purple-700 overflow-hidden shadow-2xs">
+                                        {b.product?.imageUrl ? (
+                                            <img
+                                                src={getOptimizedImageUrl(b.product.imageUrl, { width: 72, height: 72, crop: 'fill' })}
+                                                alt={b.product.name}
+                                                className="w-full h-full object-cover"
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <Package className="w-4 h-4" />
+                                        )}
                                     </div>
                                     <div className="flex flex-col min-w-0">
                                         <span className="text-xs font-bold text-slate-900 truncate">
@@ -212,8 +247,17 @@ export function ProductOverviewSection({ product }: ProductOverviewSectionProps)
                                 className="flex items-center justify-between p-3 rounded-xl border border-amber-200/80 bg-amber-50/40 gap-3"
                             >
                                 <div className="flex items-center gap-2.5 min-w-0">
-                                    <div className="w-8 h-8 rounded-lg bg-white border border-amber-200 flex items-center justify-center shrink-0 text-amber-600">
-                                        <Gift className="w-4 h-4" />
+                                    <div className="w-9 h-9 rounded-lg bg-white border border-amber-200 flex items-center justify-center shrink-0 text-amber-600 overflow-hidden shadow-2xs">
+                                        {b.product?.imageUrl ? (
+                                            <img
+                                                src={getOptimizedImageUrl(b.product.imageUrl, { width: 72, height: 72, crop: 'fill' })}
+                                                alt={b.product.name}
+                                                className="w-full h-full object-cover"
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <Gift className="w-4 h-4" />
+                                        )}
                                     </div>
                                     <div className="flex flex-col min-w-0">
                                         <span className="text-xs font-bold text-slate-900 truncate">
@@ -295,6 +339,15 @@ export function ProductOverviewSection({ product }: ProductOverviewSectionProps)
                     </div>
                 </div>
             )}
+
+            <ProductImageLightboxDialog
+                isOpen={isLightboxOpen}
+                onClose={() => setIsLightboxOpen(false)}
+                imageUrl={product.imageUrl}
+                productName={product.name}
+                sku={product.sku}
+                isBundle={isBundle}
+            />
         </section>
     );
 }

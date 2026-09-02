@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 
 import type { ProductCardProps } from "../types";
 import { ProductCardSkeleton } from "../skeleton/ProductCatalogSkeleton";
@@ -29,8 +30,17 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         }`}
     >
       <div className="flex items-center justify-between">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-sm font-semibold text-slate-500">
-          {initials}
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-sm font-semibold text-slate-500 overflow-hidden shrink-0">
+          {product.imageUrl ? (
+            <img
+              src={getOptimizedImageUrl(product.imageUrl, { width: 72, height: 72, crop: 'fill' })}
+              alt={product.name}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            initials
+          )}
         </div>
         {isBundle ? (
           <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">

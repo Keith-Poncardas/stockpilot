@@ -1,24 +1,37 @@
 import type { Row } from '@tanstack/react-table';
 import { Package, Barcode, Layers } from 'lucide-react';
-import type { IProduct } from '../../../../types';
+import { getOptimizedImageUrl } from '@/lib/cloudinary';
 
-interface ProductCellProps {
-    row: Row<IProduct>;
+export interface ProductCellItem {
+    name: string;
+    sku?: string | null;
+    imageUrl?: string | null;
+    productType?: string | null;
 }
 
-export function ProductCell({ row }: ProductCellProps) {
-    const product = row.original;
+export interface ProductCellProps {
+    row?: Row<any>;
+    product?: ProductCellItem | null;
+    className?: string;
+}
+
+export function ProductCell({ row, product: propProduct, className }: ProductCellProps) {
+    const raw = propProduct || row?.original?.product || row?.original;
+    if (!raw) return null;
+
+    const product: ProductCellItem = raw;
     const isBundle = product.productType === 'BUNDLE';
 
     return (
-        <div className="flex items-center gap-3 py-1">
+        <div className={`flex items-center gap-3 py-1 ${className ?? ''}`}>
             {/* Image / Thumbnail Placeholder */}
             <div className="w-10 h-10 rounded-lg border border-slate-200/80 bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs group-hover:border-slate-300 transition-colors">
                 {product.imageUrl ? (
                     <img
-                        src={product.imageUrl}
+                        src={getOptimizedImageUrl(product.imageUrl, { width: 80, height: 80, crop: 'fill' })}
                         alt={product.name}
                         className="w-full h-full object-cover"
+                        loading="lazy"
                     />
                 ) : isBundle ? (
                     <Layers className="w-4.5 h-4.5 text-purple-600" strokeWidth={1.75} />

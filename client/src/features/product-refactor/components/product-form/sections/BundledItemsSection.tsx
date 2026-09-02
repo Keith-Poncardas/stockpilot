@@ -7,6 +7,7 @@ import { VirtualInfiniteList } from '@/components/ui/virtual-infinite-list';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { getOptimizedImageUrl } from '@/lib/cloudinary';
 import { useInfiniteProductSearch } from '../../../hooks/useInfiniteProductSearch';
 import type { ProductFormValues } from '../../../validation';
 import type { IProduct, IProductBundleItem } from '../../../types';
@@ -253,8 +254,17 @@ export function BundledItemsSection({
                                         className="flex items-center justify-between p-2.5 px-3.5 hover:bg-slate-50 cursor-pointer transition-colors border-b border-slate-100 last:border-b-0"
                                     >
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200/80 flex items-center justify-center shrink-0 text-slate-500">
-                                                <Package className="w-4 h-4" />
+                                            <div className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200/80 flex items-center justify-center shrink-0 text-slate-500 overflow-hidden shadow-2xs">
+                                                {p.imageUrl ? (
+                                                    <img
+                                                        src={getOptimizedImageUrl(p.imageUrl, { width: 72, height: 72, crop: 'fill' })}
+                                                        alt={p.name}
+                                                        className="w-full h-full object-cover"
+                                                        loading="lazy"
+                                                    />
+                                                ) : (
+                                                    <Package className="w-4 h-4" />
+                                                )}
                                             </div>
                                             <div className="flex flex-col min-w-0">
                                                 <span className="text-sm font-semibold text-slate-900 truncate">
@@ -337,11 +347,18 @@ export function BundledItemsSection({
                                             <div
                                                 className={
                                                     isBundle
-                                                        ? "w-10 h-10 rounded-lg bg-purple-50 border border-purple-200/80 flex items-center justify-center shrink-0 text-purple-700"
-                                                        : "w-10 h-10 rounded-lg bg-gradient-to-br from-amber-50 to-amber-100/60 border border-amber-200/80 flex items-center justify-center shrink-0 text-amber-600"
+                                                        ? "w-11 h-11 rounded-lg bg-purple-50 border border-purple-200/80 flex items-center justify-center shrink-0 text-purple-700 overflow-hidden shadow-2xs"
+                                                        : "w-11 h-11 rounded-lg bg-gradient-to-br from-amber-50 to-amber-100/60 border border-amber-200/80 flex items-center justify-center shrink-0 text-amber-600 overflow-hidden shadow-2xs"
                                                 }
                                             >
-                                                {isBundle ? (
+                                                {prod?.imageUrl ? (
+                                                    <img
+                                                        src={getOptimizedImageUrl(prod.imageUrl, { width: 88, height: 88, crop: 'fill' })}
+                                                        alt={prod.name}
+                                                        className="w-full h-full object-cover"
+                                                        loading="lazy"
+                                                    />
+                                                ) : isBundle ? (
                                                     <Package className="w-5 h-5" strokeWidth={2} />
                                                 ) : (
                                                     <Gift className="w-5 h-5" strokeWidth={2} />

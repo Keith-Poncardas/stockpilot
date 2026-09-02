@@ -12,5 +12,10 @@ export interface ProductFormProps {
     currentProductId?: string;
     initialBundleItems?: IProductBundleItem[] | null;
     initialPricingTiers?: IProductPricingTier[] | null;
+    stagedFile?: File | null;
+    onFileSelect?: (file: File | null) => void;
+    existingImageUrl?: string | null;
+    onRemoveExisting?: () => void;
+    isRemovedExisting?: boolean;
 }
 

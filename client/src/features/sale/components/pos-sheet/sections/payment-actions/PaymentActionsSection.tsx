@@ -89,13 +89,21 @@ export const PaymentActionsSection = ({
       <div className="rounded-xl bg-slate-50 dark:bg-slate-900/50 p-4 border border-slate-200/80 dark:border-slate-800 space-y-2.5 mt-2">
         <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
           <span>
-            Subtotal · {totalItemsCount}{" "}
+            Subtotal (VAT-Inc) · {totalItemsCount}{" "}
             {totalItemsCount === 1 ? "item" : "items"}
           </span>
           <span className="tabular-nums font-medium text-slate-700 dark:text-slate-300">
             {formatCurrency(subtotal)}
           </span>
         </div>
+
+        {totalDue > 0 && (
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-mono py-1.5 px-3 bg-slate-100/70 dark:bg-slate-800/60 rounded-md border border-slate-200/60 dark:border-slate-700/60">
+            <span>VATable: {formatCurrency(Math.round((totalDue / 1.12) * 100) / 100)}</span>
+            <span className="text-slate-300 dark:text-slate-600">•</span>
+            <span>VAT (12%): {formatCurrency(Math.round((totalDue - Math.round((totalDue / 1.12) * 100) / 100) * 100) / 100)}</span>
+          </div>
+        )}
 
         <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-3">
           <span className="text-base font-semibold text-slate-900 dark:text-slate-100">

@@ -122,6 +122,18 @@ export const baseProductSchemaObject = z.object({
         .max(50, "SKU must not exceed 50 characters")
         .optional()
         .nullable(),
+    imageUrl: z
+        .string()
+        .trim()
+        .url({ message: "Invalid image URL" })
+        .optional()
+        .nullable(),
+    imagePublicId: z
+        .string()
+        .trim()
+        .max(255)
+        .optional()
+        .nullable(),
     status: assignableProductStatusSchema.default(ProductStatus.DRAFT),
 });
 

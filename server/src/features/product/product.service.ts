@@ -1,4 +1,4 @@
-import { prisma } from "@/lib";
+import { prisma, deleteImage } from "@/lib";
 import { buildSearchQuery, createInfiniteScroller, createPaginator, generateSku, throwConflict } from "@/utils";
 import { MovementType, Prisma, SaleStatus } from '@/generated/client.js';
 import { ProductStatus } from "@/enums";
@@ -343,6 +343,8 @@ export class ProductService {
                     name: product.name,
                     sku,
                     description: product.description,
+                    imageUrl: product.imageUrl,
+                    imagePublicId: product.imagePublicId,
                     unitPrice: product.unitPrice,
                     costPrice: product.costPrice,
                     regularPrice: product.regularPrice,
@@ -408,7 +410,7 @@ export class ProductService {
      */
     async editProduct(userId: UUIDInput, input: EditProductInput) {
         const { productId, product, inventory, bundleItems, pricingTiers } = input;
-        await this.ensureProductExist(productId);
+        const existingProduct = await this.ensureProductExist(productId);
 
         if (product.sku) {
             await this.ensureNoDuplication("sku", product.sku, productId);
@@ -416,13 +418,15 @@ export class ProductService {
 
         const { createInventoryInternal } = inventoryService;
 
-        return await prisma.$transaction(async (tx) => {
-            const updatedProduct = await tx.product.update({
+        const updatedProduct = await prisma.$transaction(async (tx) => {
+            const updated = await tx.product.update({
                 where: { id: productId },
                 data: {
                     name: product.name,
                     ...(product.sku && { sku: product.sku }),
                     description: product.description,
+                    ...(product.imageUrl !== undefined && { imageUrl: product.imageUrl }),
+                    ...(product.imagePublicId !== undefined && { imagePublicId: product.imagePublicId }),
                     unitPrice: product.unitPrice,
                     costPrice: product.costPrice,
                     regularPrice: product.regularPrice,
@@ -502,8 +506,21 @@ export class ProductService {
                 }
             }
 
-            return updatedProduct;
+            return updated;
         });
+
+        // Clean up old Cloudinary asset if image was changed or removed
+        if (
+            existingProduct.imagePublicId &&
+            product.imagePublicId !== undefined &&
+            product.imagePublicId !== existingProduct.imagePublicId
+        ) {
+            deleteImage(existingProduct.imagePublicId).catch((err) => {
+                console.error("Failed to delete obsolete Cloudinary asset:", err);
+            });
+        }
+
+        return updatedProduct;
     }
 
     /**

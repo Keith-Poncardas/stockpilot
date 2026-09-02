@@ -59,8 +59,19 @@ export interface IProductPricingTier {
         id: string;
         name: string;
         sku: string;
+        imageUrl?: string | null;
         unitPrice?: number;
     } | null;
+}
+
+export interface ImageUploadResult {
+    url: string;
+    secureUrl: string;
+    publicId: string;
+    format?: string | null;
+    width?: number | null;
+    height?: number | null;
+    bytes?: number | null;
 }
 
 export interface IProduct {
@@ -68,6 +79,7 @@ export interface IProduct {
     sku: string;
     name: string;
     imageUrl?: string | null;
+    imagePublicId?: string | null;
     description?: string | null;
     unitPrice: number;
     costPrice?: number | null;

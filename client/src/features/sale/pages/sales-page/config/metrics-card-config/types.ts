@@ -3,6 +3,7 @@
  */
 export interface ISaleMetrics {
     totalRevenue: number;
+    totalTaxCollected: number;
     totalTransactions: number;
     completedSales: number;
     refundedOrVoidedCount: number;

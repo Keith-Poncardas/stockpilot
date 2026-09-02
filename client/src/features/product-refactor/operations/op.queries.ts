@@ -11,6 +11,8 @@ export const GET_PRODUCT = gql`
       sku
       name
       description
+      imageUrl
+      imagePublicId
       unitPrice
       costPrice
       regularPrice
@@ -36,6 +38,7 @@ export const GET_PRODUCT = gql`
           id
           name
           sku
+          imageUrl
           unitPrice
           costPrice
           status
@@ -57,6 +60,7 @@ export const GET_PRODUCT = gql`
           id
           name
           sku
+          imageUrl
           unitPrice
         }
       }
@@ -98,6 +102,8 @@ export const GET_PRODUCTS = gql`
         sku
         name
         description
+        imageUrl
+        imagePublicId
         unitPrice
         costPrice
         regularPrice
@@ -114,6 +120,7 @@ export const GET_PRODUCTS = gql`
             id
             name
             sku
+            imageUrl
           }
         }
         pricingTiers {
@@ -127,6 +134,7 @@ export const GET_PRODUCTS = gql`
             id
             name
             sku
+            imageUrl
           }
         }
       }
@@ -168,6 +176,8 @@ export const SEARCH_PRODUCTS_INFINITE = gql`
         sku
         name
         description
+        imageUrl
+        imagePublicId
         unitPrice
         costPrice
         regularPrice
@@ -191,6 +201,7 @@ export const SEARCH_PRODUCTS_INFINITE = gql`
             id
             name
             sku
+            imageUrl
             unitPrice
           }
         }
@@ -205,6 +216,7 @@ export const SEARCH_PRODUCTS_INFINITE = gql`
             id
             name
             sku
+            imageUrl
           }
         }
       }

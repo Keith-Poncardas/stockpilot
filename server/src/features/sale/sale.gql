@@ -37,6 +37,11 @@ type Sale {
     userId: ID!
     status: SaleStatus!
     totalAmount: Float!
+    vatableSales: Float!
+    vatAmount: Float!
+    vatExemptSales: Float!
+    zeroRatedSales: Float!
+    taxRate: Float!
     paymentMethod: PaymentMethod
     saleDate: String!
     createdAt: String!
@@ -69,6 +74,7 @@ Key performance indicators and aggregated metrics for sales.
 """
 type SaleMetrics {
     totalRevenue: Float!
+    totalTaxCollected: Float!
     totalTransactions: Int!
     completedSales: Int!
     refundedOrVoidedCount: Int!

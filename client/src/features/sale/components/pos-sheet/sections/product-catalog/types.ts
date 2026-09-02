@@ -4,6 +4,7 @@ export interface PosProductItem {
   id: string;
   sku: string;
   name: string;
+  imageUrl?: string | null;
   unitPrice: number;
   regularPrice?: number | null;
   productType?: string;

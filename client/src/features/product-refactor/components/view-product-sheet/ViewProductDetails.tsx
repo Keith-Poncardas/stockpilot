@@ -124,6 +124,9 @@ export function ViewProductDetails({ productId }: ViewProductDetailsProps) {
                 <>
                     <ProductOverviewSection
                         product={{
+                            name: product.name,
+                            sku: product.sku,
+                            imageUrl: product.imageUrl,
                             description: product.description,
                             unitPrice: product.unitPrice,
                             costPrice: product.costPrice,

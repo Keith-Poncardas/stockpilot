@@ -10,6 +10,7 @@ export interface ISaleBundleItem {
         id: string;
         name: string;
         sku?: string;
+        imageUrl?: string | null;
     } | null;
 }
 
@@ -24,6 +25,7 @@ export interface ISalePricingTier {
         id: string;
         name: string;
         sku?: string;
+        imageUrl?: string | null;
     } | null;
 }
 
@@ -31,6 +33,7 @@ export interface ISaleProduct {
     id: string;
     sku: string;
     name: string;
+    imageUrl?: string | null;
     unitPrice: number;
     regularPrice?: number | null;
     productType?: string;
@@ -62,6 +65,11 @@ export interface ISale {
     userId: string;
     status: SaleStatus;
     totalAmount: number;
+    vatableSales: number;
+    vatAmount: number;
+    vatExemptSales: number;
+    zeroRatedSales: number;
+    taxRate: number;
     paymentMethod: SalePaymentMethod;
     saleDate: string;
     createdAt: string;

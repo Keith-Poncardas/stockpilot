@@ -7,17 +7,40 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { formatCurrency } from '@/lib/utils';
-import type { IProduct } from '../../../../types';
+import { getOptimizedImageUrl } from '@/lib/cloudinary';
 
-interface BundledItemsCellProps {
-    row: Row<IProduct>;
+export interface BundledItemsCellProps {
+    row?: Row<any>;
+    product?: any;
+    quantityMultiplier?: number;
+    className?: string;
 }
 
-export function BundledItemsCell({ row }: BundledItemsCellProps) {
-    const product = row.original;
+export function BundledItemsCell({
+    row,
+    product: propProduct,
+    quantityMultiplier: propMultiplier,
+    className,
+}: BundledItemsCellProps) {
+    const raw = propProduct || row?.original?.product || row?.original;
+    if (!raw) {
+        return (
+            <div className="flex items-center text-slate-300 text-xs font-mono select-none">
+                <span>—</span>
+            </div>
+        );
+    }
+
+    const product = raw;
     const isBundle = product.productType === 'BUNDLE';
-    const bundleItems = product.bundleItems || [];
-    const pricingTiers = product.pricingTiers || [];
+    const bundleItems: any[] = product.bundleItems || [];
+    const pricingTiers: any[] = product.pricingTiers || [];
+
+    const quantityMultiplier =
+        propMultiplier ??
+        (row?.original?.quantity && typeof row.original.quantity === 'number'
+            ? row.original.quantity
+            : 1);
 
     const hasBundles = bundleItems.length > 0;
     const hasTiers = pricingTiers.length > 0;
@@ -32,7 +55,7 @@ export function BundledItemsCell({ row }: BundledItemsCellProps) {
 
     return (
         <TooltipProvider delayDuration={200}>
-            <div className="flex flex-col items-start gap-1 py-1">
+            <div className={`flex flex-col items-start gap-1 py-1 ${className ?? ''}`}>
                 {/* Bundle Component Items */}
                 {isBundle && hasBundles && (
                     <Tooltip>
@@ -57,14 +80,24 @@ export function BundledItemsCell({ row }: BundledItemsCellProps) {
                                         key={b.id}
                                         className="flex items-center justify-between gap-3 text-slate-200 text-[11px] w-full"
                                     >
-                                        <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                            <Package className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                                            <div className="w-5 h-5 rounded bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 overflow-hidden">
+                                                {b.product?.imageUrl ? (
+                                                    <img
+                                                        src={getOptimizedImageUrl(b.product.imageUrl, { width: 40, height: 40, crop: 'fill' })}
+                                                        alt={b.product.name}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <Package className="w-3 h-3 text-slate-400 shrink-0" />
+                                                )}
+                                            </div>
                                             <span className="break-words whitespace-normal leading-snug">
                                                 {b.product?.name || 'Component'}
                                             </span>
                                         </div>
                                         <span className="font-mono text-purple-300 font-bold shrink-0">
-                                            {b.quantity}x
+                                            {b.quantity * (quantityMultiplier > 1 ? quantityMultiplier : 1)}x
                                         </span>
                                     </li>
                                 ))}
@@ -79,7 +112,7 @@ export function BundledItemsCell({ row }: BundledItemsCellProps) {
                         <TooltipTrigger asChild>
                             <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-900 bg-amber-50/90 border border-amber-200/90 px-2 py-0.5 rounded-md cursor-pointer hover:bg-amber-100 transition-colors shadow-2xs truncate max-w-[155px]">
                                 <Gift className="w-3 h-3 text-amber-600 shrink-0" />
-                                <span className="font-bold text-amber-700">{bundleItems[0].quantity}x</span>
+                                <span className="font-bold text-amber-700">{bundleItems[0].quantity * (quantityMultiplier > 1 ? quantityMultiplier : 1)}x</span>
                                 <span className="truncate">{bundleItems[0].product?.name || 'Free Item'}</span>
                                 {bundleItems.length > 1 && (
                                     <span className="text-[10px] font-bold text-amber-800 bg-amber-200/80 px-1 rounded">
@@ -103,14 +136,24 @@ export function BundledItemsCell({ row }: BundledItemsCellProps) {
                                         key={b.id}
                                         className="flex items-center justify-between gap-3 text-slate-200 text-[11px] w-full"
                                     >
-                                        <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                            <Package className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                                            <div className="w-5 h-5 rounded bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 overflow-hidden">
+                                                {b.product?.imageUrl ? (
+                                                    <img
+                                                        src={getOptimizedImageUrl(b.product.imageUrl, { width: 40, height: 40, crop: 'fill' })}
+                                                        alt={b.product.name}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <Gift className="w-3 h-3 text-amber-400 shrink-0" />
+                                                )}
+                                            </div>
                                             <span className="break-words whitespace-normal leading-snug">
                                                 {b.product?.name || 'Free Item'}
                                             </span>
                                         </div>
                                         <span className="font-mono text-amber-300 font-bold shrink-0">
-                                            {b.quantity}x
+                                            {b.quantity * (quantityMultiplier > 1 ? quantityMultiplier : 1)}x
                                         </span>
                                     </li>
                                 ))}

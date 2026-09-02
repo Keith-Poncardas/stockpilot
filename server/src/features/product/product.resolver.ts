@@ -22,7 +22,7 @@ import {
 } from "./types";
 import { GraphQLContext } from "@/types";
 import { Product } from '@/generated/client.js';
-import { prisma } from "@/lib";
+import { prisma, uploadImageStream, deleteImage } from "@/lib";
 import { stockMovementsService } from "../stockMovements";
 import { inventoryService } from "../inventory";
 import { resolveStockStatus } from "../inventory/inv.utils";
@@ -226,6 +226,36 @@ export const productResolver = {
         )(async (_: unknown, { input }: { input: ChangeProductStatusInput }) => {
             return productService.changeStatus(input);
         }),
+
+        /**
+         * Streams a binary image upload directly to Cloudinary with automatic optimization.
+         */
+        uploadProductImage: async (_: unknown, { file }: { file: Promise<any> }) => {
+            const upload = await file;
+            if (!upload || !upload.createReadStream) {
+                throw new Error("Invalid file upload payload");
+            }
+
+            const { createReadStream, mimetype } = upload;
+
+            const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+            if (!allowedMimeTypes.includes(mimetype)) {
+                throw new Error("Invalid image format. Allowed formats: JPG, PNG, WEBP, AVIF");
+            }
+
+            const stream = createReadStream();
+            return await uploadImageStream(stream, {
+                folder: "stockpilot/products",
+            });
+        },
+
+        /**
+         * Deletes an image from Cloudinary by its public ID.
+         */
+        deleteProductImage: async (_: unknown, { publicId }: { publicId: string }) => {
+            if (!publicId) return false;
+            return await deleteImage(publicId);
+        },
 
     }),
 

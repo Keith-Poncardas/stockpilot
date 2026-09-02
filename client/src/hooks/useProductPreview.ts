@@ -72,15 +72,15 @@ export function useFetchedProductPreview(productId: string) {
         skip: !productId,
     });
 
-    const productInfo = data?.getProduct?.productInfo;
-    const inventoryStatus = data?.getProduct?.inventoryStatus;
+    const product = data?.getProduct;
+    const inventory = product?.inventory;
 
-    const displayName = productInfo?.name || 'Select a product';
-    const displaySku = productInfo?.sku ? `SKU — ${productInfo.sku}` : 'SKU —';
-    const displayStatus = productInfo ? (STATUS_LABELS[productInfo.status ?? 'DRAFT'] ?? 'Draft') : '';
-    const statusColorClass = productInfo ? (STATUS_COLORS[productInfo.status ?? 'DRAFT'] ?? STATUS_COLORS.DRAFT) : '';
+    const displayName = product?.name || 'Select a product';
+    const displaySku = product?.sku ? `SKU — ${product.sku}` : 'SKU —';
+    const displayStatus = product ? (STATUS_LABELS[product.status ?? 'DRAFT'] ?? 'Draft') : '';
+    const statusColorClass = product ? (STATUS_COLORS[product.status ?? 'DRAFT'] ?? STATUS_COLORS.DRAFT) : '';
 
-    const rawPrice = productInfo?.unitPrice;
+    const rawPrice = product?.unitPrice;
     const displayPrice = rawPrice != null
         ? new Intl.NumberFormat('en-PH', {
             minimumFractionDigits: 2,
@@ -88,10 +88,10 @@ export function useFetchedProductPreview(productId: string) {
         }).format(rawPrice)
         : '0.00';
 
-    const displayQty = inventoryStatus?.quantityOnHand != null ? `${inventoryStatus.quantityOnHand} units` : '-';
-    const displayReorder = inventoryStatus?.reorderLevel != null ? `${inventoryStatus.reorderLevel} units` : '-';
+    const displayQty = inventory?.quantityOnHand != null ? `${inventory.quantityOnHand} units` : '-';
+    const displayReorder = inventory?.reorderLevel != null ? `${inventory.reorderLevel} units` : '-';
 
-    const barcodeValue = productInfo?.sku || 'SKU-PREVIEW';
+    const barcodeValue = product?.sku || 'SKU-PREVIEW';
 
     return {
         displayName,

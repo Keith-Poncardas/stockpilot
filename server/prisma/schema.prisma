@@ -128,6 +128,8 @@ model Product {
     sku          String        @unique @db.VarChar
     name         String        @db.VarChar
     description  String?       @db.Text
+    imageUrl     String?       @map("image_url") @db.VarChar
+    imagePublicId String?      @map("image_public_id") @db.VarChar
     unitPrice    Decimal       @map("unit_price") @db.Decimal(10, 2)
     costPrice    Decimal?      @map("cost_price") @db.Decimal(10, 2)
     regularPrice Decimal?      @map("regular_price") @db.Decimal(10, 2)
@@ -194,8 +196,13 @@ model Sale {
     customerId    String?        @map("customer_id") @db.Uuid
     userId        String         @map("user_id") @db.Uuid
     status        SaleStatus     @default(COMPLETED)
-    totalAmount   Decimal        @map("total_amount") @db.Decimal(10, 2)
-    paymentMethod PaymentMethod? @map("payment_method")
+    totalAmount    Decimal        @map("total_amount") @db.Decimal(10, 2)
+    vatableSales   Decimal        @default(0) @map("vatable_sales") @db.Decimal(10, 2)
+    vatAmount      Decimal        @default(0) @map("vat_amount") @db.Decimal(10, 2)
+    vatExemptSales Decimal        @default(0) @map("vat_exempt_sales") @db.Decimal(10, 2)
+    zeroRatedSales Decimal        @default(0) @map("zero_rated_sales") @db.Decimal(10, 2)
+    taxRate        Decimal        @default(0.12) @map("tax_rate") @db.Decimal(4, 2)
+    paymentMethod  PaymentMethod? @map("payment_method")
     saleDate      DateTime       @default(now()) @map("sale_date") @db.Timestamp(6)
     createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
     updatedAt     DateTime       @updatedAt @map("updated_at") @db.Timestamp(6)

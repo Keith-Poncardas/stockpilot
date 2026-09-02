@@ -24,7 +24,7 @@ export function ProductSearchSection({ control }: ProductSearchSectionProps) {
     const debouncedSearch = useDebounce(searchTerm, 300);
 
     const [fetchProduct, { data: productData, loading: productLoading }] = useLazyQuery(GET_PRODUCT);
-    const product = productData?.getProduct?.productInfo;
+    const product = productData?.getProduct;
 
     const { items, loading, isFetchingMore, hasNextPage, loadMore } =
         useInfiniteProductSearch(debouncedSearch);

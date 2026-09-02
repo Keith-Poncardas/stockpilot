@@ -82,6 +82,8 @@ type Product {
   sku: String!
   name: String!
   description: String
+  imageUrl: String
+  imagePublicId: String
   unitPrice: Float!
   costPrice: Float
   regularPrice: Float
@@ -167,6 +169,8 @@ input BaseProductMutationInput {
   name: String!
   description: String
   sku: String
+  imageUrl: String
+  imagePublicId: String
   unitPrice: Float!
   costPrice: Float
   regularPrice: Float
@@ -231,6 +235,19 @@ input SearchProductsInfiniteInput {
   limit: Int
 }
 
+"""
+Result of uploading an image to Cloudinary.
+"""
+type ImageUploadResult {
+  url: String!
+  secureUrl: String!
+  publicId: String!
+  format: String
+  width: Int
+  height: Int
+  bytes: Int
+}
+
 type Query {
   getProduct(productId: ID!): Product!
   getProducts(args: PaginatedProductsInput!): PaginatedProducts!
@@ -243,4 +260,6 @@ type Mutation {
   createProduct(input: CreateProductInput!): Product!
   editProduct(input: EditProductInput!): Product!
   changeProductStatus(input: ChangeProductStatusInput!): Product!
+  uploadProductImage(file: Upload!): ImageUploadResult!
+  deleteProductImage(publicId: String!): Boolean!
 }

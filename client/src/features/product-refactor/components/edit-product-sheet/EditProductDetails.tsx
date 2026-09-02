@@ -10,7 +10,7 @@ import Alert from '@/components/ui/alert';
 import { EmptyState } from '@/components/ui/empty-state';
 import { handleGraphQLError } from '@/lib/utils';
 
-import { EDIT_PRODUCT, GET_PRODUCT } from '../../operations';
+import { EDIT_PRODUCT, GET_PRODUCT, UPLOAD_PRODUCT_IMAGE } from '../../operations';
 import { productSchema, type ProductFormValues } from '../../validation';
 import type { IProduct } from '../../types';
 import { ProductForm } from '../product-form';
@@ -28,6 +28,11 @@ interface EditProductFormProps {
 
 function EditProductForm({ productId, product, onClose }: EditProductFormProps) {
     const [error, setError] = useState<string | null>(null);
+    const [stagedFile, setStagedFile] = useState<File | null>(null);
+    const [isRemovedExisting, setIsRemovedExisting] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
+
+    const [uploadProductImage] = useMutation(UPLOAD_PRODUCT_IMAGE);
 
     const [editProduct, { loading: updatingProduct }] = useMutation(EDIT_PRODUCT, {
         refetchQueries: ['GetProducts', 'GetProduct', 'GetProductMetrics', 'GetTotalProductsCount'],
@@ -49,18 +54,18 @@ function EditProductForm({ productId, product, onClose }: EditProductFormProps) 
             maxStock: product.inventory?.maxStock ?? 100,
             bundleItems: product.bundleItems
                 ? product.bundleItems.map((b) => ({
-                      productId: b.bundledProductId || b.product?.id,
-                      quantity: b.quantity,
-                  }))
+                    productId: b.bundledProductId || b.product?.id,
+                    quantity: b.quantity,
+                }))
                 : [],
             pricingTiers: product.pricingTiers
                 ? product.pricingTiers.map((t) => ({
-                      minQuantity: t.minQuantity,
-                      maxQuantity: t.maxQuantity,
-                      tierPrice: t.tierPrice,
-                      freeProductId: t.freeProductId,
-                      freeQuantity: t.freeQuantity,
-                  }))
+                    minQuantity: t.minQuantity,
+                    maxQuantity: t.maxQuantity,
+                    tierPrice: t.tierPrice,
+                    freeProductId: t.freeProductId,
+                    freeQuantity: t.freeQuantity,
+                }))
                 : [],
         };
     }, [product]);
@@ -78,6 +83,32 @@ function EditProductForm({ productId, product, onClose }: EditProductFormProps) 
     const onSubmit = async (formData: ProductFormValues) => {
         setError(null);
 
+        let imageUrl: string | undefined | null = undefined;
+        let imagePublicId: string | undefined | null = undefined;
+
+        if (stagedFile) {
+            try {
+                setUploadingImage(true);
+                const uploadRes = await uploadProductImage({
+                    variables: { file: stagedFile },
+                });
+                if (uploadRes.data?.uploadProductImage) {
+                    imageUrl = uploadRes.data.uploadProductImage.secureUrl;
+                    imagePublicId = uploadRes.data.uploadProductImage.publicId;
+                }
+            } catch (uploadErr) {
+                console.error('Failed to upload product image to Cloudinary:', uploadErr);
+                setError(handleGraphQLError(uploadErr));
+                setUploadingImage(false);
+                return;
+            } finally {
+                setUploadingImage(false);
+            }
+        } else if (isRemovedExisting) {
+            imageUrl = null;
+            imagePublicId = null;
+        }
+
         const input = {
             productId,
             product: {
@@ -86,6 +117,8 @@ function EditProductForm({ productId, product, onClose }: EditProductFormProps) 
                 productType: formData.productType || 'SIMPLE',
                 status: formData.status,
                 description: formData.description ? formData.description.trim() : undefined,
+                ...(imageUrl !== undefined && { imageUrl }),
+                ...(imagePublicId !== undefined && { imagePublicId }),
                 unitPrice: formData.unitPrice,
                 costPrice: formData.costPrice,
                 regularPrice: formData.regularPrice,
@@ -118,7 +151,9 @@ function EditProductForm({ productId, product, onClose }: EditProductFormProps) 
         }
     };
 
-    const isSubmitDisabled = updatingProduct || !isDirty;
+    const isImageDirty = Boolean(stagedFile) || isRemovedExisting;
+    const isBusy = updatingProduct || uploadingImage;
+    const isSubmitDisabled = isBusy || (!isDirty && !isImageDirty);
 
     return (
         <div className="flex flex-col min-h-0 h-full">
@@ -136,6 +171,17 @@ function EditProductForm({ productId, product, onClose }: EditProductFormProps) 
                         currentProductId={productId}
                         initialBundleItems={product.bundleItems}
                         initialPricingTiers={product.pricingTiers}
+                        stagedFile={stagedFile}
+                        onFileSelect={(file) => {
+                            setStagedFile(file);
+                            if (file) setIsRemovedExisting(false);
+                        }}
+                        existingImageUrl={product.imageUrl}
+                        onRemoveExisting={() => {
+                            setStagedFile(null);
+                            setIsRemovedExisting(true);
+                        }}
+                        isRemovedExisting={isRemovedExisting}
                     />
                 </div>
             </div>
@@ -146,18 +192,18 @@ function EditProductForm({ productId, product, onClose }: EditProductFormProps) 
                     variant="outline"
                     className="h-11 px-6 text-sm font-semibold"
                     onClick={onClose}
-                    disabled={updatingProduct}
+                    disabled={isBusy}
                 >
                     Cancel
                 </Button>
                 <ButtonLoading
                     type="submit"
                     form="edit-product-form"
-                    loading={updatingProduct}
+                    loading={isBusy}
                     disabled={isSubmitDisabled}
                     className="h-11 flex-1 text-sm font-semibold"
                 >
-                    Update product
+                    {uploadingImage ? 'Uploading image...' : 'Update product'}
                 </ButtonLoading>
             </div>
         </div>

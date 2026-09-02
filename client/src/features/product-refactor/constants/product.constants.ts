@@ -70,6 +70,7 @@ export const DEFAULT_PRODUCT_FORM_VALUES = {
     unitPrice: '' as unknown as number,
     costPrice: '' as unknown as number,
     regularPrice: '' as unknown as number,
+    trackInventory: false,
     quantityOnHand: '' as unknown as number,
     reorderLevel: '' as unknown as number,
     maxStock: '' as unknown as number,

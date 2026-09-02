@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@as-integrations/express4";
+import { graphqlUploadExpress } from "graphql-upload-ts";
 import { resolvers, typeDefs } from "@/graphql";
 import { createContext } from "@/context";
 
@@ -37,6 +38,16 @@ async function bootstrap() {
             origin: process.env.CORS_ORIGIN || "http://localhost:5173",
             credentials: true,
         }),
+    );
+
+    /**
+     * GraphQL multipart file upload middleware
+     */
+    app.use(
+        graphqlUploadExpress({
+            maxFileSize: 10 * 1024 * 1024,
+            maxFiles: 1,
+        })
     );
 
     /**

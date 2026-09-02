@@ -79,14 +79,16 @@ export const ensureSufficientStock = (
     status: SaleStatus
 ) => {
     if (status === SaleStatus.COMPLETED || status === SaleStatus.PENDING) {
-        const quantityOnHand = product.inventory?.quantityOnHand ?? 0;
-        const quantityReserved = product.inventory?.quantityReserved ?? 0;
-        const available = quantityOnHand - quantityReserved;
+        if (product.inventory) {
+            const quantityOnHand = product.inventory.quantityOnHand ?? 0;
+            const quantityReserved = product.inventory.quantityReserved ?? 0;
+            const available = quantityOnHand - quantityReserved;
 
-        if (item.quantity > available) {
-            throwConflict(
-                `Insufficient stock for "${product.name}".`
-            );
+            if (item.quantity > available) {
+                throwConflict(
+                    `Insufficient stock for "${product.name}". Required: ${item.quantity}, Available: ${available}`
+                );
+            }
         }
     }
 };

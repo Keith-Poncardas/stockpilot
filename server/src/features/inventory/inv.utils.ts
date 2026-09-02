@@ -37,10 +37,13 @@ export function mapInventoriesWithStatus<T extends { quantityOnHand: number; reo
  * @param quantity The quantity involved in the movement.
  * @returns Prisma update operation object.
  */
-export function calculateQuantityUpdate(movementType: MovementType, quantity: number) {
-    return {
-        ...(movementType === MovementType.IN && { increment: quantity }),
-        ...(movementType === MovementType.OUT && { decrement: quantity }),
-        ...(movementType === MovementType.ADJUSTMENT && { set: quantity }),
-    };
+export function calculateQuantityUpdate(movementType: MovementType | string, quantity: number) {
+    const type = String(movementType).toUpperCase();
+    if (type === "IN") {
+        return { increment: quantity };
+    }
+    if (type === "OUT") {
+        return { decrement: quantity };
+    }
+    return { set: quantity };
 }

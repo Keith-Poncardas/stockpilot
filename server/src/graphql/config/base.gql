@@ -1,3 +1,5 @@
+# Global upload scalar
+scalar Upload
 
 # Pagination metadata (shared across all paginated features)
 type Pagination {

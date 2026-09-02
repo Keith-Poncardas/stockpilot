@@ -1,5 +1,6 @@
 import {
     BasicDetailsSection,
+    ProductImageSection,
     PricingSection,
     InventorySetupSection,
     BundledItemsSection,
@@ -17,10 +18,22 @@ export function ProductForm({
     currentProductId,
     initialBundleItems,
     initialPricingTiers,
+    stagedFile = null,
+    onFileSelect = () => {},
+    existingImageUrl,
+    onRemoveExisting,
+    isRemovedExisting = false,
 }: ProductFormProps) {
     return (
         <form id={id} onSubmit={onSubmit} className="flex flex-col gap-6">
             <BasicDetailsSection control={control} isEditMode={isEditMode} />
+            <ProductImageSection
+                stagedFile={stagedFile}
+                onFileSelect={onFileSelect}
+                existingImageUrl={existingImageUrl}
+                onRemoveExisting={onRemoveExisting}
+                isRemovedExisting={isRemovedExisting}
+            />
             <PricingSection control={control} />
             <PricingTiersSection
                 control={control}
@@ -42,6 +55,7 @@ ProductForm.Skeleton = function ProductFormSkeleton({ showInventorySetup = true 
     return (
         <div className="flex flex-col gap-6">
             <BasicDetailsSection.Skeleton />
+            <ProductImageSection.Skeleton />
             <PricingSection.Skeleton />
             <PricingTiersSection.Skeleton />
             <BundledItemsSection.Skeleton />

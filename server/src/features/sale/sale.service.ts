@@ -41,6 +41,7 @@ import { inventoryService } from "../inventory";
 import { stockMovementsService } from "../stockMovements";
 import { SaleItemData } from "./types";
 import { SalesOverviewPeriod } from "./constants";
+import { calculateVatInclusiveBreakdown } from "./tax.utils";
 
 export class SaleService {
 
@@ -105,12 +106,23 @@ export class SaleService {
 
         const agg = await this.aggregateSale({
             where: { status: SaleStatus.COMPLETED },
-            _sum: { totalAmount: true },
+            _sum: { totalAmount: true, vatAmount: true, vatableSales: true },
             _count: { id: true },
         });
 
+        const grossSales = Number(agg._sum.totalAmount ?? 0);
+        const totalTaxCollected = Number(agg._sum.vatAmount) > 0
+            ? Number(agg._sum.vatAmount)
+            : Math.round((grossSales - (grossSales / 1.12)) * 100) / 100;
+
+        // Total Revenue is Net of Tax (Gross Sales minus Tax Collected)
+        const totalRevenue = Number(agg._sum.vatableSales) > 0
+            ? Number(agg._sum.vatableSales)
+            : Math.round((grossSales - totalTaxCollected) * 100) / 100;
+
         return {
-            totalRevenue: Number(agg._sum.totalAmount ?? 0),
+            totalRevenue,
+            totalTaxCollected,
             completedSales: agg._count.id,
         }
 
@@ -823,10 +835,11 @@ export class SaleService {
             this.saleCount({ status })
         ]);
 
-        const { totalRevenue, completedSales } = revenueAgg;
+        const { totalRevenue, totalTaxCollected, completedSales } = revenueAgg;
 
         return {
             totalRevenue,
+            totalTaxCollected,
             completedSales,
             totalTransactions,
             refundedOrVoidedCount
@@ -941,6 +954,8 @@ export class SaleService {
         await this.ensureSaleItemProductExist(items, status);
 
         const totalAmount = calculateTotalAmount(items);
+        const { vatableSales, vatAmount, vatExemptSales, zeroRatedSales, taxRate } =
+            calculateVatInclusiveBreakdown(totalAmount);
         const customerId = customerIdUnsafe ?? null;
         const saleItems = { create: formatSaleItems(items) };
 
@@ -953,6 +968,11 @@ export class SaleService {
                     paymentMethod,
                     status,
                     totalAmount,
+                    vatableSales,
+                    vatAmount,
+                    vatExemptSales,
+                    zeroRatedSales,
+                    taxRate,
                     saleItems,
                 },
             });

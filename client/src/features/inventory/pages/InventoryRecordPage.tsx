@@ -68,9 +68,11 @@ export function InventoryRecordPage() {
                 variables: {
                     input: {
                         productId: data.productId,
-                        quantityOnHand: data.quantityOnHand,
-                        reorderLevel: data.reorderLevel,
-                        maxStock: data.maxStock,
+                        inventory: {
+                            quantityOnHand: data.quantityOnHand,
+                            reorderLevel: data.reorderLevel,
+                            maxStock: data.maxStock,
+                        },
                     },
                 },
             });

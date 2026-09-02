@@ -16,6 +16,7 @@ import {
     CreateSaleInput,
     PaginatedSalesInput
 } from "./types";
+import { calculateVatInclusiveBreakdown } from "./tax.utils";
 import { Sale, ProductStatus } from '@/generated/client.js';
 import { customerService } from "../customer";
 import { userService } from "../user";
@@ -121,6 +122,24 @@ export const saleResolver = {
         itemsCount: async (sale: Sale) => {
             return saleService.saleItemCount({ saleId: sale.id });
         },
+
+        vatableSales: (sale: any) => {
+            if (sale.vatableSales != null && Number(sale.vatableSales) > 0) {
+                return Number(sale.vatableSales);
+            }
+            return calculateVatInclusiveBreakdown(Number(sale.totalAmount)).vatableSales;
+        },
+
+        vatAmount: (sale: any) => {
+            if (sale.vatAmount != null && Number(sale.vatAmount) > 0) {
+                return Number(sale.vatAmount);
+            }
+            return calculateVatInclusiveBreakdown(Number(sale.totalAmount)).vatAmount;
+        },
+
+        vatExemptSales: (sale: any) => Number(sale.vatExemptSales ?? 0),
+        zeroRatedSales: (sale: any) => Number(sale.zeroRatedSales ?? 0),
+        taxRate: (sale: any) => Number(sale.taxRate ?? 0.12),
 
     }),
 

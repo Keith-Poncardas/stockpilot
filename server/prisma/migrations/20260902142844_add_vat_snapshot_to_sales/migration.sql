@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "sales" ADD COLUMN     "tax_rate" DECIMAL(4,2) NOT NULL DEFAULT 0.12,
+ADD COLUMN     "vat_amount" DECIMAL(10,2) NOT NULL DEFAULT 0,
+ADD COLUMN     "vat_exempt_sales" DECIMAL(10,2) NOT NULL DEFAULT 0,
+ADD COLUMN     "vatable_sales" DECIMAL(10,2) NOT NULL DEFAULT 0,
+ADD COLUMN     "zero_rated_sales" DECIMAL(10,2) NOT NULL DEFAULT 0;

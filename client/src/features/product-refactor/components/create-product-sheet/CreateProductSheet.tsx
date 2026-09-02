@@ -10,7 +10,7 @@ import { Button, ButtonLoading } from '@/components/ui/button';
 import Alert from '@/components/ui/alert';
 import { handleGraphQLError } from '@/lib/utils';
 
-import { CREATE_PRODUCT } from '../../operations';
+import { CREATE_PRODUCT, UPLOAD_PRODUCT_IMAGE } from '../../operations';
 import { productSchema, type ProductFormValues } from '../../validation';
 import { DEFAULT_PRODUCT_FORM_VALUES } from '../../constants';
 import { useCreateProductSheet } from './hooks';
@@ -19,8 +19,12 @@ import { ProductForm } from '../product-form';
 export function CreateProductSheet() {
     const { isOpen, onClose } = useCreateProductSheet();
     const [error, setError] = useState<string | null>(null);
+    const [stagedFile, setStagedFile] = useState<File | null>(null);
+    const [uploadingImage, setUploadingImage] = useState(false);
 
-    const [createProduct, { loading }] = useMutation(CREATE_PRODUCT, {
+    const [uploadProductImage] = useMutation(UPLOAD_PRODUCT_IMAGE);
+
+    const [createProduct, { loading: creatingProduct }] = useMutation(CREATE_PRODUCT, {
         refetchQueries: ['GetProducts', 'GetProductMetrics', 'GetTotalProductsCount'],
         awaitRefetchQueries: true,
         onCompleted: () => {
@@ -42,12 +46,36 @@ export function CreateProductSheet() {
 
     const handleCancel = () => {
         reset(DEFAULT_PRODUCT_FORM_VALUES);
+        setStagedFile(null);
         setError(null);
         onClose();
     };
 
     const onSubmit = async (data: ProductFormValues) => {
         setError(null);
+
+        let imageUrl: string | undefined = undefined;
+        let imagePublicId: string | undefined = undefined;
+
+        if (stagedFile) {
+            try {
+                setUploadingImage(true);
+                const uploadRes = await uploadProductImage({
+                    variables: { file: stagedFile },
+                });
+                if (uploadRes.data?.uploadProductImage) {
+                    imageUrl = uploadRes.data.uploadProductImage.secureUrl;
+                    imagePublicId = uploadRes.data.uploadProductImage.publicId;
+                }
+            } catch (uploadErr) {
+                console.error('Failed to upload product image to Cloudinary:', uploadErr);
+                setError(handleGraphQLError(uploadErr));
+                setUploadingImage(false);
+                return;
+            } finally {
+                setUploadingImage(false);
+            }
+        }
 
         const input = {
             product: {
@@ -56,18 +84,19 @@ export function CreateProductSheet() {
                 productType: data.productType || 'SIMPLE',
                 status: data.status,
                 description: data.description ? data.description.trim() : undefined,
+                imageUrl,
+                imagePublicId,
                 unitPrice: data.unitPrice,
                 costPrice: data.costPrice,
                 regularPrice: data.regularPrice,
             },
-            inventory:
-                data.productType === 'BUNDLE' && !data.quantityOnHand
-                    ? undefined
-                    : {
-                        quantityOnHand: data.quantityOnHand || 0,
-                        reorderLevel: data.reorderLevel ?? 10,
-                        maxStock: data.maxStock ?? 100,
-                    },
+            inventory: data.trackInventory
+                ? {
+                    quantityOnHand: Number(data.quantityOnHand) || 0,
+                    reorderLevel: data.reorderLevel !== undefined && data.reorderLevel !== null ? Number(data.reorderLevel) : 10,
+                    maxStock: data.maxStock !== undefined && data.maxStock !== null ? Number(data.maxStock) : 100,
+                }
+                : undefined,
             bundleItems:
                 data.bundleItems && data.bundleItems.length > 0
                     ? data.bundleItems.map((b) => ({
@@ -95,7 +124,8 @@ export function CreateProductSheet() {
         }
     };
 
-    const isSubmitDisabled = loading || !isDirty;
+    const isBusy = creatingProduct || uploadingImage;
+    const isSubmitDisabled = isBusy || (!isDirty && !stagedFile);
 
     return (
         <BaseSheetLayout
@@ -111,20 +141,20 @@ export function CreateProductSheet() {
                     <Button
                         type="button"
                         variant="outline"
-                        className="h-11 px-6 text-sm font-semibold"
                         onClick={handleCancel}
-                        disabled={loading}
+                        disabled={isBusy}
+                        className="h-11 px-5 text-sm font-medium"
                     >
                         Cancel
                     </Button>
                     <ButtonLoading
                         type="submit"
                         form="create-product-form"
-                        loading={loading}
+                        loading={isBusy}
                         disabled={isSubmitDisabled}
                         className="h-11 flex-1 text-sm font-semibold"
                     >
-                        Save product
+                        {uploadingImage ? 'Uploading image...' : 'Save product'}
                     </ButtonLoading>
                 </>
             }
@@ -140,6 +170,8 @@ export function CreateProductSheet() {
                         onSubmit={handleSubmit(onSubmit)}
                         isEditMode={false}
                         showInventorySetup={true}
+                        stagedFile={stagedFile}
+                        onFileSelect={setStagedFile}
                     />
                 </div>
             </div>

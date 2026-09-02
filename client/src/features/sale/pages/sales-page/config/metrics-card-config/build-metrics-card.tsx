@@ -1,4 +1,4 @@
-import { TrendingUp, ShoppingCart, BarChart2, RefreshCcw } from 'lucide-react';
+import { TrendingUp, ShoppingCart, BarChart2, RefreshCcw, Coins } from 'lucide-react';
 import type { GridMetricItem } from '@/components';
 import type { IGetSalesMetricsResponse, ISaleMetrics } from './types';
 
@@ -14,19 +14,27 @@ export const buildMetricsCards = (
 
     const {
         totalRevenue,
+        totalTaxCollected,
         totalTransactions,
         completedSales,
         refundedOrVoidedCount
     } = metrics as Partial<ISaleMetrics>;
 
-    const formattedCurrency = totalRevenue !== undefined ? formatCurrency(totalRevenue) : undefined;
+    const formattedRevenue = totalRevenue !== undefined ? formatCurrency(totalRevenue) : undefined;
+    const formattedTax = totalTaxCollected !== undefined ? formatCurrency(totalTaxCollected) : undefined;
 
     return [
         {
-            value: formattedCurrency,
-            label: 'Total Revenue',
+            value: formattedRevenue,
+            label: 'Total Revenue (Net)',
             icon: TrendingUp,
             iconContainerClass: 'bg-emerald-50 text-emerald-600'
+        },
+        {
+            value: formattedTax,
+            label: 'Total Tax Collected (12%)',
+            icon: Coins,
+            iconContainerClass: 'bg-indigo-50 text-indigo-600'
         },
         {
             value: totalTransactions,

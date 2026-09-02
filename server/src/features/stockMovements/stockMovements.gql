@@ -78,10 +78,10 @@ input PaginatedStockMovementsInput {
 
 # Input for stock movement
 input StockMovementInput {
-  movementType: MovementType
+  movementType: MovementType!
   quantity: Int!
-  reorderLevel: Int!
-  maxStock: Int!
+  reorderLevel: Int
+  maxStock: Int
   reason: MovementReason
   notes: String
 }
