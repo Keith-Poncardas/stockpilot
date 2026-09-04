@@ -76,7 +76,6 @@ export function InventoryPage() {
                 }
             />
 
-            {/* ── Metric Cards ─────────────────────────────────────────────── */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <MetricCard
                     value={statuses?.wellStocked !== undefined ? statuses.wellStocked.toLocaleString() : '—'}
@@ -98,7 +97,6 @@ export function InventoryPage() {
                 />
             </div>
 
-            {/* ── Toolbar ──────────────────────────────────────────────────── */}
             <DataTableToolbar
                 searchQuery={globalFilter}
                 setSearchQuery={setGlobalFilter}
@@ -118,6 +116,8 @@ export function InventoryPage() {
                             value={stockStatusFilter}
                             onChange={setStockStatusFilter}
                             options={inventoryToolbarConfig.stockStatusOptions}
+                            defaultValue="ALL"
+                            placeholder="All Statuses"
                             className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200 col-span-2"
                         />
                         <SelectFilter
@@ -125,6 +125,7 @@ export function InventoryPage() {
                             onChange={(val) => setOrderByFilter(val as import('@/features/inventory/types').InventoryOrderBy)}
                             options={inventoryToolbarConfig.orderByOptions}
                             defaultValue="updatedAt"
+                            placeholder="Last Updated"
                             className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
                         />
                         <SelectFilter
@@ -132,6 +133,7 @@ export function InventoryPage() {
                             onChange={setOrderDirectionFilter}
                             options={inventoryToolbarConfig.orderDirectionOptions}
                             defaultValue="desc"
+                            placeholder="Latest / Highest first"
                             className="w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
                         />
                     </div>
@@ -172,7 +174,6 @@ export function InventoryPage() {
                 </FilterPopover>
             </DataTableToolbar>
 
-            {/* ── Data Table ───────────────────────────────────────────────── */}
             <DataTableLayout
                 table={table}
                 isLoading={loading}

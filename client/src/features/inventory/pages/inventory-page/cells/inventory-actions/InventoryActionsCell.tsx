@@ -1,16 +1,14 @@
 import { ActionCell } from '@/components/ui/action-cell';
 import { PopoverClose } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Eye, SlidersHorizontal, BellRing } from 'lucide-react';
+import { SlidersHorizontal, BellRing } from 'lucide-react';
 import type { InventoryRowProps } from '@/features/inventory/types';
 import { useCallback } from 'react';
 import { useAdjustStockSheet, useReorderLevelSheet } from '@/features/inventory/components';
-import { useViewProductSheet } from '@/features/product';
 
 export function InventoryActionsCell({ row }: InventoryRowProps) {
     const { onOpen: openAdjustSheet } = useAdjustStockSheet();
     const { onOpen: openReorderSheet } = useReorderLevelSheet();
-    const { onOpen: openViewProductSheet } = useViewProductSheet();
 
     const handleAdjustClick = useCallback(() => {
         openAdjustSheet(row.original.id);
@@ -19,10 +17,6 @@ export function InventoryActionsCell({ row }: InventoryRowProps) {
     const handleReorderClick = useCallback(() => {
         openReorderSheet(row.original.id);
     }, [openReorderSheet, row.original.id]);
-
-    const handleViewProductClick = useCallback(() => {
-        openViewProductSheet(row.original.product.id);
-    }, [openViewProductSheet, row.original.product.id]);
 
     return (
         <div className="flex justify-center">
@@ -46,16 +40,6 @@ export function InventoryActionsCell({ row }: InventoryRowProps) {
                         >
                             <BellRing size={14} strokeWidth={2.2} className="text-slate-500 mr-2" />
                             Reorder Level
-                        </Button>
-                    </PopoverClose>
-                    <PopoverClose asChild>
-                        <Button
-                            onClick={handleViewProductClick}
-                            variant="ghost"
-                            className="w-full justify-start px-2.5 py-2 h-auto text-xs font-semibold tracking-wide text-slate-700 hover:text-slate-900 uppercase"
-                        >
-                            <Eye size={14} strokeWidth={2.2} className="text-slate-500 mr-2" />
-                            Product Details
                         </Button>
                     </PopoverClose>
                 </div>

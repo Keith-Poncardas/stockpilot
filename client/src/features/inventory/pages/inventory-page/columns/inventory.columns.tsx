@@ -47,7 +47,7 @@ export const inventoryColumns: ColumnDef<IInventory>[] = [
         accessorKey: 'product.name',
         id: 'name',
         header: 'Product & SKU',
-        cell: ({ row }) => <ProductCell row={row} />,
+        cell: ({ row }) => <ProductCell row={row} enableViewSheet />,
         size: 270,
     },
     {

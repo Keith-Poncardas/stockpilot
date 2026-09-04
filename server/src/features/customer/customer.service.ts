@@ -6,7 +6,7 @@ import {
     getCurrentMonthMetrics,
     throwConflict
 } from "@/utils";
-import { Prisma } from '@/generated/client.js';
+import { Prisma, SaleStatus } from '@/generated/client.js';
 import {
     PaginatedCustomersInput,
     CreateCustomerInput,
@@ -169,11 +169,19 @@ export class CustomerService {
             this.customerCount({ createdAt: { gte: startOfMonth } }),
 
             prisma.sale.aggregate({
+                where: {
+                    customerId: { not: null },
+                    status: SaleStatus.COMPLETED,
+                },
                 _sum: { totalAmount: true },
             }),
 
             prisma.sale.groupBy({
                 by: ['customerId'],
+                where: {
+                    customerId: { not: null },
+                    status: SaleStatus.COMPLETED,
+                },
                 having: {
                     customerId: {
                         _count: { gt: 1 },

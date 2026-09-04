@@ -692,7 +692,10 @@ export class SaleService {
     async getCustomerPurchaseSummary(customerId: UUIDInput) {
 
         const salesAgg = await this.aggregateSale({
-            where: { customerId },
+            where: {
+                customerId,
+                status: SaleStatus.COMPLETED,
+            },
             _count: { id: true },
             _sum: { totalAmount: true },
             _max: { saleDate: true },
