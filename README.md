@@ -1,6 +1,6 @@
 # StockPilot
 
-**StockPilot** is a modern, enterprise-ready **Point of Sale (POS) & Inventory Management System** built for retail, warehouse, and commerce workflows. It provides real-time stock tracking, audit trails for stock movements, secure POS transaction processing, employee role-based access control (RBAC), and customer management.
+**StockPilot** is a modern, enterprise-ready **Sale & Inventory Management System** built for retail, warehouse, and commerce workflows. It provides real-time stock tracking, audit trails for stock movements, secure sales transaction processing, employee role-based access control (RBAC), and customer management.
 
 ---
 
@@ -18,35 +18,52 @@ graph TD
 ```
 
 ### Core Domain Modules
-1. **Inventory & Stock Management**:
-   - Real-time stock counts (`quantityOnHand`), reorder levels, and maximum stock limits.
-   - Comprehensive **Stock Movement Log** tracking `IN`, `OUT`, and `ADJUSTMENT` operations with specific reasons (`SALE`, `PURCHASE`, `RETURN`, `DAMAGE`, `EXPIRED`, `TRANSFER`, `INITIAL_STOCK`).
-   - Database-level integrity constraints preventing negative stock levels.
-2. **Product Catalog**:
-   - Product SKU management, pricing (`unitPrice` and `costPrice`), descriptions, and lifecycle states (`DRAFT`, `ACTIVE`, `INACTIVE`, `DISCONTINUED`, `ARCHIVED`).
-3. **Sales & POS Processing**:
-   - End-to-end transaction processing with customer association, payment method tracking, and itemized receipts.
-   - Support for multiple order statuses (`PENDING`, `COMPLETED`, `REFUNDED`, `VOIDED`).
-4. **Customer Database**:
-   - Customer profile management including addresses, contact information, and order history tracking.
-5. **Role-Based Access Control (RBAC) & Employee Onboarding**:
-   - Granular roles: `SUPER_ADMIN`, `ADMIN`, `MANAGER`, and `CASHIER`.
-   - Employee onboarding workflow with email verification, OTP codes, and administrator approval statuses (`PENDING`, `APPROVED`, `REJECTED`).
+1. **AI-Powered Inventory Intelligence & Stock Management**:
+   - **AI Restock Advisor**: Built with the Vercel AI SDK and Google Gemini (`@ai-sdk/google`), delivering structured restock recommendations based on real-time sales velocity, estimated days of stock, stockout risk assessments, replenishment urgency levels (`CRITICAL`, `HIGH`, `MODERATE`), and financial impact forecasting (restock costs vs potential revenue).
+   - **Velocity Run-Rate Calculations**: Computes 7-day and 30-day historical sales run-rates to project exact stock depletion timelines and guide replenishment buffer sizing.
+   - **Real-Time Stock Tracking**: Live monitoring of on-hand counts (`quantityOnHand`), reserved stock (`quantityReserved`), reorder alert levels, and maximum warehouse capacities.
+   - **Stock Movement Audit Log**: Immutable tracking of `IN`, `OUT`, and `ADJUSTMENT` operations with user accountability and specific reason codes (`SALE`, `PURCHASE`, `RETURN`, `DAMAGE`, `EXPIRED`, `TRANSFER`, `INITIAL_STOCK`).
+   - **Database-Level Integrity**: Enforced database constraints (`chk_qty_non_negative`) preventing negative on-hand stock.
+
+2. **Advanced Product Catalog, Bundling & Tiered Pricing**:
+   - **Product Lifecycle & Types**: Full support for `SIMPLE` and `BUNDLE` product types across lifecycle states (`DRAFT`, `ACTIVE`, `INACTIVE`, `DISCONTINUED`, `ARCHIVED`).
+   - **Composite Bundles & Kits**: Multi-item bundle configurations that automatically deduct individual component product quantities from inventory upon bundle checkout.
+   - **Tiered Wholesale Pricing & Promotions**: Volume-based pricing tiers with minimum purchase quantities and promotional free item incentives.
+   - **Cloudinary Image Optimization**: Cloud-hosted product image uploads with automated transformations, responsive thumbnails, and full-resolution lightbox previews.
+   - **SKU Barcode Generation**: Dynamic visual barcode rendering for every product SKU.
+
+3. **Sales & Point of Sale (POS) Processing**:
+   - **Interactive POS Interface**: Rapid catalog search with cursor pagination, barcode scanning, category navigation, and responsive shopping cart controls.
+   - **Philippine Tax Compliance**: Automated 12% VAT calculations, segregating VATable sales, VAT amount, VAT-exempt sales, and zero-rated sales on every receipt.
+   - **Flexible Payment Methods**: Multi-tender support including Cash (with change calculation), GCash, Bank Transfer, Credit Card, and Debit Card.
+   - **Transaction Lifecycle**: Complete order status tracking (`PENDING`, `COMPLETED`, `REFUNDED`, `VOIDED`) with itemized digital receipts.
+
+4. **Analytics & Performance Dashboard**:
+   - **Visual KPI Overview**: Real-time metric cards for revenue, units sold, transaction counts, and sell-through rates.
+   - **Interactive Charts & Trends**: Recharts-powered sales trends, product performance breakdowns, and revenue distribution by geographic location.
+   - **Automated Restock Alerts**: Highlighted low-stock warnings and prioritized restock notifications.
+
+5. **Customer Database & CRM**:
+   - Customer profile management with complete Philippine address hierarchy (Barangay, City, Province, Postal Code).
+   - Lifetime order history, total spend metrics, and purchase trends per customer.
+
+6. **Enterprise Security & Role-Based Access Control (RBAC)**:
+   - Four distinct privilege tiers: `SUPER_ADMIN`, `ADMIN`, `MANAGER`, and `CASHIER`.
+   - Employee onboarding workflow with email verification, OTP codes, password hashing via Argon2, and administrator approval statuses (`PENDING`, `APPROVED`, `REJECTED`).
 
 ---
 
 ## StockPilot Future Core Features (Highlights)
 
-StockPilot is actively evolving to support omnichannel retail, automated operations, and AI-driven insights. Below are the highlighted upcoming features and enhancements on the product roadmap:
+StockPilot is actively evolving to support omnichannel retail, automated operations, and advanced operational insights. Below are upcoming features on the product roadmap:
 
 ### Core Roadmap Highlights
 - **Multi-Channel Sales**: Seamless sales and inventory synchronization across major e-commerce platforms (**TikTok Shop**, **Lazada**, **Shopee**, etc.).
-- **Natural Language AI Assistant**: Conversational AI assistant for querying sales metrics, inventory insights, and executing quick operational commands.
+- **Conversational Copilot**: Interactive natural language assistant for querying sales metrics, inventory insights, and executing quick operational commands via chat.
 - **Payroll**: Integrated employee payroll calculation, attendance tracking, and commission management.
 - **Sales Heatmap *(Hot Feature)***: Visual analytics heatmap showing peak sales hours, high-performing regions, and high-velocity product categories.
 - **Product Expiration Tracker / Alert *(CRON JOB)***: Scheduled automated background tasks to monitor batch expiration dates and notify managers before stock spoils.
-- **Realtime *(Websocketing)***: Bidirectional real-time stock updates, live POS notifications, and instant order state broadcasting.
-- **Audit Trail**: End-to-end comprehensive activity logging and compliance tracking for system mutations, user actions, and security events.
+- **Realtime *(WebSockets)***: Bidirectional real-time stock updates across multi-register POS stations and instant order broadcasting.
 
 ### Optional Enhancements
 - **Dark Mode *(Optional Feature)***: Full sleek dark theme switching for low-light environments and enhanced visual comfort.
@@ -65,6 +82,7 @@ StockPilot is actively evolving to support omnichannel retail, automated operati
 | **State Management** | [Zustand v5](https://github.com/pmndrs/zustand) | Lightweight global client state management. |
 | **Forms & Validation** | [React Hook Form](https://react-hook-form.com/) + [Zod v4](https://zod.dev/) | Type-safe form controllers and schema validation. |
 | **Tables & Charts** | [TanStack Table v8](https://tanstack.com/table) + [Recharts](https://recharts.org/) | Virtualized, sortable tables and analytics dashboards. |
+| **Media & Icons** | [Lucide React](https://lucide.dev/) + [Cloudinary](https://cloudinary.com/) | Accessible iconography and optimized cloud media transformations. |
 | **Routing** | [React Router DOM v7](https://reactrouter.com/) | Declarative client routing with protected/public guard layouts. |
 
 ### Backend (`/server`)
@@ -72,7 +90,9 @@ StockPilot is actively evolving to support omnichannel retail, automated operati
 | :--- | :--- | :--- |
 | **Runtime & Server** | [Node.js](https://nodejs.org/) + [Express 4](https://expressjs.com/) + [TypeScript](https://www.typescriptlang.org/) | Robust HTTP application layer and middleware engine. |
 | **API Layer** | [Apollo Server v5](https://www.apollographql.com/) + GraphQL | Schema-first GraphQL API with modular resolvers and type definitions. |
-| **Database & ORM** | [PostgreSQL](https://www.postgresql.org/) + [Prisma ORM v5](https://www.prisma.io/) | Relational data persistence with type-safe database access and migrations. |
+| **AI Intelligence** | [Vercel AI SDK](https://sdk.vercel.ai/) + [Google Gemini](https://ai.google.dev/) (`@ai-sdk/google`) | Generative AI stock restock advisor, sales velocity run-rate calculations, and stockout risk analysis. |
+| **Database & ORM** | [PostgreSQL](https://www.postgresql.org/) + [Prisma ORM v7](https://www.prisma.io/) | Relational data persistence with type-safe database access and migrations. |
+| **Media Storage** | [Cloudinary](https://cloudinary.com/) | Secure cloud asset hosting and dynamic image transformations. |
 | **Authentication & Security** | [Argon2](https://github.com/ranisalt/node-argon2) + JWT (`jsonwebtoken`) | Secure password hashing, token generation, and role verification. |
 | **Email & Verification** | [Resend](https://resend.com/) + Nodemailer | Transactional email delivery and OTP verification workflows. |
 
@@ -120,9 +140,9 @@ d:\Documents\GitHub\stockpilot\
 ## Installation & Local Setup
 
 ### Prerequisites
-- **Node.js**: `v20.x` or higher recommended
-- **NPM**: `v10.x` or higher
-- **PostgreSQL**: A local PostgreSQL instance or a hosted database (e.g., [Neon DB](https://neon.tech/))
+- **Node.js**: `v20.x` or higher recommended — [Download Node.js](https://nodejs.org/en/download/) (includes NPM `v10.x+`)
+- **Git**: Required for cloning the project repository — [Download Git](https://git-scm.com/downloads)
+- **PostgreSQL**: Local database instance — [Download PostgreSQL](https://www.postgresql.org/download/) or use a managed cloud provider (e.g., [Neon DB](https://neon.tech/))
 
 ---
 
@@ -157,6 +177,8 @@ cd stockpilot
    JWT_SECRET="your-super-secret-jwt-key"
    JWT_EXPIRES_IN="7d"
    CORS_ORIGIN="http://localhost:5173"
+   GOOGLE_GENERATIVE_AI_API_KEY="your-gemini-api-key"
+   CLOUDINARY_URL="cloudinary://<api_key>:<api_secret>@<cloud_name>"
    ```
 
 3. **Generate Prisma Client and Run Database Migrations:**
@@ -233,28 +255,36 @@ cd stockpilot
 
 ## Database Models & Key Relationships
 
-The application schema is defined in [server/prisma/schema.prisma](file:///d:/Documents/GitHub/stockpilot/server/prisma/schema.prisma):
+The application schema is defined in [server/prisma/schema.prisma](server/prisma/schema.prisma):
 
 ```mermaid
 erDiagram
     User ||--o{ Sale : processes
     User ||--o{ StockMovement : records
     User ||--o{ Inventory : manages
-    Product ||--o| Inventory : has
-    Product ||--o{ SaleItem : included_in
-    Product ||--o{ StockMovement : audited_by
-    Sale ||--o{ SaleItem : contains
+    User ||--o| PasswordReset : requests
     Customer ||--o{ Sale : makes
+    Product ||--o| Inventory : has
+    Product ||--o{ SaleItem : sold_in
+    Product ||--o{ StockMovement : audited_by
+    Product ||--o{ ProductBundleItem : bundles
+    Product ||--o{ ProductPricingTier : tiers
+    Sale ||--o{ SaleItem : contains
 ```
 
-- **[User](file:///d:/Documents/GitHub/stockpilot/server/prisma/schema.prisma#L63-L82)**: Manages authentication, RBAC permissions, and relationships to sales and stock movements.
-- **[Product](file:///d:/Documents/GitHub/stockpilot/server/prisma/schema.prisma#L113-L129)**: Represents a catalog item identified by a unique SKU.
-- **[Inventory](file:///d:/Documents/GitHub/stockpilot/server/prisma/schema.prisma#L131-L148)**: Tracks `quantityOnHand`, `reorderLevel`, and `maxStock` for a single product.
+- **[User](server/prisma/schema.prisma#L76-L95)**: Manages employee credentials, RBAC permissions (`SUPER_ADMIN`, `ADMIN`, `MANAGER`, `CASHIER`), status lifecycle, and relations to sales, inventories, and stock movements.
+- **[PasswordReset](server/prisma/schema.prisma#L97-L107)**: Manages OTP verification and token expiration for secure employee password recovery.
+- **[PendingRegistration](server/prisma/schema.prisma#L109-L124)**: Holds provisional user signups pending email OTP verification and administrator approval.
+- **[Product](server/prisma/schema.prisma#L126-L150)**: Master catalog item identified by SKU, with pricing (`unitPrice`, `costPrice`, `regularPrice`), product type (`SIMPLE`, `BUNDLE`), status, and links to bundles and pricing tiers.
+- **[Inventory](server/prisma/schema.prisma#L152-L171)**: 1-to-1 stock record for a product tracking `quantityOnHand`, `quantityReserved`, `reorderLevel`, and `maxStock`.
   > [!IMPORTANT]
-  > The database includes a constraint check (`chk_qty_non_negative`) to ensure `quantity_on_hand >= 0` at the database level.
-- **[StockMovement](file:///d:/Documents/GitHub/stockpilot/server/prisma/schema.prisma#L209-L228)**: Immutable log entries capturing quantity changes (`IN`, `OUT`, `ADJUSTMENT`) along with references and timestamps.
-- **[Sale](file:///d:/Documents/GitHub/stockpilot/server/prisma/schema.prisma#L170-L189)** & **[SaleItem](file:///d:/Documents/GitHub/stockpilot/server/prisma/schema.prisma#L191-L207)**: Capture POS checkout records, line items, customer details, and payment methods.
-- **[Customer](file:///d:/Documents/GitHub/stockpilot/server/prisma/schema.prisma#L150-L168)**: Stores client contact and shipping information.
+  > The database includes a constraint check (`chk_qty_non_negative`) ensuring `quantity_on_hand >= 0` at the database level.
+- **[Customer](server/prisma/schema.prisma#L173-L192)**: Stores customer profile, contact information, address details, and purchase history.
+- **[Sale](server/prisma/schema.prisma#L194-L218)**: Sale transaction record storing total amounts, Philippine tax breakdowns (VAT, VAT-exempt, zero-rated), payment method, and cashier/customer relations.
+- **[SaleItem](server/prisma/schema.prisma#L220-L232)**: Line items attached to a sale capturing quantity and unit price at the time of purchase.
+- **[StockMovement](server/prisma/schema.prisma#L234-L252)**: Immutable audit trail logging inventory movements (`IN`, `OUT`, `ADJUSTMENT`) with designated reasons (`SALE`, `PURCHASE`, `RETURN`, `DAMAGE`, `EXPIRED`, `TRANSFER`, `INITIAL_STOCK`).
+- **[ProductBundleItem](server/prisma/schema.prisma#L254-L269)**: Represents bundled component products inside a parent combo/kit product with specified quantities.
+- **[ProductPricingTier](server/prisma/schema.prisma#L271-L288)**: Wholesale/volume pricing rules supporting tiered discounts and free promotional items based on minimum purchase quantities.
 
 ---
 
@@ -263,18 +293,18 @@ erDiagram
 ### 1. Feature-Driven Development
 When adding a new domain feature (e.g., *Suppliers* or *Purchase Orders*):
 - **Backend (`/server`)**:
-  1. Define the model in [server/prisma/schema.prisma](file:///d:/Documents/GitHub/stockpilot/server/prisma/schema.prisma) and run `npm run prisma:migrate`.
+  1. Define the model in [server/prisma/schema.prisma](server/prisma/schema.prisma) and run `npm run prisma:migrate`.
   2. Create a new directory in `server/src/features/<feature-name>/` containing your GraphQL schema, resolvers, and business logic.
-  3. Merge the feature resolvers and typeDefs in [server/src/graphql/index.ts](file:///d:/Documents/GitHub/stockpilot/server/src/graphql).
+  3. Merge the feature resolvers and typeDefs in [server/src/graphql/index.ts](server/src/graphql).
 - **Frontend (`/client`)**:
   1. Create a corresponding directory in `client/src/features/<feature-name>/`.
   2. Define GraphQL documents (`queries.ts`, `mutations.ts`) inside `client/src/graphql/`.
-  3. Register new routes in [client/src/App.tsx](file:///d:/Documents/GitHub/stockpilot/client/src/App.tsx) inside either `ProtectedRoute` or `PublicRoute`.
+  3. Register new routes in [client/src/App.tsx](client/src/App.tsx) inside either `ProtectedRoute` or `PublicRoute`.
 
 ### 2. Authentication & Authorization Workflow
 - Authentication is managed via JWT tokens signed with `JWT_SECRET`.
-- In GraphQL resolvers, inspect `context.user` (created in [server/src/context/index.ts](file:///d:/Documents/GitHub/stockpilot/server/src/context)) to enforce role-based permissions (`UserRole.SUPER_ADMIN`, `UserRole.ADMIN`, etc.) or check account activation (`UserStatus.ACTIVE`).
-- Frontend routes are protected using `<ProtectedRoute />` located in [client/src/routes](file:///d:/Documents/GitHub/stockpilot/client/src/routes), which validates user authentication and approval status before rendering pages.
+- In GraphQL resolvers, inspect `context.user` (created in [server/src/context/index.ts](server/src/context)) to enforce role-based permissions (`UserRole.SUPER_ADMIN`, `UserRole.ADMIN`, etc.) or check account activation (`UserStatus.ACTIVE`).
+- Frontend routes are protected using `<ProtectedRoute />` located in [client/src/routes](client/src/routes), which validates user authentication and approval status before rendering pages.
 
 ### 3. Maintaining Data Integrity
 - Do not store computed subtotals in `SaleItem`. As noted in the schema, subtotals should be calculated dynamically as `quantity * unitPrice` to avoid state synchronization bugs.
