@@ -16,7 +16,7 @@ import {
     getStockStatusColor,
     getStockStatusLabel,
     getQtyClass,
-} from "@/features/inventory/inventory.utils";
+} from "@/features/inventory";
 
 export type StockAlertStatus = "CRITICAL_OUT" | "LOW_STOCK" | "WELL_STOCKED" | string;
 

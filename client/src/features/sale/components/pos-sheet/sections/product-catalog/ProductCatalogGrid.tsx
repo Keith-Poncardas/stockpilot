@@ -2,7 +2,7 @@ import { FormSection } from "@/components/ui/form-section";
 import { Package, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-import type { IInventory } from "@/features/inventory/inventory.types";
+import type { IInventory } from "@/features/inventory";
 import type { PosProductItem } from "./types";
 import { ProductCard } from "./components/ProductCard";
 import { ProductCatalogSkeleton } from "./skeleton/ProductCatalogSkeleton";

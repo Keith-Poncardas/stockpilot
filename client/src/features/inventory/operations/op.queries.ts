@@ -21,6 +21,7 @@ export const GET_INVENTORIES = gql`
                 reorderLevel
                 maxStock
                 updatedAt
+                createdAt
                 stockStatus
                 product {
                     id
@@ -30,6 +31,8 @@ export const GET_INVENTORIES = gql`
                     unitPrice
                     costPrice
                     status
+                    imageUrl
+                    productType
                 }
             }
             meta {
@@ -57,6 +60,8 @@ export const GET_INVENTORY = gql`
             updatedAt
             createdAt
             stockStatus
+            estimatedDaysOfStock
+            lastRestockDate
             product {
                 id
                 sku
@@ -65,6 +70,8 @@ export const GET_INVENTORY = gql`
                 unitPrice
                 costPrice
                 status
+                imageUrl
+                productType
             }
             author {
                 id
@@ -77,64 +84,27 @@ export const GET_INVENTORY = gql`
     }
 `;
 
-export const ADJUST_STOCK = gql`
-    mutation AdjustStock($input: AdjustStockInput!) {
-        adjustStock(input: $input) {
-            id
-            productId
-            quantityOnHand
+export const GET_AI_STOCK_RECOMMENDATION = gql`
+    query GetAiStockRecommendation($inventoryId: ID!) {
+        getAiStockRecommendation(inventoryId: $inventoryId) {
+            recommendedQuantity
+            urgencyLevel
+            headline
+            reasoning
+            targetDaysOfCoverage
+            stockoutRiskAssessment
+            salesVelocityDaily
+            currentStock
             reorderLevel
             maxStock
-            updatedAt
-            product {
-                id
-                sku
-                name
+            financialImpact {
+                estimatedRestockCost
+                potentialRevenue
+                projectedProfit
             }
+            calculatedAt
         }
     }
 `;
 
-/**
- * Cursor-based infinite scroll search across products.
- * Used by the inventory "Add Inventory" flow to find products
- * that can have inventory records created for them.
- * Corresponds to the backend `searchProductsInfinite` query.
- */
-export const SEARCH_PRODUCTS_INFINITE = gql`
-    query SearchProductsInfinite($input: SearchProductsInfiniteInput!) {
-        searchProductsInfinite(input: $input) {
-            data {
-                id
-                sku
-                name
-                description
-                unitPrice
-                costPrice
-                status
-            }
-            meta {
-                nextCursor
-                hasNextPage
-            }
-        }
-    }
-`;
 
-export const CREATE_INVENTORY = gql`
-    mutation CreateInventory($input: CreateInventoryInput!) {
-        createInventory(input: $input) {
-            id
-            productId
-            quantityOnHand
-            reorderLevel
-            maxStock
-            createdAt
-            product {
-                id
-                sku
-                name
-            }
-        }
-    }
-`;

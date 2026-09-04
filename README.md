@@ -1,10 +1,10 @@
-# StockPilot 🚀
+# StockPilot
 
 **StockPilot** is a modern, enterprise-ready **Point of Sale (POS) & Inventory Management System** built for retail, warehouse, and commerce workflows. It provides real-time stock tracking, audit trails for stock movements, secure POS transaction processing, employee role-based access control (RBAC), and customer management.
 
 ---
 
-## 📌 System Overview & Key Capabilities
+## System Overview & Key Capabilities
 
 StockPilot is structured as a full-stack monorepo-style project separated into two independent applications: a **React + Vite Frontend** (`/client`) and a **Node.js + GraphQL Backend** (`/server`).
 
@@ -35,26 +35,26 @@ graph TD
 
 ---
 
-## 🔮 StockPilot Future Core Features (Highlights)
+## StockPilot Future Core Features (Highlights)
 
 StockPilot is actively evolving to support omnichannel retail, automated operations, and AI-driven insights. Below are the highlighted upcoming features and enhancements on the product roadmap:
 
-### 🌟 Core Roadmap Highlights
+### Core Roadmap Highlights
 - **Multi-Channel Sales**: Seamless sales and inventory synchronization across major e-commerce platforms (**TikTok Shop**, **Lazada**, **Shopee**, etc.).
 - **Natural Language AI Assistant**: Conversational AI assistant for querying sales metrics, inventory insights, and executing quick operational commands.
 - **Payroll**: Integrated employee payroll calculation, attendance tracking, and commission management.
-- **Sales Heatmap 🔥 *(Hot Feature)***: Visual analytics heatmap showing peak sales hours, high-performing regions, and high-velocity product categories.
+- **Sales Heatmap *(Hot Feature)***: Visual analytics heatmap showing peak sales hours, high-performing regions, and high-velocity product categories.
 - **Product Expiration Tracker / Alert *(CRON JOB)***: Scheduled automated background tasks to monitor batch expiration dates and notify managers before stock spoils.
 - **Realtime *(Websocketing)***: Bidirectional real-time stock updates, live POS notifications, and instant order state broadcasting.
 - **Audit Trail**: End-to-end comprehensive activity logging and compliance tracking for system mutations, user actions, and security events.
 
-### ✨ Optional Enhancements
+### Optional Enhancements
 - **Dark Mode *(Optional Feature)***: Full sleek dark theme switching for low-light environments and enhanced visual comfort.
 - **Customer Loyalty Points *(Optional Feature)***: Rewards and loyalty program tracking customer purchases, membership tiers, and point redemptions at checkout.
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Frontend (`/client`)
 | Category | Technology | Purpose |
@@ -78,7 +78,7 @@ StockPilot is actively evolving to support omnichannel retail, automated operati
 
 ---
 
-## 📂 Folder Structure
+## Folder Structure
 
 The project uses a **feature-driven architecture** across both client and server to keep domain logic decoupled and maintainable.
 
@@ -117,7 +117,7 @@ d:\Documents\GitHub\stockpilot\
 
 ---
 
-## 🚀 Installation & Local Setup
+## Installation & Local Setup
 
 ### Prerequisites
 - **Node.js**: `v20.x` or higher recommended
@@ -207,7 +207,7 @@ cd stockpilot
 
 ---
 
-## 📜 Available NPM Scripts
+## Available NPM Scripts
 
 ### Frontend (`/client`)
 | Script | Command | Description |
@@ -231,7 +231,7 @@ cd stockpilot
 
 ---
 
-## 🗄️ Database Models & Key Relationships
+## Database Models & Key Relationships
 
 The application schema is defined in [server/prisma/schema.prisma](file:///d:/Documents/GitHub/stockpilot/server/prisma/schema.prisma):
 
@@ -258,7 +258,7 @@ erDiagram
 
 ---
 
-## 🏗️ Guide for Future Developers
+## Guide for Future Developers
 
 ### 1. Feature-Driven Development
 When adding a new domain feature (e.g., *Suppliers* or *Purchase Orders*):

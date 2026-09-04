@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client';
 import { useCallback } from 'react';
 import { GET_SELLABLE_PRODUCTS } from '../../../operations/op.queries';
-import type { IInventory } from '@/features/inventory/inventory.types';
+import type { IInventory } from '@/features/inventory';
 
 
 interface GetSellableProductsData {

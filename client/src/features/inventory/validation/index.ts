@@ -1,1 +1,1 @@
-export * from "./inventory.validation";
+export * from './inventory.validation';

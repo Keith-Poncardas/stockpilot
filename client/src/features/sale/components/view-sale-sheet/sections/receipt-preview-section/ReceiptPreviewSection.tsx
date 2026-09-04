@@ -178,7 +178,7 @@ export function ReceiptPreviewSection({ sale }: ReceiptPreviewSectionProps) {
                         {/* BIR Standard VAT Breakdown */}
                         <div className="py-1.5 my-1 border-y border-dashed border-gray-300 space-y-1 text-[10.5px] text-gray-600 font-mono">
                             <div className="flex justify-between">
-                                <span>VATable Sales:</span>
+                                <span>VATable Sales (Net of VAT):</span>
                                 <span className="font-semibold text-black">
                                     {formatCurrency(sale.vatableSales ?? (sale.totalAmount / 1.12))}
                                 </span>
@@ -192,7 +192,7 @@ export function ReceiptPreviewSection({ sale }: ReceiptPreviewSectionProps) {
                                 <span>{formatCurrency(sale.zeroRatedSales ?? 0)}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span>VAT Amount (12%):</span>
+                                <span>VAT Amount (12% Included):</span>
                                 <span className="font-semibold text-black">
                                     {formatCurrency(sale.vatAmount ?? (sale.totalAmount - (sale.totalAmount / 1.12)))}
                                 </span>

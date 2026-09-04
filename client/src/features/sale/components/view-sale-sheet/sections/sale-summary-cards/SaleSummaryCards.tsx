@@ -47,7 +47,15 @@ export function TransactionSummaryCard({ sale }: TransactionSummaryCardProps) {
                     }
                 />
                 <InfoRow
-                    label="VATable Sales"
+                    label="Total Amount (VAT-Inc)"
+                    value={
+                        <span className="font-mono text-sm font-bold text-indigo-700 dark:text-indigo-400">
+                            {formatCurrency(sale.totalAmount)}
+                        </span>
+                    }
+                />
+                <InfoRow
+                    label="VATable Sales (Net)"
                     value={
                         <span className="font-mono text-xs text-gray-700 dark:text-gray-300">
                             {formatCurrency(sale.vatableSales ?? (sale.totalAmount / 1.12))}
@@ -55,7 +63,7 @@ export function TransactionSummaryCard({ sale }: TransactionSummaryCardProps) {
                     }
                 />
                 <InfoRow
-                    label="VAT Amount (12%)"
+                    label="VAT (12% Included)"
                     value={
                         <span className="font-mono text-xs text-gray-700 dark:text-gray-300">
                             {formatCurrency(sale.vatAmount ?? (sale.totalAmount - (sale.totalAmount / 1.12)))}

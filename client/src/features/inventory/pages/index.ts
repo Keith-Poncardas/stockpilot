@@ -1,3 +1,1 @@
-export * from './InventoryPage';
-export * from "./AdjustStockPage";
-export * from "./InventoryRecordPage";
+export * from './inventory-page';

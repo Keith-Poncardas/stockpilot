@@ -1,4 +1,4 @@
-import type { MovementType } from "@/features/inventory/inventory.types";
+import type { MovementType } from "@/features/inventory";
 import {
     MOVEMENT_DESCRIPTIONS,
     MOVEMENT_ICON_COLORS,

@@ -12,7 +12,7 @@ interface DescriptionCellProps {
 }
 
 const MAX_WORDS = 24;
-const MAX_CHARS = 146;
+const MAX_CHARS = 60;
 
 function truncateText(
     text: string,

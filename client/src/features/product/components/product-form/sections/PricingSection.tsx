@@ -37,8 +37,8 @@ export function PricingSection({ control }: PricingSectionProps) {
             title={isBundle ? 'Bundle Pricing & Discounts' : 'Pricing & Discounts'}
             description={
                 isBundle
-                    ? 'Set the special bundle package price (VAT-inclusive) and regular individual sum for discount comparison.'
-                    : 'What customers pay (12% VAT-inclusive), regular original price, and your cost'
+                    ? 'Set the special bundle package price (12% VAT-inclusive) and regular individual sum for discount comparison.'
+                    : 'What customers pay (12% VAT already included in SRP — no tax will be deducted), regular original price, and your cost'
             }
             icon={<DollarSign className="w-4.5 h-4.5" strokeWidth={2} />}
             iconWrapperClassName="bg-amber-50 text-amber-700"
@@ -50,10 +50,10 @@ export function PricingSection({ control }: PricingSectionProps) {
                         control={control}
                         label={
                             isBundle
-                                ? 'Special Bundle SRP (VAT-Inc)'
+                                ? 'Special Bundle SRP (Tax-Inclusive)'
                                 : numRegular > 0
-                                    ? 'Discounted SRP (VAT-Inc)'
-                                    : 'SRP / Selling Price (VAT-Inc)'
+                                    ? 'Discounted SRP (Tax-Inclusive)'
+                                    : 'SRP / Selling Price (Tax-Inclusive)'
                         }
                         type="number"
                         placeholder="0.00"

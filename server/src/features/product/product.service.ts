@@ -184,7 +184,7 @@ export class ProductService {
      * @returns A paginated collection of products with cursor pagination metadata.
      */
     async searchProductsInfinite(input: SearchProductsInfiniteInput) {
-        const { search, cursor, limit } = input;
+        const { search, cursor, limit, hasInventory } = input;
         const { params, buildResult } = createInfiniteScroller({
             cursor,
             limit
@@ -197,6 +197,9 @@ export class ProductService {
                 'name',
                 'description'
             ])),
+            ...(hasInventory !== undefined && hasInventory !== null && {
+                inventory: hasInventory ? { isNot: null } : { is: null },
+            }),
         };
 
         const products = await this.findProducts({

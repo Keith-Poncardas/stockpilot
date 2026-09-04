@@ -99,9 +99,9 @@ export const PaymentActionsSection = ({
 
         {totalDue > 0 && (
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-mono py-1.5 px-3 bg-slate-100/70 dark:bg-slate-800/60 rounded-md border border-slate-200/60 dark:border-slate-700/60">
-            <span>VATable: {formatCurrency(Math.round((totalDue / 1.12) * 100) / 100)}</span>
+            <span>VATable (Net): {formatCurrency(Math.round((totalDue / 1.12) * 100) / 100)}</span>
             <span className="text-slate-300 dark:text-slate-600">•</span>
-            <span>VAT (12%): {formatCurrency(Math.round((totalDue - Math.round((totalDue / 1.12) * 100) / 100) * 100) / 100)}</span>
+            <span>VAT (12% Inc): {formatCurrency(Math.round((totalDue - Math.round((totalDue / 1.12) * 100) / 100) * 100) / 100)}</span>
           </div>
         )}
 

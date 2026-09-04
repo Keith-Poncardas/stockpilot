@@ -119,3 +119,14 @@ export interface ProductFilterInput {
     orderBy?: ProductOrderBy;
     orderDirection?: 'asc' | 'desc';
 }
+
+export interface SearchProductsInfiniteInput {
+    search: string;
+    cursor?: string | null;
+    limit?: number;
+    hasInventory?: boolean;
+}
+
+export interface UseInfiniteProductSearchOptions {
+    hasInventory?: boolean;
+}

@@ -115,10 +115,8 @@ export class SaleService {
             ? Number(agg._sum.vatAmount)
             : Math.round((grossSales - (grossSales / 1.12)) * 100) / 100;
 
-        // Total Revenue is Net of Tax (Gross Sales minus Tax Collected)
-        const totalRevenue = Number(agg._sum.vatableSales) > 0
-            ? Number(agg._sum.vatableSales)
-            : Math.round((grossSales - totalTaxCollected) * 100) / 100;
+        // Product SRP is tax-inclusive: Total Revenue reflects gross sales amount (no tax deduction from SRP)
+        const totalRevenue = grossSales;
 
         return {
             totalRevenue,

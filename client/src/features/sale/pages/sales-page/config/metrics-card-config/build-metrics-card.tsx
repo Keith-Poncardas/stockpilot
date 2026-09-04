@@ -26,7 +26,7 @@ export const buildMetricsCards = (
     return [
         {
             value: formattedRevenue,
-            label: 'Total Revenue (Net)',
+            label: 'Total Revenue (VAT-Inc)',
             icon: TrendingUp,
             iconContainerClass: 'bg-emerald-50 text-emerald-600'
         },

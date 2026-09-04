@@ -63,26 +63,40 @@ export function ProductOverviewSection({ product }: ProductOverviewSectionProps)
 
                 <div className="flex-1 flex flex-col justify-between">
                     <div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+                        <div className="space-y-1 mb-3">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                                    {product.name}
+                                </h2>
+                                {isBundle && (
+                                    <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 font-bold text-[10px] px-1.5 py-0">
+                                        PRODUCT BUNDLE (COMBO / KIT)
+                                    </Badge>
+                                )}
+                            </div>
+                            <p className="font-mono text-xs text-slate-500 font-medium">
+                                SKU: <span className="text-slate-700 font-semibold">{product.sku}</span>
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 className="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">
                                 Product Description
                             </h3>
-                            {isBundle && (
-                                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 font-bold text-[10px] px-1.5 py-0">
-                                    PRODUCT BUNDLE (COMBO / KIT)
-                                </Badge>
-                            )}
+                            <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+                                {product.description || 'No description provided for this product.'}
+                            </p>
                         </div>
-                        <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
-                            {product.description || 'No description provided for this product.'}
-                        </p>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 pt-4 border-t border-slate-100">
+                    <div className={cn(
+                        "grid grid-cols-2 gap-4 mt-5 pt-4 border-t border-slate-100",
+                        savings > 0 ? "sm:grid-cols-4" : "sm:grid-cols-3"
+                    )}>
                         {/* Column 1: Selling Price / Bundle Price */}
                         <div className="min-w-0">
                             <p className="text-xs uppercase tracking-wide text-slate-400 font-semibold truncate">
-                                {isBundle ? 'Bundle SRP (VAT-Inc)' : numRegular > numUnit ? 'Discounted SRP (VAT-Inc)' : 'SRP (VAT-Inc)'}
+                                {isBundle ? 'Bundle SRP (Tax-Inclusive)' : numRegular > numUnit ? 'Discounted SRP (Tax-Inclusive)' : 'SRP (Tax-Inclusive)'}
                             </p>
                             <div className="flex flex-wrap items-baseline gap-1.5 mt-1">
                                 <span className="text-xl font-bold text-slate-900 font-mono">
@@ -97,7 +111,7 @@ export function ProductOverviewSection({ product }: ProductOverviewSectionProps)
                         </div>
 
                         {/* Column 2: Regular Sum (if bundle) or Original Price (if discount) or Cost Price */}
-                        {numRegular > 0 ? (
+                        {savings > 0 ? (
                             <div className="min-w-0">
                                 <p className="text-xs uppercase tracking-wide text-slate-400 font-semibold truncate">
                                     {isBundle ? 'Regular Sum' : 'Original Price'}
@@ -117,15 +131,22 @@ export function ProductOverviewSection({ product }: ProductOverviewSectionProps)
                             </div>
                         )}
 
-                        {/* Column 3: Cost Price (if regular price shown) or Margin */}
-                        {numRegular > 0 ? (
+                        {/* Column 3: Cost Price (if discount shown) or Margin */}
+                        {savings > 0 ? (
                             <div className="min-w-0">
                                 <p className="text-xs uppercase tracking-wide text-slate-400 font-semibold truncate">
                                     Cost Price
                                 </p>
-                                <p className="text-xl font-semibold text-slate-600 font-mono mt-1">
-                                    {product.costPrice != null ? formatCurrency(product.costPrice) : '—'}
-                                </p>
+                                <div className="flex items-baseline gap-1.5 mt-1">
+                                    <span className="text-xl font-semibold text-slate-600 font-mono">
+                                        {product.costPrice != null ? formatCurrency(product.costPrice) : '—'}
+                                    </span>
+                                    {product.margin != null && (
+                                        <span className="text-xs font-semibold text-emerald-600 font-mono">
+                                            ({product.margin.toFixed(1)}%)
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         ) : (
                             <div className="min-w-0">
@@ -138,8 +159,8 @@ export function ProductOverviewSection({ product }: ProductOverviewSectionProps)
                             </div>
                         )}
 
-                        {/* Column 4: Savings (if discount) or Margin */}
-                        {savings > 0 ? (
+                        {/* Column 4: Savings (only if discount/bundle exists) */}
+                        {savings > 0 && (
                             <div className="min-w-0">
                                 <p className="text-xs uppercase tracking-wide text-emerald-600 font-semibold truncate flex items-center gap-1">
                                     <Percent className="w-3 h-3" />
@@ -147,15 +168,6 @@ export function ProductOverviewSection({ product }: ProductOverviewSectionProps)
                                 </p>
                                 <p className="text-xl font-bold text-emerald-600 font-mono mt-1">
                                     {formatCurrency(savings)}
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="min-w-0">
-                                <p className="text-xs uppercase tracking-wide text-slate-400 font-semibold truncate">
-                                    Margin
-                                </p>
-                                <p className="text-xl font-semibold text-emerald-600 font-mono mt-1">
-                                    {product.margin != null ? `${product.margin.toFixed(1)}%` : '—'}
                                 </p>
                             </div>
                         )}

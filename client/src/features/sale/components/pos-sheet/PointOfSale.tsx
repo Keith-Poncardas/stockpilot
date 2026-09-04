@@ -24,7 +24,7 @@ export function PointOfSale() {
     const { getSubtotal, getTotalItemsCount, clearCart, items } = useCart();
     const totalItemsCount = getTotalItemsCount();
     const subtotal = getSubtotal();
-    const totalDue = subtotal; // Assuming no tax/discount for now
+    const totalDue = subtotal; // Product SRP is already tax-inclusive; no tax is deducted from SRP
 
     const handleCompleteSale = useCallback(async () => {
         await sale.handleCompleteSale({

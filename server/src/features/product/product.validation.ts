@@ -85,6 +85,7 @@ export const paginatedProductsSchema = paginationSchema.extend({
  */
 export const searchProductsInfiniteSchema = infiniteSchema.extend({
     search: searchSchema,
+    hasInventory: z.boolean().optional().nullable(),
 });
 
 /**

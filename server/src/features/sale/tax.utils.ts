@@ -12,12 +12,15 @@ export interface VatBreakdown {
 /**
  * Calculates a standard Philippine 12% VAT-inclusive breakdown from a gross total amount.
  *
- * Formula:
- * - Gross (Display Price) = totalAmount
- * - VATable Sales = round(totalAmount / (1 + taxRate), 2)
- * - VAT Amount = round(totalAmount - VATable Sales, 2)
+ * The product SRP is already tax-inclusive (e.g. ₱599).
+ * Tax is NOT deducted or subtracted from the SRP; the final selling price remains the full SRP.
  *
- * @param totalAmount - The gross VAT-inclusive sales total.
+ * Breakdown Formula:
+ * - Gross / Final Selling Price = totalAmount (tax-inclusive SRP)
+ * - VATable Sales (Net of VAT) = round(totalAmount / (1 + taxRate), 2)
+ * - VAT Amount (12% Included) = round(totalAmount - VATable Sales, 2)
+ *
+ * @param totalAmount - The gross VAT-inclusive sales total (final selling price).
  * @param taxRate - The applicable VAT rate (default: 0.12).
  * @returns An object containing grossAmount, vatableSales, vatAmount, vatExemptSales, zeroRatedSales, and taxRate.
  */
