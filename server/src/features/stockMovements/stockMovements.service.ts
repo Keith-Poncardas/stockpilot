@@ -1,8 +1,9 @@
 import { prisma } from "@/lib";
-import { buildSearchQuery, createPaginator, generateReference } from "@/utils";
+import { createPaginator, generateReference } from "@/utils";
 import { MovementType, Prisma } from '@/generated/client.js';
 import { inventoryService } from "../inventory";
 import { PaginatedStockMovementsInput } from "./types";
+import { buildStockMovementSearchQuery } from "./stockMovements.util";
 
 export class StockMovementsService {
 
@@ -49,10 +50,8 @@ export class StockMovementsService {
 
         const where: Prisma.StockMovementWhereInput = {
 
-            /** Search by linked product name or SKU */
-            ...(search && {
-                product: buildSearchQuery(search, ['name', 'sku']),
-            }),
+            /** Search across reference, notes, product name/SKU, and author */
+            ...buildStockMovementSearchQuery(search),
 
             /** Exact movement type filter */
             ...(movementType && { type: movementType }),

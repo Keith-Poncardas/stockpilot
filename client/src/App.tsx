@@ -23,7 +23,7 @@ import {
   ReorderLevelSheet,
   StockMovementLayout,
   StockMovementPage,
-  StockMovementDetailsPage,
+  ViewStockMovementSheet,
   CustomerLayout,
   CustomersPage,
   CreateCustomerSheet,
@@ -55,6 +55,7 @@ function App() {
       <CreateInventorySheet />
       <AdjustStockSheet />
       <ReorderLevelSheet />
+      <ViewStockMovementSheet />
       <Routes>
 
         <Route element={<PublicRoute />}>
@@ -92,7 +93,6 @@ function App() {
 
             <Route path="/stock-movement" element={<StockMovementLayout />}>
               <Route index element={<StockMovementPage />} />
-              <Route path=":stockMovementId/view" element={<StockMovementDetailsPage />} />
             </Route>
 
             <Route path="/customers" element={<CustomerLayout />}>

@@ -41,7 +41,7 @@ export function AdjustStockSheet() {
     });
 
     const [adjustStock, { loading: adjusting }] = useMutation(ADJUST_STOCK, {
-        refetchQueries: ['GetInventory', 'GetInventories', 'GetInventoryStatuses'],
+        refetchQueries: ['GetInventory', 'GetInventories', 'GetInventoryStatuses', 'GetProduct', 'GetProducts'],
         awaitRefetchQueries: true,
         onCompleted: () => {
             toast.success('Stock adjusted successfully');

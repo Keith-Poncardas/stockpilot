@@ -1,13 +1,12 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { cn, getConfigColor } from "@/lib/utils";
 import { SALE_STATUS_COLORS, SALE_PAYMENT_METHOD_COLORS } from "../../../constants";
-import { UserInfoCell } from "@/components";
+import { UserInfoCell, DateTimeCell } from "@/components";
 import {
     ActionsCell,
     SaleIdCell,
     StatusCell,
     PaymentMethodCell,
-    SaleDateCell,
     TotalAmountCell,
     CustomerCell
 } from "../cells";
@@ -25,7 +24,7 @@ export const columns: ColumnDef<ISaleDetails>[] = [
     {
         accessorKey: "saleDate",
         header: "Date & Time",
-        cell: ({ row }) => <SaleDateCell row={row} />,
+        cell: ({ row }) => <DateTimeCell date={row.original.saleDate} />,
         size: 130,
     },
     {

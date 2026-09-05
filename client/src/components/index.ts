@@ -13,6 +13,7 @@ export * from './QuantityInputFields';
 export * from './ProductPreview';
 export * from './UserIdentityRow';
 export * from './UserInfoCell';
+export * from './DateTimeCell';
 export * from './UserProfileDetails';
 export * from './ui/empty-state';
 export * from './common';

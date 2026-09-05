@@ -1,4 +1,3 @@
-export * from "./sale-date";
 export * from "./cells.types";
 export * from "./total-amount";
 export * from "./status";

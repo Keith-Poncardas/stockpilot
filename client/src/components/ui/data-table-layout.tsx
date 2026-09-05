@@ -15,6 +15,8 @@ interface DataTableLayoutProps<TData> {
     errorState?: React.ReactNode
     className?: string
     onRowClick?: (row: Row<TData>) => void
+    striped?: boolean
+    fixedHeight?: boolean
 }
 
 export function DataTableLayout<TData>({
@@ -26,10 +28,20 @@ export function DataTableLayout<TData>({
     errorState = <EmptyState title='Something went wrong' description="Failed to load data" icon={ServerCrash} />,
     className,
     onRowClick,
+    striped = true,
+    fixedHeight = true,
 }: DataTableLayoutProps<TData>) {
     return (
-        <div className={cn('bg-white rounded-2xl border border-[#E3E1DC] overflow-hidden', className)}>
-            {!error && !isEmpty && <DataTable table={table} isLoading={isLoading} onRowClick={onRowClick} />}
+        <div className={cn('bg-white dark:bg-zinc-950 rounded-2xl border border-[#E3E1DC] dark:border-zinc-800 overflow-hidden', className)}>
+            {!error && !isEmpty && (
+                <DataTable
+                    table={table}
+                    isLoading={isLoading}
+                    onRowClick={onRowClick}
+                    striped={striped}
+                    fixedHeight={fixedHeight}
+                />
+            )}
 
             {isEmpty && emptyState}
 

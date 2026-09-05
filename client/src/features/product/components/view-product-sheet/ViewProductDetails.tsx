@@ -1,12 +1,11 @@
 import { useQuery } from '@apollo/client';
-import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Box, DollarSign, PackageCheck, Layers, SquarePen, SlidersHorizontal } from 'lucide-react';
 
 import { MetricCard } from '@/components';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { handleGraphQLError, formatCurrency, formatNumber } from '@/lib/utils';
-import { PATHS } from '@/routes';
+import { useAdjustStockSheet } from '@/features/inventory';
 
 import { GET_PRODUCT } from '../../operations';
 import type { IProduct } from '../../types';
@@ -28,9 +27,9 @@ interface ViewProductDetailsProps {
 }
 
 export function ViewProductDetails({ productId }: ViewProductDetailsProps) {
-    const navigate = useNavigate();
     const { onOpen: onOpenEdit } = useEditProductSheet();
     const { onClose: onCloseView } = useViewProductSheet();
+    const { onOpen: onOpenAdjustStock } = useAdjustStockSheet();
 
     const { data, loading, error } = useQuery(GET_PRODUCT, {
         variables: { productId },
@@ -69,7 +68,7 @@ export function ViewProductDetails({ productId }: ViewProductDetailsProps) {
     const handleAdjustStock = () => {
         if (inventory?.id) {
             onCloseView();
-            navigate(PATHS.inventory.adjust(inventory.id));
+            onOpenAdjustStock(inventory.id);
         }
     };
 

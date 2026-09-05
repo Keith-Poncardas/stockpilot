@@ -215,7 +215,10 @@ When requested to refactor an existing feature (e.g., `product`, `customer`, `sa
    - Implement the new, clean version completely within this directory.
 2. **Reference Golden Standards**:
    - Always inspect and use already-refactored features (e.g., `client/src/features/customer/` and `client/src/features/sale/`, or `server/src/features/customer/`) as the reference benchmark for folder hierarchy, file contents, code organization, and naming.
-3. **Standard Frontend Feature Architecture**:
+3. **Convert View, Create, and Edit Pages to Sheets**:
+   - Whenever refactoring an existing feature, any standalone page views for `view`, `create`, or `edit` operations MUST be converted into dedicated sheets (e.g., `View<Feature>Sheet`, `Create<Feature>Sheet`, `Edit<Feature>Sheet`) utilizing `BaseSheetLayout` and Zustand modal stores (`useView<Feature>Sheet`, etc.).
+   - Mount these sheets globally in `client/src/App.tsx` and remove their standalone page route definitions from `App.tsx`.
+4. **Standard Frontend Feature Architecture**:
    - `components/`: Modular UI components broken down by responsibility. Encapsulate multi-step/complex components into dedicated subdirectories (e.g., `create-<feature>-sheet/`, `edit-<feature>-sheet/`, `view-<feature>-sheet/`, `<feature>-form/`, `common/`). Each subfolder should encapsulate its component files, local hooks in `hooks/`, and a local `index.ts`. Barrel-export all components via `components/index.ts`.
    - `constants/`: Feature-level constants, table column helper configs, status definitions, and static options (Never place TypeScript union types here; put them in `types/`).
    - `operations/`: GraphQL operation documents and queries/mutations (`op.queries.ts`, `op.mutations.ts`, and `index.ts`).
@@ -225,7 +228,7 @@ When requested to refactor an existing feature (e.g., `product`, `customer`, `sa
    - `utils/`: Reusable, pure utility functions, transformers, calculations, and formatters (`<feature>.utils.ts`, `index.ts`).
    - `validation/`: Zod validation schemas for forms and payload validations (`<feature>.validation.ts`, `index.ts`).
    - `index.ts`: Feature-level public API barrel export re-exporting all submodules.
-4. **Table Column & UI/UX Design Standards**:
+5. **Table Column & UI/UX Design Standards**:
    - **Modular Cell Components (No JSX Dumping in Columns)**:
      - Never dump bulky inline JSX or complex multi-line markup directly inside `column.cell: ({ row }) => (...)`.
      - Always extract distinct or multi-element cells into dedicated components within the feature's `pages/<page>/cells/<cell-name>/` folder (e.g., `ProductCell.tsx`, `ContactCell.tsx`, `PricingCell.tsx`, `StatusCell.tsx`, `ActionsCell.tsx`).
@@ -242,18 +245,18 @@ When requested to refactor an existing feature (e.g., `product`, `customer`, `sa
      - Display primary and secondary metrics together where helpful (e.g., Selling Price with sub-label, Cost Price with a calculated `% margin` pill).
    - **Interactive Status & Action Cells**:
      - Retain interactive popover status cells using `useOptimisticMutation` with `<FEATURE>_STATUS_LABELS` and `<FEATURE>_STATUS_COLORS`.
-5. **Standard Backend Feature Architecture**:
+6. **Standard Backend Feature Architecture**:
    - `<feature>.gql`: GraphQL Schema Definition for types, queries, and mutations.
    - `<feature>.resolver.ts`: Type-safe Apollo resolver functions mapping GraphQL operations to service logic.
    - `<feature>.service.ts`: Core business logic, Prisma ORM operations, and error handling.
    - `<feature>.validation.ts`: Zod schemas for backend request/argument validation.
    - `constants.ts` & `types.ts`: Feature constants and TypeScript types.
    - `index.ts`: Barrel export for the backend feature module.
-6. **Quality & Maintainability Standards**:
+7. **Quality & Maintainability Standards**:
    - **Type Safety**: Strictly typed TypeScript; no `any` or loose typings.
    - **Clean & Scalable Code**: Single-responsibility components, decoupled logic into custom hooks, clear separation of UI and business logic.
    - **Verification**: Run type checks (`npx --prefix client tsc -b --noEmit` / `npx --prefix server tsc --noEmit`) and verify clean compilation.
-7. **Immediate App Integration**:
+8. **Immediate App Integration**:
    - Right after completing and verifying the refactored feature, immediately update `client/src/App.tsx` and `client/src/features/index.ts` to mount any global feature sheets (`Create<Feature>Sheet`, `Edit<Feature>Sheet`, `View<Feature>Sheet`), update route definitions, and wire up the refactored feature.
 
 ### Forbidden
@@ -279,6 +282,7 @@ When the user corrects your approach, append a one-line rule here before ending 
 - Always design rich, standout table columns: include an image/thumbnail placeholder container with sub-badges (e.g., SKU/phone) in the primary entity column, and allow full word-wrapping (`break-words whitespace-normal`) for description columns instead of single-line truncation.
 - Always extract table column cell layouts into modular components under the feature's `cells/` directory instead of dumping inline JSX directly into `<feature>.columns.tsx`.
 - Always avoid component redundancy by actively inspecting, reusing, and adapting existing codebase components (e.g. domain table cells like `ProductCell`, `BundledItemsCell`) across features instead of inventing duplicate cells for the same entity display.
+- Always convert existing standalone page views for view, create, or edit operations into dedicated sheets (powered by `BaseSheetLayout` and Zustand modal stores) mounted globally in `client/src/App.tsx`, and remove their dedicated routes.
 
 ---
 
