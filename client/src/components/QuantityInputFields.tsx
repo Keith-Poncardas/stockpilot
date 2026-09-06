@@ -31,6 +31,10 @@ export interface QuantityInputFieldsProps<T extends FieldValues> {
      */
     quantityLabel?: string;
     /**
+     * Minimum allowed quantity for the quantity field (default: 0)
+     */
+    minQuantity?: number;
+    /**
      * Whether to show reorderLevel and maxStock fields when using defaults (defaults to true)
      */
     showInventoryBounds?: boolean;
@@ -44,6 +48,7 @@ export function QuantityInputFields<T extends FieldValues>({
     fields: customFields,
     names,
     quantityLabel = "Starting quantity",
+    minQuantity = 0,
     showInventoryBounds = true,
     size = "md",
     className = "flex flex-col md:flex-row gap-5",
@@ -53,7 +58,7 @@ export function QuantityInputFields<T extends FieldValues>({
     const maxName = names?.maxStock || ("maxStock" as Path<T>);
 
     const defaultFields: QuantityFieldConfig<T>[] = [
-        { name: qtyName, label: quantityLabel, min: 0 },
+        { name: qtyName, label: quantityLabel, min: minQuantity },
         ...(showInventoryBounds
             ? [
                 {

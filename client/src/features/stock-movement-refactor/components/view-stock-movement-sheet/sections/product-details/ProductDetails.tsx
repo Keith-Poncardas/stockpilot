@@ -7,11 +7,21 @@ import { StatusBadge } from '@/components/StatusBadge';
 import type { ProductDetailsProps } from './types';
 import { ProductDetailsLayout } from './ProductDetailsLayout';
 import { ProductDetailsSkeleton } from './ProductDetailsSkeleton';
-import { PATHS } from '@/routes';
+import { useViewStockMovementSheet } from '../../hooks';
+import { useViewProductSheet } from '@/features/product/components/view-product-sheet';
 
 export function ProductDetails({ movement }: ProductDetailsProps) {
     const { product } = movement;
     const [imageError, setImageError] = useState(false);
+    const { onClose: closeStockMovementSheet } = useViewStockMovementSheet();
+    const { onOpen: openProductSheet } = useViewProductSheet();
+
+    const handleViewProduct = () => {
+        if (product?.id) {
+            closeStockMovementSheet();
+            openProductSheet(product.id);
+        }
+    };
 
     const formattedUnitPrice = useMemo(() => formatCurrency(product.unitPrice), [product.unitPrice]);
 
@@ -30,10 +40,15 @@ export function ProductDetails({ movement }: ProductDetailsProps) {
             description="Details of the product affected by this movement."
             icon={<Package className="w-4.5 h-4.5" strokeWidth={2} />}
             iconWrapperClassName="bg-blue-50 text-blue-600"
-            link={{
-                to: PATHS.products.view(product.id),
-                linkText: 'View full product →'
-            }}
+            actions={
+                <button
+                    type="button"
+                    onClick={handleViewProduct}
+                    className="text-xs font-medium text-indigo-600 hover:text-indigo-500 transition-colors cursor-pointer"
+                >
+                    View full product →
+                </button>
+            }
         >
             <ProductDetailsLayout
                 identityRow={

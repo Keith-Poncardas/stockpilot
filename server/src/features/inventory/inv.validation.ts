@@ -85,10 +85,9 @@ export const adjustStockSchema = z.object({
  */
 export const inventorySchemaObject = z.object({
     quantityOnHand: z.coerce
-        .number()
+        .number({ message: "Starting quantity is required" })
         .int("Quantity must be a whole number")
-        .nonnegative("Starting quantity cannot be negative")
-        .default(0),
+        .min(1, "Starting quantity must be at least 1"),
 
     reorderLevel: z.coerce
         .number()

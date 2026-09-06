@@ -6,7 +6,7 @@ export const inventoryRecordSchema = z.object({
     quantityOnHand: z
         .number({ message: 'Starting quantity is required' })
         .int('Quantity must be a whole number')
-        .min(0, 'Starting quantity cannot be negative'),
+        .min(1, 'Starting quantity must be at least 1'),
     reorderLevel: z
         .number({ message: 'Reorder level is required' })
         .int('Reorder level must be a whole number')

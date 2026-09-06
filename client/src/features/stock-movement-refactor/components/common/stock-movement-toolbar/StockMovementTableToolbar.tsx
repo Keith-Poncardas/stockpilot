@@ -71,6 +71,7 @@ export const StockMovementTableToolbar = React.memo(function StockMovementTableT
                             onChange={opt.onChange}
                             options={opt.options}
                             defaultValue={opt.defaultValue}
+                            placeholder={opt.placeholder}
                             className={opt.className}
                         />
                     ))}

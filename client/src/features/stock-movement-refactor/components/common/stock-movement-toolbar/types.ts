@@ -6,6 +6,7 @@ export interface FilterOptionItem {
     onChange: (val: string) => void;
     options: { label: string; value: string }[];
     defaultValue?: string;
+    placeholder?: string;
     className?: string;
 }
 

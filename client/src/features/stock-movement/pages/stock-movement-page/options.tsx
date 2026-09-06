@@ -43,6 +43,8 @@ export const getFilterOptions = (
             value: filters.movementTypeFilter,
             onChange: (val: string) => setFilters(prev => ({ ...prev, movementTypeFilter: val })),
             options: movementTypeOptions,
+            defaultValue: "all",
+            placeholder: "All Movement Types",
             className: "w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
         },
         {
@@ -50,6 +52,7 @@ export const getFilterOptions = (
             onChange: (val: string) => setFilters(prev => ({ ...prev, orderByFilter: val })),
             options: orderByOptions,
             defaultValue: "createdAt",
+            placeholder: "Date Created",
             className: "w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200"
         },
         {
@@ -57,6 +60,7 @@ export const getFilterOptions = (
             onChange: (val: string) => setFilters(prev => ({ ...prev, orderDirectionFilter: val })),
             options: orderDirectionOptions,
             defaultValue: "desc",
+            placeholder: "Latest / Highest",
             className: "w-full h-8 text-xs lg:h-9 lg:text-sm border-slate-200 col-span-2"
         }
     ];

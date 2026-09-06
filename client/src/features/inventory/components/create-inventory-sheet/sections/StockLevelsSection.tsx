@@ -18,7 +18,7 @@ export function StockLevelsSection({ control }: StockLevelsSectionProps) {
             className="relative z-10"
         >
             <div className="mt-2">
-                <QuantityInputFields control={control} />
+                <QuantityInputFields control={control} minQuantity={1} />
             </div>
         </FormSection>
     );

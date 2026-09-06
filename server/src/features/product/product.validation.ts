@@ -15,7 +15,29 @@ import {
 import { ProductStatus, ProductType } from '@/generated/client.js';
 import z from "zod";
 import { refineProductSchema } from "./product.util";
-import { inventorySchemaObject } from "../inventory/inv.validation";
+
+/**
+ * Validation schema for product inventory settings during product create/update.
+ */
+export const productInventorySchema = z.object({
+    quantityOnHand: z.coerce
+        .number()
+        .int("Quantity must be a whole number")
+        .nonnegative("Quantity cannot be negative")
+        .default(0),
+
+    reorderLevel: z.coerce
+        .number()
+        .int("Reorder level must be a whole number")
+        .nonnegative("Reorder level cannot be negative")
+        .default(10),
+
+    maxStock: z.coerce
+        .number()
+        .int("Max stock must be a whole number")
+        .nonnegative("Max stock cannot be negative")
+        .default(100),
+});
 
 /**
  * Validates the status filter for product-related operations.
@@ -162,7 +184,7 @@ export const pricingTierInputSchema = z.object({
  */
 export const addProductSchema = z.object({
     product: baseProductSchemaObject,
-    inventory: inventorySchemaObject.optional().nullable(),
+    inventory: productInventorySchema.optional().nullable(),
     bundleItems: z.array(bundleItemInputSchema).optional().nullable(),
     pricingTiers: z.array(pricingTierInputSchema).optional().nullable(),
 }).refine(
@@ -189,7 +211,7 @@ export const addProductSchema = z.object({
 export const editProductSchema = z.object({
     productId: uuidSchema,
     product: baseProductSchemaObject,
-    inventory: inventorySchemaObject.optional().nullable(),
+    inventory: productInventorySchema.optional().nullable(),
     bundleItems: z.array(bundleItemInputSchema).optional().nullable(),
     pricingTiers: z.array(pricingTierInputSchema).optional().nullable(),
 }).refine(

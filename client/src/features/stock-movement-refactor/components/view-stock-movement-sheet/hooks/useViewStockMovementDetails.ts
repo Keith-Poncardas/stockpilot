@@ -1,14 +1,13 @@
 import { useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { useQuery } from "@apollo/client";
-import { PATHS } from "@/routes";
 import { GET_STOCK_MOVEMENT } from "@/features/stock-movement-refactor/operations";
 import { extractInventoryHealthData } from "@/features/stock-movement-refactor/utils";
+import { useViewProductSheet } from "@/features/product/components/view-product-sheet";
 import { useViewStockMovementSheet } from "./useViewStockMovementSheet";
 
 export function useViewStockMovementDetails(stockMovementId: string) {
-    const navigate = useNavigate();
-    const { onClose } = useViewStockMovementSheet();
+    const { onClose: closeStockMovementSheet } = useViewStockMovementSheet();
+    const { onOpen: openProductSheet } = useViewProductSheet();
 
     const { data, loading, error } = useQuery(GET_STOCK_MOVEMENT, {
         variables: { movementId: stockMovementId },
@@ -23,11 +22,12 @@ export function useViewStockMovementDetails(stockMovementId: string) {
     }, [inventoryStatus]);
 
     const handleViewProduct = useCallback(() => {
-        if (movement?.productId) {
-            onClose();
-            navigate(PATHS.products.view(movement.productId));
+        const productId = movement?.product?.id || movement?.productId;
+        if (productId) {
+            closeStockMovementSheet();
+            openProductSheet(productId);
         }
-    }, [navigate, movement, onClose]);
+    }, [movement, closeStockMovementSheet, openProductSheet]);
 
     return {
         movement,
